@@ -12,38 +12,45 @@ export default {
         main: "var(--font-onest)",
       },
       colors: {
-        // Somnia Brand Colors
-        somnia: {
-          cyan: "#22C7FF",      // Bright cyan
-          blue: "#007BFF",      // Light blue
-          violet: "#8C00FF",    // Violet
-          magenta: "#FF0080",   // Magenta
-          indigo: "#3C00A5",    // Dark indigo
+        // BSC/Binance Brand Colors
+        bsc: {
+          yellow: "#FFC107",    // Binance Yellow - Primary
+          gold: "#F7B600",      // Gold accent
+          blue: "#1F3A5F",      // Deep Blue
+          dark: "#0F1419",      // Dark Navy
+          light: "#FFFFFF",     // Light
+        },
+        // Prediction Market Colors
+        market: {
+          rise: "#10B981",      // Emerald Green - Bullish
+          fall: "#EF4444",      // Red - Bearish
+          neutral: "#8B5CF6",   // Purple - Balanced
+          hot: "#FF6B6B",       // Coral - Hot markets
         },
         // Dark Theme Design System
         bg: {
-          main: "#0A0A1A",          // Main background
-          card: "rgba(255, 255, 255, 0.03)",  // Card background with glassmorphism
-          overlay: "rgba(0, 0, 0, 0.5)",      // Modal/overlay background
+          main: "#0F1419",          // Main background
+          card: "rgba(31, 41, 55, 0.5)",  // Card background with glassmorphism
+          overlay: "rgba(0, 0, 0, 0.6)",      // Modal/overlay background
         },
         border: {
-          card: "rgba(255, 255, 255, 0.05)",  // Card borders
-          input: "rgba(255, 255, 255, 0.1)",  // Input borders
+          card: "rgba(255, 193, 7, 0.08)",  // Card borders
+          input: "rgba(255, 193, 7, 0.12)",  // Input borders
         },
         text: {
           primary: "#FFFFFF",       // Primary text (headers)
-          secondary: "#E4E4FA",     // Body text
-          muted: "#C2C2D6",        // Muted text
-          accent: "#22C7FF",       // Accent text
+          secondary: "#E5E7EB",     // Body text
+          muted: "#9CA3AF",        // Muted text
+          accent: "#FFC107",       // Accent text (Yellow)
         },
-        // Semantic colors using Somnia palette
-        primary: "#22C7FF",     // Somnia cyan as primary
-        secondary: "#FF0080",   // Somnia magenta as secondary
-        accent: "#8C00FF",      // Somnia violet as accent
-        success: "#00D9A5",
-        warning: "#FFB800",
-        error: "#FF4757",
-        // Legacy colors (keeping for backward compatibility during migration)
+        // Semantic colors using BSC + Market palette
+        primary: "#FFC107",     // BSC Yellow as primary
+        secondary: "#10B981",   // Market Rise/Green as secondary
+        accent: "#8B5CF6",      // Market Neutral as accent
+        success: "#10B981",
+        warning: "#F59E0B",
+        error: "#EF4444",
+        // Legacy colors (keeping for backward compatibility)
         dark: {
           1: "#161616",
           2: "#222222",
@@ -57,21 +64,21 @@ export default {
         },
       },
       backgroundImage: {
-        'gradient-main': 'radial-gradient(circle at top left, #0C0C23, #000015)',
-        'gradient-somnia': 'linear-gradient(135deg, #22C7FF 0%, #007BFF 25%, #8C00FF 50%, #FF0080 75%, #3C00A5 100%)',
-        'gradient-primary': 'linear-gradient(135deg, #22C7FF 0%, #007BFF 100%)',
-        'gradient-secondary': 'linear-gradient(135deg, #FF0080 0%, #8C00FF 100%)',
-        'gradient-accent': 'linear-gradient(135deg, #8C00FF 0%, #3C00A5 100%)',
-        'gradient-text': 'linear-gradient(135deg, #22C7FF 0%, #FF0080 100%)',
+        'gradient-main': 'linear-gradient(135deg, #0F1419 0%, #1F2937 50%, #111827 100%)',
+        'gradient-bsc': 'linear-gradient(135deg, #FFC107 0%, #F7B600 50%, #FFD54F 100%)',
+        'gradient-primary': 'linear-gradient(135deg, #FFC107 0%, #FFD54F 100%)',
+        'gradient-secondary': 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+        'gradient-market': 'linear-gradient(135deg, #FFC107 0%, #10B981 50%, #8B5CF6 100%)',
+        'gradient-text': 'linear-gradient(135deg, #FFC107 0%, #10B981 100%)',
       },
       boxShadow: {
-        'glow-cyan': '0 0 20px rgba(34, 199, 255, 0.3)',
-        'glow-magenta': '0 0 20px rgba(255, 0, 128, 0.3)',
-        'glow-violet': '0 0 20px rgba(140, 0, 255, 0.3)',
-        'card': '0 8px 32px rgba(0, 0, 0, 0.3)',
-        'card-hover': '0 12px 40px rgba(0, 0, 0, 0.4)',
-        'button': '0 4px 16px rgba(34, 199, 255, 0.2)',
-        'button-hover': '0 6px 20px rgba(34, 199, 255, 0.4)',
+        'glow-yellow': '0 0 20px rgba(255, 193, 7, 0.25)',
+        'glow-green': '0 0 20px rgba(16, 185, 129, 0.25)',
+        'glow-purple': '0 0 20px rgba(139, 92, 246, 0.25)',
+        'card': '0 8px 32px rgba(0, 0, 0, 0.2)',
+        'card-hover': '0 12px 40px rgba(255, 193, 7, 0.15)',
+        'button': '0 4px 16px rgba(255, 193, 7, 0.25)',
+        'button-hover': '0 8px 24px rgba(255, 193, 7, 0.4)',
       },
       backdropBlur: {
         'xs': '2px',
@@ -79,36 +86,37 @@ export default {
         'modal': '16px',
       },
       animation: {
-        'gradient-flow': 'gradient-flow 3s ease infinite',
+        'gradient-flow': 'gradient-flow 4s ease infinite',
         'float': 'float 6s ease-in-out infinite',
         'pulse-glow': 'pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'shimmer': 'shimmer 2s linear infinite',
-        'color-cycle': 'color-cycle 10s linear infinite',
+        'color-cycle': 'color-cycle 8s linear infinite',
         'logo-cycle': 'logo-cycle 6s ease-in-out infinite',
-        'somnia-color-cycle': 'somnia-color-cycle 8s linear infinite',
+        'market-pulse': 'market-pulse 2s ease-in-out infinite',
       },
               keyframes: {
           'logo-cycle': {
             '0%': { 
-              filter: 'hue-rotate(0deg) brightness(1) saturate(1.2)',
+              filter: 'brightness(1) saturate(1)',
               transform: 'scale(1)'
             },
-            '33%': { 
-              filter: 'hue-rotate(120deg) brightness(1.1) saturate(1.4)',
-              transform: 'scale(1.05)'
-            },
-            '66%': { 
-              filter: 'hue-rotate(240deg) brightness(1.2) saturate(1.3)',
+            '50%': { 
+              filter: 'brightness(1.1) saturate(1.1)',
               transform: 'scale(1.02)'
             },
             '100%': { 
-              filter: 'hue-rotate(360deg) brightness(1) saturate(1.2)',
+              filter: 'brightness(1) saturate(1)',
               transform: 'scale(1)'
             },
           },
           'color-cycle': {
             '0%': { filter: 'hue-rotate(0deg)' },
             '100%': { filter: 'hue-rotate(360deg)' },
+          },
+          'market-pulse': {
+            '0%': { boxShadow: '0 0 0 0 rgba(255, 193, 7, 0.7)' },
+            '70%': { boxShadow: '0 0 0 10px rgba(255, 193, 7, 0)' },
+            '100%': { boxShadow: '0 0 0 0 rgba(255, 193, 7, 0)' },
           },
         'gradient-flow': {
           '0%, 100%': {

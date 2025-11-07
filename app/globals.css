@@ -2,47 +2,54 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Dark Theme Design System - CSS Custom Properties */
+/* Dark Theme Design System - BSC/Binance + Prediction Markets */
 :root {
-  /* Background Colors */
-  --bg-main: #0A0A1A;
-  --bg-card: rgba(22, 24, 48, 0.6);
-  --bg-overlay: rgba(0, 0, 0, 0.5);
+  /* Background Colors - Professional Deep Blues */
+  --bg-main: #0F1419;
+  --bg-card: rgba(31, 41, 55, 0.5);
+  --bg-overlay: rgba(0, 0, 0, 0.6);
   
   /* Border Colors */
-  --border-card: rgba(255, 255, 255, 0.1);
-  --border-input: rgba(255, 255, 255, 0.1);
+  --border-card: rgba(255, 193, 7, 0.08);
+  --border-input: rgba(255, 193, 7, 0.12);
   
   /* Text Colors */
   --text-primary: #FFFFFF;
-  --text-secondary: #E4E4FA;
-  --text-muted: #C2C2D6;
-  --text-accent: #22C7FF;
+  --text-secondary: #E5E7EB;
+  --text-muted: #9CA3AF;
+  --text-accent: #FFC107;
   
-  /* Somnia Brand Colors */
-  --somnia-cyan: #22C7FF;
-  --somnia-blue: #007BFF;
-  --somnia-violet: #8C00FF;
-  --somnia-magenta: #FF0080;
-  --somnia-indigo: #3C00A5;
+  /* BSC/Binance Brand Colors */
+  --bsc-yellow: #FFC107;      /* Binance Yellow - Primary */
+  --bsc-gold: #F7B600;        /* Gold accent */
+  --bsc-blue: #1F3A5F;        /* Deep Blue */
+  --bsc-dark: #0F1419;        /* Dark Navy */
+  --bsc-light: #FFFFFF;       /* Light */
+  
+  /* Prediction Market Unique Colors */
+  --market-rise: #10B981;     /* Emerald Green - Bullish/Rise */
+  --market-fall: #EF4444;     /* Red - Bearish/Fall */
+  --market-neutral: #8B5CF6;  /* Purple - Neutral/Balanced */
+  --market-hot: #FF6B6B;      /* Coral Red - Hot markets */
   
   /* Semantic Colors */
-  --color-accent: #22C7FF;
-  --color-accent-2: #FF0080;
-  --color-success: #00D9A5;
-  --color-warning: #FFB800;
-  --color-error: #FF4757;
+  --color-accent: #FFC107;
+  --color-accent-2: #10B981;
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-error: #EF4444;
   
   /* Alias for easier access */
-  --primary: var(--color-accent);
-  --secondary: var(--color-accent-2);
-  --accent: var(--somnia-violet);
+  --primary: var(--bsc-yellow);
+  --secondary: var(--market-rise);
+  --accent: var(--market-neutral);
   
   /* Gradients */
-  --gradient-main: radial-gradient(circle at top left, #0C0C23, #000015);
-  --gradient-somnia: linear-gradient(135deg, var(--somnia-cyan) 0%, var(--somnia-blue) 25%, var(--somnia-violet) 50%, var(--somnia-magenta) 75%, var(--somnia-indigo) 100%);
-  --gradient-primary: linear-gradient(135deg, var(--somnia-cyan) 0%, var(--somnia-blue) 100%);
-  --gradient-secondary: linear-gradient(135deg, var(--somnia-magenta) 0%, var(--somnia-violet) 100%);
+  --gradient-main: linear-gradient(135deg, #0F1419 0%, #1F2937 50%, #111827 100%);
+  --gradient-bsc: linear-gradient(135deg, #FFC107 0%, #F7B600 50%, #FFD54F 100%);
+  --gradient-primary: linear-gradient(135deg, #FFC107 0%, #FFD54F 100%);
+  --gradient-secondary: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  --gradient-market: linear-gradient(135deg, #FFC107 0%, #10B981 50%, #8B5CF6 100%);
   
   /* Spacing */
   --section-padding: clamp(2rem, 5vw, 4rem);
@@ -94,21 +101,21 @@ body {
     @apply py-16 sm:py-20 lg:py-24;
   }
 
-  /* Glassmorphism Card */
+  /* Glassmorphism Card - BSC Professional */
   .glass-card {
-    background: rgba(17, 24, 39, 0.95);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(31, 41, 55, 0.7);
+    border: 1px solid rgba(255, 193, 7, 0.1);
     backdrop-filter: blur(12px);
     border-radius: 16px;
     padding: 24px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
     transition: all 0.3s ease;
   }
 
   .glass-card:hover {
-    background: rgba(17, 24, 39, 0.98);
-    border-color: rgba(255, 255, 255, 0.15);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    background: rgba(31, 41, 55, 0.85);
+    border-color: rgba(255, 193, 7, 0.2);
+    box-shadow: 0 12px 40px rgba(255, 193, 7, 0.15);
     transform: translateY(-2px);
   }
 
@@ -118,29 +125,29 @@ body {
   }
 
   .btn-primary {
-    background: var(--color-accent);
+    background: linear-gradient(135deg, #FFC107 0%, #FFD54F 100%);
     color: #000;
-    box-shadow: 0 4px 16px rgba(34, 199, 255, 0.2);
+    box-shadow: 0 4px 16px rgba(255, 193, 7, 0.25);
     font-weight: 600;
   }
 
   .btn-primary:hover {
-    filter: brightness(1.1);
+    filter: brightness(1.15) saturate(1.1);
     transform: scale(1.02);
-    box-shadow: 0 6px 20px rgba(34, 199, 255, 0.4);
+    box-shadow: 0 8px 24px rgba(255, 193, 7, 0.4);
   }
 
   .btn-secondary {
-    background: var(--color-accent-2);
+    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
     color: #fff;
-    box-shadow: 0 4px 16px rgba(255, 0, 128, 0.2);
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.25);
     font-weight: 600;
   }
 
   .btn-secondary:hover {
     filter: brightness(1.1);
     transform: scale(1.02);
-    box-shadow: 0 6px 20px rgba(255, 0, 128, 0.4);
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.35);
   }
 
   .btn-outline {
@@ -164,20 +171,20 @@ body {
     color: var(--text-primary);
   }
 
-  /* Gradient Text */
+  /* Gradient Text - Market Dynamics */
   .gradient-text {
-    background: var(--gradient-somnia);
+    background: var(--gradient-market);
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-size: 200% 200%;
-    animation: gradient-flow 3s ease infinite;
+    animation: gradient-flow 4s ease infinite;
   }
 
-  /* Navigation Header */
+  /* Navigation Header - Professional BSC */
   .nav-glass {
-    background: rgba(10, 10, 26, 0.8);
-    border-bottom: 1px solid var(--border-card);
+    background: rgba(15, 20, 25, 0.95);
+    border-bottom: 1px solid rgba(255, 193, 7, 0.08);
     backdrop-filter: blur(16px);
   }
 
@@ -320,38 +327,38 @@ body {
     }
   }
 
-  /* Glow Effects */
-  .glow-cyan {
-    box-shadow: 0 0 20px rgba(34, 199, 255, 0.3);
+  /* Glow Effects - Market Colors */
+  .glow-yellow {
+    box-shadow: 0 0 20px rgba(255, 193, 7, 0.25);
   }
 
-  .glow-magenta {
-    box-shadow: 0 0 20px rgba(255, 0, 128, 0.3);
+  .glow-green {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.25);
   }
 
-  .glow-violet {
-    box-shadow: 0 0 20px rgba(140, 0, 255, 0.3);
+  .glow-purple {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.25);
   }
 
-  /* Somnia Color Utilities */
-  .text-somnia-cyan { color: var(--somnia-cyan); }
-  .text-somnia-blue { color: var(--somnia-blue); }
-  .text-somnia-violet { color: var(--somnia-violet); }
-  .text-somnia-magenta { color: var(--somnia-magenta); }
-  .text-somnia-indigo { color: var(--somnia-indigo); }
+  /* BSC/Market Color Utilities */
+  .text-bsc-yellow { color: var(--bsc-yellow); }
+  .text-market-rise { color: var(--market-rise); }
+  .text-market-fall { color: var(--market-fall); }
+  .text-market-neutral { color: var(--market-neutral); }
+  .text-market-hot { color: var(--market-hot); }
   
-  .bg-somnia-cyan { background-color: var(--somnia-cyan); }
-  .bg-somnia-blue { background-color: var(--somnia-blue); }
-  .bg-somnia-violet { background-color: var(--somnia-violet); }
-  .bg-somnia-magenta { background-color: var(--somnia-magenta); }
-  .bg-somnia-indigo { background-color: var(--somnia-indigo); }
+  .bg-bsc-yellow { background-color: var(--bsc-yellow); }
+  .bg-market-rise { background-color: var(--market-rise); }
+  .bg-market-fall { background-color: var(--market-fall); }
+  .bg-market-neutral { background-color: var(--market-neutral); }
+  .bg-market-hot { background-color: var(--market-hot); }
   
-  .from-somnia-cyan { --tw-gradient-from: var(--somnia-cyan); }
-  .to-somnia-blue { --tw-gradient-to: var(--somnia-blue); }
-  .from-somnia-magenta { --tw-gradient-from: var(--somnia-magenta); }
-  .to-somnia-violet { --tw-gradient-to: var(--somnia-violet); }
-  .from-somnia-blue { --tw-gradient-from: var(--somnia-blue); }
-  .to-somnia-indigo { --tw-gradient-to: var(--somnia-indigo); }
+  .from-bsc-yellow { --tw-gradient-from: var(--bsc-yellow); }
+  .to-market-rise { --tw-gradient-to: var(--market-rise); }
+  .from-market-rise { --tw-gradient-from: var(--market-rise); }
+  .to-market-neutral { --tw-gradient-to: var(--market-neutral); }
+  .from-market-neutral { --tw-gradient-from: var(--market-neutral); }
+  .to-market-fall { --tw-gradient-to: var(--market-fall); }
 
   /* Animated Gradient Borders */
   .gradient-border {
@@ -508,33 +515,33 @@ body {
   50% { background-position: 100% 50%; }
 }
 
-/* Reown AppKit Custom Styling */
+/* Reown AppKit Custom Styling - BSC Theme */
 w3m-modal,
 w3m-network-button,
 w3m-connect-button,
 w3m-account-button {
   --w3m-font-family: var(--font-onest), system-ui, sans-serif !important;
-  --w3m-accent: #22C7FF !important;
-  --w3m-color-mix: #22C7FF !important;
+  --w3m-accent: #FFC107 !important;
+  --w3m-color-mix: #FFC107 !important;
   --w3m-color-mix-strength: 20 !important;
   --w3m-border-radius-master: 12px !important;
   
-  /* Background colors to match Somnia design */
-  --w3m-background-color: #0A0A1A !important;
-  --w3m-foreground-color: rgba(22, 24, 48, 0.95) !important;
+  /* Background colors to match BSC design */
+  --w3m-background-color: #0F1419 !important;
+  --w3m-foreground-color: rgba(31, 41, 55, 0.95) !important;
   
   /* Text colors */
   --w3m-text-primary-color: #FFFFFF !important;
-  --w3m-text-secondary-color: #C2C2D6 !important;
-  --w3m-text-tertiary-color: #8A8AA8 !important;
+  --w3m-text-secondary-color: #E5E7EB !important;
+  --w3m-text-tertiary-color: #9CA3AF !important;
   
   /* Button colors */
-  --w3m-button-primary-color: #22C7FF !important;
+  --w3m-button-primary-color: #FFC107 !important;
   --w3m-button-secondary-color: rgba(255, 255, 255, 0.05) !important;
   
   /* Border colors */
-  --w3m-border-color: rgba(255, 255, 255, 0.1) !important;
-  --w3m-overlay-background-color: rgba(0, 0, 0, 0.8) !important;
+  --w3m-border-color: rgba(255, 193, 7, 0.1) !important;
+  --w3m-overlay-background-color: rgba(0, 0, 0, 0.85) !important;
 }
 
 /* Ensure AppKit buttons are compact and minimal */
@@ -547,31 +554,31 @@ w3m-network-button {
   font-weight: 500 !important;
 }
 
-/* Custom styling for wallet modal */
+/* Custom styling for wallet modal - BSC */
 w3m-modal::part(modal) {
   backdrop-filter: blur(20px) !important;
-  background: rgba(10, 10, 26, 0.95) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background: rgba(15, 20, 25, 0.95) !important;
+  border: 1px solid rgba(255, 193, 7, 0.12) !important;
   border-radius: 16px !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(255, 193, 7, 0.1) !important;
 }
 
 w3m-modal::part(overlay) {
-  background: rgba(0, 0, 0, 0.8) !important;
+  background: rgba(0, 0, 0, 0.85) !important;
   backdrop-filter: blur(8px) !important;
 }
 
 /* Style wallet buttons in the modal */
 w3m-modal .w3m-wallet-button {
-  background: rgba(255, 255, 255, 0.05) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background: rgba(255, 193, 7, 0.05) !important;
+  border: 1px solid rgba(255, 193, 7, 0.15) !important;
   border-radius: 12px !important;
   transition: all 0.2s ease !important;
 }
 
 w3m-modal .w3m-wallet-button:hover {
-  background: rgba(255, 255, 255, 0.08) !important;
-  border-color: rgba(34, 199, 255, 0.3) !important;
+  background: rgba(255, 193, 7, 0.1) !important;
+  border-color: rgba(255, 193, 7, 0.3) !important;
   transform: translateY(-1px) !important;
 }
 
@@ -581,7 +588,7 @@ w3m-modal {
 }
 
 .nav-glass {
-  background-color: rgba(10, 10, 26, 0.8);
+  background-color: rgba(15, 20, 25, 0.95);
 }
 
 /* Ensure dropdowns appear above all content */
