@@ -19,7 +19,7 @@ export async function GET(
       );
     }
 
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://bitredict-backend.fly.dev';
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://prixedict-backend.fly.dev';
     const url = new URL(`${backendUrl}/api/pool-analytics/${poolId}/potential-winnings`);
     url.searchParams.append('stake', stake);
     url.searchParams.append('odds', odds);

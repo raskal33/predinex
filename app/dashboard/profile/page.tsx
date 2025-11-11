@@ -15,7 +15,7 @@ export default function Page() {
   const stats = {
     totalBets: profile?.stats?.totalBets || 0,
     winRate: profile?.computedStats?.winRateFormatted || "0%",
-    profitLoss: profile?.computedStats?.profitLossFormatted || "0 STT",
+    profitLoss: profile?.computedStats?.profitLossFormatted || "0 BNB",
     totalBadges: badgeData?.active?.length || 0
   };
 

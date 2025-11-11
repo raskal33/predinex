@@ -5,7 +5,7 @@ const path = require('path');
 // Configuration
 const RPC_URL = 'https://dream-rpc.somnia.network/';
 const FAUCET_ADDRESS = '0x1656712131BB07dDE6EeC7D88757Db24782cab71';
-const BITR_TOKEN_ADDRESS = '0x4b10fBFFDEE97C42E29899F47A2ECD30a38dBf2C';
+const PRIX_TOKEN_ADDRESS = '0x4b10fBFFDEE97C42E29899F47A2ECD30a38dBf2C';
 
 // Load environment variables
 function loadEnvVars() {
@@ -33,10 +33,10 @@ function checkFrontendConfig() {
   
   console.log('📋 Environment Variables:');
   console.log(`   NEXT_PUBLIC_FAUCET_ADDRESS: ${env.NEXT_PUBLIC_FAUCET_ADDRESS || '❌ NOT SET'}`);
-  console.log(`   NEXT_PUBLIC_BITR_TOKEN_ADDRESS: ${env.NEXT_PUBLIC_BITR_TOKEN_ADDRESS || '❌ NOT SET'}`);
+  console.log(`   NEXT_PUBLIC_PRIX_TOKEN_ADDRESS: ${env.NEXT_PUBLIC_PRIX_TOKEN_ADDRESS || '❌ NOT SET'}`);
   console.log(`   NEXT_PUBLIC_GUIDED_ORACLE_ADDRESS: ${env.NEXT_PUBLIC_GUIDED_ORACLE_ADDRESS || '❌ NOT SET'}`);
-  console.log(`   NEXT_PUBLIC_BITREDICT_POOL_ADDRESS: ${env.NEXT_PUBLIC_BITREDICT_POOL_ADDRESS || '❌ NOT SET'}`);
-  console.log(`   NEXT_PUBLIC_BITREDICT_STAKING_ADDRESS: ${env.NEXT_PUBLIC_BITREDICT_STAKING_ADDRESS || '❌ NOT SET'}`);
+  console.log(`   NEXT_PUBLIC_PRIXEDICT_POOL_ADDRESS: ${env.NEXT_PUBLIC_PRIXEDICT_POOL_ADDRESS || '❌ NOT SET'}`);
+  console.log(`   NEXT_PUBLIC_PRIXEDICT_STAKING_ADDRESS: ${env.NEXT_PUBLIC_PRIXEDICT_STAKING_ADDRESS || '❌ NOT SET'}`);
   console.log(`   NEXT_PUBLIC_ODDYSSEY_ADDRESS: ${env.NEXT_PUBLIC_ODDYSSEY_ADDRESS || '❌ NOT SET'}`);
   
   // Check if addresses match deployment
@@ -44,8 +44,8 @@ function checkFrontendConfig() {
   if (env.NEXT_PUBLIC_FAUCET_ADDRESS !== FAUCET_ADDRESS) {
     addressIssues.push(`   ❌ Faucet address mismatch: ${env.NEXT_PUBLIC_FAUCET_ADDRESS} vs ${FAUCET_ADDRESS}`);
   }
-  if (env.NEXT_PUBLIC_BITR_TOKEN_ADDRESS !== BITR_TOKEN_ADDRESS) {
-    addressIssues.push(`   ❌ BITR token address mismatch: ${env.NEXT_PUBLIC_BITR_TOKEN_ADDRESS} vs ${BITR_TOKEN_ADDRESS}`);
+  if (env.NEXT_PUBLIC_PRIX_TOKEN_ADDRESS !== PRIX_TOKEN_ADDRESS) {
+    addressIssues.push(`   ❌ PRIX token address mismatch: ${env.NEXT_PUBLIC_PRIX_TOKEN_ADDRESS} vs ${PRIX_TOKEN_ADDRESS}`);
   }
   
   if (addressIssues.length > 0) {
@@ -63,8 +63,8 @@ function checkContractFiles() {
   console.log('\n📁 Contract Files Check:\n');
   
   const filesToCheck = [
-    'contracts/abis/BitrFaucet.json',
-    'contracts/abis/BitredictToken.json',
+    'contracts/abis/PrixFaucet.json',
+    'contracts/abis/PrixedictToken.json',
     'contracts/index.ts',
     'config/wagmi.ts',
     'hooks/useFaucet.ts'
@@ -81,7 +81,7 @@ function checkContractFiles() {
   
   // Check ABI structure
   try {
-    const faucetABI = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'contracts/abis/BitrFaucet.json'), 'utf8'));
+    const faucetABI = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'contracts/abis/PrixFaucet.json'), 'utf8'));
     const hasGetFaucetStats = faucetABI.abi.some(func => func.name === 'getFaucetStats');
     const hasFaucetActive = faucetABI.abi.some(func => func.name === 'faucetActive');
     
@@ -158,8 +158,8 @@ async function testContractCalls(provider) {
     console.log('🔍 Testing getFaucetStats...');
     const stats = await faucet.getFaucetStats();
     console.log(`   ✅ getFaucetStats successful`);
-    console.log(`   📊 Balance: ${ethers.formatEther(stats[0])} BITR`);
-    console.log(`   📊 Total Distributed: ${ethers.formatEther(stats[1])} BITR`);
+    console.log(`   📊 Balance: ${ethers.formatEther(stats[0])} PRIX`);
+    console.log(`   📊 Total Distributed: ${ethers.formatEther(stats[1])} PRIX`);
     console.log(`   📊 User Count: ${stats[2].toString()}`);
     console.log(`   📊 Active: ${stats[3] ? '✅ YES' : '❌ NO'}`);
     
@@ -194,8 +194,8 @@ function simulateFrontendHook(stats, isActive) {
   };
   
   console.log('📊 Simulated FaucetStats:');
-  console.log(`   Balance: ${ethers.formatEther(faucetStats.balance)} BITR`);
-  console.log(`   Total Distributed: ${ethers.formatEther(faucetStats.totalDistributed)} BITR`);
+  console.log(`   Balance: ${ethers.formatEther(faucetStats.balance)} PRIX`);
+  console.log(`   Total Distributed: ${ethers.formatEther(faucetStats.totalDistributed)} PRIX`);
   console.log(`   User Count: ${faucetStats.userCount.toString()}`);
   console.log(`   Active: ${faucetStats.active ? '✅ YES' : '❌ NO'}`);
   
@@ -222,7 +222,7 @@ function simulateFrontendHook(stats, isActive) {
     console.log('   💡 SOLUTION: Call setFaucetActive(true) from owner account');
   } else if (!hasSufficientBalance) {
     console.log('   ❌ ROOT CAUSE: Faucet has insufficient balance');
-    console.log('   💡 SOLUTION: Transfer more BITR tokens to faucet');
+    console.log('   💡 SOLUTION: Transfer more PRIX tokens to faucet');
   } else {
     console.log('   ✅ Faucet should work correctly');
     console.log('   💡 Frontend issue might be RPC connectivity or data loading');
@@ -260,7 +260,7 @@ debugFaucetFrontend()
   .then(() => {
     console.log('\n📋 Next Steps:');
     console.log('   1. If faucet is inactive: Call setFaucetActive(true)');
-    console.log('   2. If insufficient balance: Transfer more BITR tokens');
+    console.log('   2. If insufficient balance: Transfer more PRIX tokens');
     console.log('   3. If RPC issues: Check network connectivity');
     console.log('   4. If frontend issues: Check browser console for errors');
     process.exit(0);

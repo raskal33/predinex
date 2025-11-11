@@ -40,7 +40,7 @@ const PriceTrendCharData = {
   labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug"],
   datasets: [
     {
-      label: "BITR Price",
+      label: "PRIX Price",
       data: [0.45, 0.52, 0.48, 0.60, 0.55, 0.65, 0.70, 0.75],
       backgroundColor: "rgba(34, 199, 255, 0.1)",
       borderColor: tailwindConfig.theme.extend.colors.primary,

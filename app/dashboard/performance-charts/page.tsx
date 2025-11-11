@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { useAccount } from "wagmi";
 import { useUserPerformance } from "@/hooks/useAnalytics";
 import { useMyProfile } from "@/hooks/useUserProfile";
-import { formatSTT, formatPercentage } from "@/utils/formatters";
+import { formatBNB, formatPercentage } from "@/utils/formatters";
 import {
   ChartBarIcon,
   TrophyIcon,
@@ -116,7 +116,7 @@ export default function Page() {
           },
           {
             title: "Total Volume",
-            value: formatSTT(combined.totalVolume),
+            value: formatBNB(combined.totalVolume),
             subtitle: "Across All Activities",
             icon: <BanknotesIcon className="h-6 w-6" />,
             color: "text-green-400",
@@ -189,7 +189,7 @@ export default function Page() {
               <div className="text-sm text-text-muted">Active</div>
             </div>
             <div className="glass-card p-4">
-              <div className="text-2xl font-bold text-text-primary mb-1">{formatSTT(creator.avgPoolSize)}</div>
+              <div className="text-2xl font-bold text-text-primary mb-1">{formatBNB(creator.avgPoolSize)}</div>
               <div className="text-sm text-text-muted">Avg Size</div>
             </div>
           </div>
@@ -217,11 +217,11 @@ export default function Page() {
               <div className="text-sm text-text-muted">Total Bets</div>
             </div>
             <div className="glass-card p-4">
-              <div className="text-2xl font-bold text-text-primary mb-1">{formatSTT(bettor.totalStaked)}</div>
+              <div className="text-2xl font-bold text-text-primary mb-1">{formatBNB(bettor.totalStaked)}</div>
               <div className="text-sm text-text-muted">Total Staked</div>
             </div>
             <div className="glass-card p-4">
-              <div className="text-2xl font-bold text-text-primary mb-1">{formatSTT(bettor.avgBetSize)}</div>
+              <div className="text-2xl font-bold text-text-primary mb-1">{formatBNB(bettor.avgBetSize)}</div>
               <div className="text-sm text-text-muted">Avg Bet Size</div>
             </div>
           </div>
@@ -258,7 +258,7 @@ export default function Page() {
             </div>
             <div className="glass-card p-4">
               <div className={`text-2xl font-bold mb-1 ${oddyssey.profitLoss >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                {oddyssey.profitLoss >= 0 ? '+' : ''}{formatSTT(oddyssey.profitLoss)}
+                {oddyssey.profitLoss >= 0 ? '+' : ''}{formatBNB(oddyssey.profitLoss)}
               </div>
               <div className="text-sm text-text-muted">Profit/Loss</div>
             </div>
@@ -286,7 +286,7 @@ export default function Page() {
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-text-primary">{cat.category}</span>
                     <div className="text-right">
-                      <div className="text-sm font-bold text-text-primary">{formatSTT(cat.volume)}</div>
+                      <div className="text-sm font-bold text-text-primary">{formatBNB(cat.volume)}</div>
                       <div className="text-xs text-text-muted">{cat.bets} bets</div>
                     </div>
                   </div>
@@ -325,7 +325,7 @@ export default function Page() {
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-text-primary">{month.month}</span>
                     <div className="text-right">
-                      <div className="text-sm font-bold text-text-primary">{formatSTT(month.volume)}</div>
+                      <div className="text-sm font-bold text-text-primary">{formatBNB(month.volume)}</div>
                       <div className="text-xs text-text-muted">{month.bets} bets</div>
                     </div>
                   </div>

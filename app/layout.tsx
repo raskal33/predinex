@@ -13,12 +13,12 @@ const onest = Onest({
 });
 
 export const metadata: Metadata = {
-  title: "BitRedict",
+  title: "Predinex",
   description: "Decentralized prediction market on Somnia",
   keywords: ["prediction market", "blockchain", "somnia", "defi", "betting", "crypto"],
-  authors: [{ name: "BitRedict Team" }],
-  creator: "BitRedict",
-  publisher: "BitRedict",
+  authors: [{ name: "Predinex Team" }],
+  creator: "Predinex",
+  publisher: "Predinex",
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
@@ -29,18 +29,18 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL('https://bitredict.vercel.app'),
+  metadataBase: new URL('https://prixedict.vercel.app'),
   openGraph: {
-    title: "BitRedict - Decentralized Prediction Markets",
+    title: "Predinex - Decentralized Prediction Markets",
     description: "Trade on real-world outcomes with transparent, blockchain-powered markets on Somnia Network",
-    url: "https://bitredict.vercel.app",
-    siteName: "BitRedict",
+    url: "https://prixedict.vercel.app",
+    siteName: "Predinex",
     images: [
       {
         url: "/logo.png",
         width: 1200,
         height: 630,
-        alt: "BitRedict - Prediction Markets",
+        alt: "Predinex - Prediction Markets",
       },
     ],
     locale: "en_US",
@@ -48,9 +48,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "BitRedict - Decentralized Prediction Markets",
+    title: "Predinex - Decentralized Prediction Markets",
     description: "Trade on real-world outcomes with transparent, blockchain-powered markets",
-    creator: "@bitredict",
+    creator: "@prixedict",
     images: ["/logo.png"],
   },
 };

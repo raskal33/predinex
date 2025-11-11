@@ -16,9 +16,9 @@ export interface Stake {
   startTime: bigint;
   tierId: number;
   durationOption: number;
-  claimedRewardBITR: bigint;
-  rewardDebtBITR: bigint;
-  rewardDebtSTT: bigint;
+  claimedRewardPRIX: bigint;
+  rewardDebtPRIX: bigint;
+  rewardDebtBNB: bigint;
 }
 
 export interface StakeWithRewards extends Stake {
@@ -49,49 +49,49 @@ export function useStaking() {
 
   // Read contract data
   const { data: totalStaked, refetch: refetchTotalStaked } = useReadContract({
-    ...CONTRACTS.BITREDICT_STAKING,
+    ...CONTRACTS.PRIXEDICT_STAKING,
     functionName: 'totalStaked',
   });
 
   const { data: totalRewardsPaid } = useReadContract({
-    ...CONTRACTS.BITREDICT_STAKING,
+    ...CONTRACTS.PRIXEDICT_STAKING,
     functionName: 'totalRewardsPaid',
   });
 
   const { data: totalRevenuePaid } = useReadContract({
-    ...CONTRACTS.BITREDICT_STAKING,
+    ...CONTRACTS.PRIXEDICT_STAKING,
     functionName: 'totalRevenuePaid',
   });
 
   const { data: tiers, refetch: refetchTiers } = useReadContract({
-    ...CONTRACTS.BITREDICT_STAKING,
+    ...CONTRACTS.PRIXEDICT_STAKING,
     functionName: 'getTiers',
   });
 
   const { data: durationOptions } = useReadContract({
-    ...CONTRACTS.BITREDICT_STAKING,
+    ...CONTRACTS.PRIXEDICT_STAKING,
     functionName: 'getDurationOptions',
   });
 
   // Duration options loaded
 
   const { data: userStakes, refetch: refetchUserStakes } = useReadContract({
-    ...CONTRACTS.BITREDICT_STAKING,
+    ...CONTRACTS.PRIXEDICT_STAKING,
     functionName: 'getUserStakes',
     args: address ? [address] : undefined,
     query: { enabled: !!address }
   });
 
-  const { data: pendingRevenueBITR, refetch: refetchRevenueBITR } = useReadContract({
-    ...CONTRACTS.BITREDICT_STAKING,
-    functionName: 'pendingRevenueBITR',
+  const { data: pendingRevenuePRIX, refetch: refetchRevenuePRIX } = useReadContract({
+    ...CONTRACTS.PRIXEDICT_STAKING,
+    functionName: 'pendingRevenuePRIX',
     args: address ? [address] : undefined,
     query: { enabled: !!address, refetchInterval: 30000 } // ✅ FIX: Add polling for revenue share
   });
 
-  const { data: pendingRevenueSTT, refetch: refetchRevenueSTT } = useReadContract({
-    ...CONTRACTS.BITREDICT_STAKING,
-    functionName: 'pendingRevenueSTT',
+  const { data: pendingRevenueBNB, refetch: refetchRevenueBNB } = useReadContract({
+    ...CONTRACTS.PRIXEDICT_STAKING,
+    functionName: 'pendingRevenueBNB',
     args: address ? [address] : undefined,
     query: { enabled: !!address, refetchInterval: 30000 } // ✅ FIX: Add polling for revenue share
   });
@@ -117,7 +117,7 @@ export function useStaking() {
       if (!tier || typeof tier !== 'object') return BigInt(0);
       
       // Safety check for required stake properties
-      if (!stake.amount || !stake.startTime || typeof stake.claimedRewardBITR === 'undefined') return BigInt(0);
+      if (!stake.amount || !stake.startTime || typeof stake.claimedRewardPRIX === 'undefined') return BigInt(0);
       
       // Calculate rewards based on time staked
       const currentTime = Math.floor(Date.now() / 1000);
@@ -151,7 +151,7 @@ export function useStaking() {
       // Subtract already claimed rewards safely
       let claimedRewards: bigint;
       try {
-        claimedRewards = typeof stake.claimedRewardBITR === 'bigint' ? stake.claimedRewardBITR : BigInt(stake.claimedRewardBITR || 0);
+        claimedRewards = typeof stake.claimedRewardPRIX === 'bigint' ? stake.claimedRewardPRIX : BigInt(stake.claimedRewardPRIX || 0);
       } catch (e) {
         claimedRewards = BigInt(0);
       }
@@ -179,7 +179,7 @@ export function useStaking() {
     try {
       const stakeAmount = parseUnits(amount, 18);
       writeContract({
-        ...CONTRACTS.BITREDICT_STAKING,
+        ...CONTRACTS.PRIXEDICT_STAKING,
         functionName: 'stake',
         args: [stakeAmount, BigInt(tierId), BigInt(durationOption)],
       });
@@ -200,7 +200,7 @@ export function useStaking() {
     
     try {
       const result = writeContract({
-        ...CONTRACTS.BITREDICT_STAKING,
+        ...CONTRACTS.PRIXEDICT_STAKING,
         functionName: 'claim',
         args: [BigInt(stakeIndex)],
       });
@@ -222,7 +222,7 @@ export function useStaking() {
     setUnstakingStakeIndex(stakeIndex);
     try {
       writeContract({
-        ...CONTRACTS.BITREDICT_STAKING,
+        ...CONTRACTS.PRIXEDICT_STAKING,
         functionName: 'unstake',
         args: [BigInt(stakeIndex)],
       });
@@ -237,7 +237,7 @@ export function useStaking() {
     setIsClaimingRevenue(true);
     try {
       writeContract({
-        ...CONTRACTS.BITREDICT_STAKING,
+        ...CONTRACTS.PRIXEDICT_STAKING,
         functionName: 'claimRevenue', // ✅ FIX: Contract function is 'claimRevenue', not 'claimRevenueShare'
         args: [],
       });
@@ -308,9 +308,9 @@ export function useStaking() {
               startTime: BigInt(0),
               tierId: 0,
               durationOption: 0,
-              claimedRewardBITR: BigInt(0),
-              rewardDebtBITR: BigInt(0),
-              rewardDebtSTT: BigInt(0),
+              claimedRewardPRIX: BigInt(0),
+              rewardDebtPRIX: BigInt(0),
+              rewardDebtBNB: BigInt(0),
               index,
               pendingRewards: BigInt(0),
               canUnstake: false,
@@ -412,9 +412,9 @@ export function useStaking() {
             startTime: BigInt(0),
             tierId: 0,
             durationOption: 0,
-            claimedRewardBITR: BigInt(0),
-            rewardDebtBITR: BigInt(0),
-            rewardDebtSTT: BigInt(0),
+            claimedRewardPRIX: BigInt(0),
+            rewardDebtPRIX: BigInt(0),
+            rewardDebtBNB: BigInt(0),
             index,
             pendingRewards: BigInt(0),
             canUnstake: false,
@@ -517,12 +517,12 @@ export function useStaking() {
       refetchTotalStaked();
       refetchTiers();
       refetchUserStakes();
-      refetchRevenueBITR();
-      refetchRevenueSTT();
+      refetchRevenuePRIX();
+      refetchRevenueBNB();
     } catch (error) {
       console.error('Error in refetchAll:', error);
     }
-  }, [refetchTotalStaked, refetchTiers, refetchUserStakes, refetchRevenueBITR, refetchRevenueSTT]);
+  }, [refetchTotalStaked, refetchTiers, refetchUserStakes, refetchRevenuePRIX, refetchRevenueBNB]);
 
   // ✅ FIX: Reset transaction states when transaction completes with proper cleanup
   useEffect(() => {
@@ -565,12 +565,12 @@ export function useStaking() {
     nextTierThreshold: formatAmount(getNextTierThreshold()),
     
     // Revenue sharing
-    pendingRevenueBITR: formatReward(pendingRevenueBITR as bigint),
-    pendingRevenueSTT: formatReward(pendingRevenueSTT as bigint),
+    pendingRevenuePRIX: formatReward(pendingRevenuePRIX as bigint),
+    pendingRevenueBNB: formatReward(pendingRevenueBNB as bigint),
     
     // ✅ FIX: Add raw values for debugging
-    pendingRevenueBITR_raw: pendingRevenueBITR as bigint | undefined,
-    pendingRevenueSTT_raw: pendingRevenueSTT as bigint | undefined,
+    pendingRevenuePRIX_raw: pendingRevenuePRIX as bigint | undefined,
+    pendingRevenueBNB_raw: pendingRevenueBNB as bigint | undefined,
     
     // Actions
     stake,

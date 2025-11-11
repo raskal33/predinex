@@ -3,7 +3,7 @@ const { ethers } = require('ethers');
 // Configuration
 const RPC_URL = 'https://dream-rpc.somnia.network/';
 const FAUCET_ADDRESS = '0x1656712131BB07dDE6EeC7D88757Db24782cab71';
-const BITR_TOKEN_ADDRESS = '0x4b10fBFFDEE97C42E29899F47A2ECD30a38dBf2C';
+const PRIX_TOKEN_ADDRESS = '0x4b10fBFFDEE97C42E29899F47A2ECD30a38dBf2C';
 
 // Faucet ABI (minimal for status checking)
 const FAUCET_ABI = [
@@ -52,8 +52,8 @@ const FAUCET_ABI = [
   }
 ];
 
-// BITR Token ABI (minimal)
-const BITR_TOKEN_ABI = [
+// PRIX Token ABI (minimal)
+const PRIX_TOKEN_ABI = [
   {
     "inputs": [{ "internalType": "address", "name": "account", "type": "address" }],
     "name": "balanceOf",
@@ -77,18 +77,18 @@ async function checkFaucetStatus() {
     
     // Initialize contracts
     const faucet = new ethers.Contract(FAUCET_ADDRESS, FAUCET_ABI, provider);
-    const bitrToken = new ethers.Contract(BITR_TOKEN_ADDRESS, BITR_TOKEN_ABI, provider);
+    const prixToken = new ethers.Contract(PRIX_TOKEN_ADDRESS, PRIX_TOKEN_ABI, provider);
     
     console.log('📋 Faucet Contract Details:');
     console.log(`   Address: ${FAUCET_ADDRESS}`);
-    console.log(`   BITR Token: ${BITR_TOKEN_ADDRESS}\n`);
+    console.log(`   PRIX Token: ${PRIX_TOKEN_ADDRESS}\n`);
     
     // Check faucet stats
     console.log('📊 Faucet Statistics:');
     try {
       const stats = await faucet.getFaucetStats();
-      console.log(`   Balance: ${ethers.formatEther(stats[0])} BITR`);
-      console.log(`   Total Distributed: ${ethers.formatEther(stats[1])} BITR`);
+      console.log(`   Balance: ${ethers.formatEther(stats[0])} PRIX`);
+      console.log(`   Total Distributed: ${ethers.formatEther(stats[1])} PRIX`);
       console.log(`   User Count: ${stats[2].toString()}`);
       console.log(`   Active: ${stats[3] ? '✅ YES' : '❌ NO'}`);
     } catch (error) {
@@ -118,13 +118,13 @@ async function checkFaucetStatus() {
       console.log(`   ❌ Error checking max claims: ${error.message}`);
     }
     
-    // Check BITR token balance directly
+    // Check PRIX token balance directly
     console.log('\n💰 Token Balance Check:');
     try {
-      const faucetBalance = await bitrToken.balanceOf(FAUCET_ADDRESS);
-      console.log(`   Faucet BITR Balance: ${ethers.formatEther(faucetBalance)} BITR`);
+      const faucetBalance = await prixToken.balanceOf(FAUCET_ADDRESS);
+      console.log(`   Faucet PRIX Balance: ${ethers.formatEther(faucetBalance)} PRIX`);
       
-      const requiredAmount = ethers.parseEther('20000'); // 20,000 BITR per claim
+      const requiredAmount = ethers.parseEther('20000'); // 20,000 PRIX per claim
       const possibleClaims = faucetBalance / requiredAmount;
       console.log(`   Possible Claims: ${possibleClaims.toString()}`);
     } catch (error) {

@@ -52,11 +52,11 @@ export interface UserStake {
   startTime: number;
   tierId: number;
   durationOption: number;
-  claimedRewardBITR: string;
-  rewardDebtBITR: string;
-  rewardDebtSTT: string;
-  pendingBITRRewards: string;
-  pendingSTTRewards: string;
+  claimedRewardPRIX: string;
+  rewardDebtPRIX: string;
+  rewardDebtBNB: string;
+  pendingPRIXRewards: string;
+  pendingBNBRewards: string;
 }
 
 export interface UserStakingData {

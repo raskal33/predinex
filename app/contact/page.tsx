@@ -53,15 +53,15 @@ export default function ContactPage() {
       title: "Community Discord",
       description: "Join our Discord server for real-time support and community discussions",
       action: "Join Discord",
-      href: "https://discord.gg/bitredict",
+      href: "https://discord.gg/prixedict",
       color: "text-purple-400"
     },
     {
       icon: EnvelopeIcon,
       title: "Email Support", 
       description: "Send us an email for detailed inquiries and technical support",
-      action: "support@bitredict.com",
-      href: "mailto:support@bitredict.com",
+      action: "support@prixedict.com",
+      href: "mailto:support@prixedict.com",
       color: "text-blue-400"
     },
     {
@@ -97,7 +97,7 @@ export default function ContactPage() {
           <div className="text-center mb-16">
             <h1 className="text-4xl font-bold text-text-primary mb-4">Get in Touch</h1>
             <p className="text-xl text-text-secondary max-w-2xl mx-auto">
-              Have questions about BitRedict? We&apos;re here to help. Choose the best way to reach us below.
+              Have questions about Predinex? We&apos;re here to help. Choose the best way to reach us below.
             </p>
           </div>
 
@@ -267,12 +267,12 @@ export default function ContactPage() {
                 <h3 className="text-xl font-bold text-text-primary mb-4">Frequently Asked Questions</h3>
                 <div className="space-y-4">
                   <div>
-                    <h4 className="font-semibold text-text-primary mb-1">How do I get started with BitRedict?</h4>
+                    <h4 className="font-semibold text-text-primary mb-1">How do I get started with Predinex?</h4>
                     <p className="text-text-secondary text-sm">Connect your wallet, browse available markets, and start making predictions on outcomes you&apos;re confident about.</p>
                   </div>
                   <div>
                     <h4 className="font-semibold text-text-primary mb-1">What tokens can I use?</h4>
-                    <p className="text-text-secondary text-sm">BitRedict supports STT (Somnia Testnet Token) and BITR tokens for betting and staking.</p>
+                    <p className="text-text-secondary text-sm">Predinex supports BNB (Somnia Testnet Token) and PRIX tokens for betting and staking.</p>
                   </div>
                   <div>
                     <h4 className="font-semibold text-text-primary mb-1">Is my wallet secure?</h4>

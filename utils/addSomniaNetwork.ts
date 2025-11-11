@@ -1,22 +1,22 @@
-export const SOMNIA_NETWORK = {
-  chainId: '0xC478', // 50312 in hex
-  chainName: 'Somnia Testnet',
+export const BSC_TESTNET_NETWORK = {
+  chainId: '0x61', // 97 in hex
+  chainName: 'BSC Testnet',
   nativeCurrency: {
-    name: 'STT',
-    symbol: 'STT',
+    name: 'BNB',
+    symbol: 'BNB',
     decimals: 18,
   },
-  rpcUrls: ['https://dream-rpc.somnia.network'],
-  blockExplorerUrls: ['https://shannon-explorer.somnia.network'],
+  rpcUrls: ['https://bsc-testnet-rpc.publicnode.com', 'https://bsc-testnet.drpc.org'],
+  blockExplorerUrls: ['https://testnet.bscscan.com'],
 }
 
-export async function addSomniaNetwork() {
+export async function addBSCNetwork() {
   if (typeof window !== 'undefined' && window.ethereum) {
     try {
       // Try to switch to the network first
       await window.ethereum.request({
         method: 'wallet_switchEthereumChain',
-        params: [{ chainId: SOMNIA_NETWORK.chainId }],
+        params: [{ chainId: BSC_TESTNET_NETWORK.chainId }],
       })
     } catch (switchError: any) {
       // This error code indicates that the chain has not been added to MetaMask
@@ -24,14 +24,14 @@ export async function addSomniaNetwork() {
         try {
           await window.ethereum.request({
             method: 'wallet_addEthereumChain',
-            params: [SOMNIA_NETWORK],
+            params: [BSC_TESTNET_NETWORK],
           })
         } catch (addError) {
-          console.error('Failed to add Somnia network:', addError)
+          console.error('Failed to add BSC Testnet network:', addError)
           throw addError
         }
       } else {
-        console.error('Failed to switch to Somnia network:', switchError)
+        console.error('Failed to switch to BSC Testnet network:', switchError)
         throw switchError
       }
     }
@@ -40,6 +40,10 @@ export async function addSomniaNetwork() {
   }
 }
 
-export function getSomniaNetworkConfig() {
-  return SOMNIA_NETWORK
-} 
+export function getBSCNetworkConfig() {
+  return BSC_TESTNET_NETWORK
+}
+
+// Legacy export for backward compatibility
+export const addSomniaNetwork = addBSCNetwork
+export const getSomniaNetworkConfig = getBSCNetworkConfig 

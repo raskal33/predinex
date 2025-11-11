@@ -39,7 +39,7 @@ export default function WalletConnectionDebug() {
           <div className="space-y-1">
             <div>Connected: {isConnected ? '✅' : '❌'}</div>
             <div>Connecting: {isConnecting ? '🔄' : '❌'}</div>
-            <div>On Somnia: {isOnSomnia ? '✅' : '❌'}</div>
+            <div>On BSC Testnet: {isOnSomnia ? '✅' : '❌'}</div>
             <div>Chain ID: {chainId || 'N/A'}</div>
             <div>Address: {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'N/A'}</div>
             <div>Attempts: {connectionAttempts}</div>
@@ -64,7 +64,7 @@ export default function WalletConnectionDebug() {
               onClick={switchToSomnia}
               className="block w-full px-2 py-1 bg-green-500 text-white rounded text-xs"
             >
-              Switch to Somnia
+              Switch to BSC Testnet
             </button>
           </div>
         </div>

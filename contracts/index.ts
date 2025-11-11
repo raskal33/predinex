@@ -1,53 +1,53 @@
 import { CONTRACT_ADDRESSES } from '@/config/wagmi';
 
 // Import ABIs - Updated for Modular Architecture
-import BitredictTokenArtifact from './abis/BitredictToken.json';
-import BitrFaucetArtifact from './abis/BitrFaucet.json';
+import PrixedictTokenArtifact from './abis/PrixedictToken.json';
+import PrixFaucetArtifact from './abis/PrixFaucet.json';
 import GuidedOracleArtifact from './abis/GuidedOracle.json';
 import OptimisticOracleArtifact from './abis/OptimisticOracle.json';
-import BitredictPoolCoreArtifact from './abis/BitredictPoolCore.json';
-import BitredictBoostSystemArtifact from './abis/BitredictBoostSystem.json';
-import BitredictComboPoolsArtifact from './abis/BitredictComboPools.json';
-import BitredictPoolFactoryArtifact from './abis/BitredictPoolFactory.json';
-import BitredictStakingArtifact from './abis/BitredictStaking.json';
+import PrixedictPoolCoreArtifact from './abis/PrixedictPoolCore.json';
+import PrixedictBoostSystemArtifact from './abis/PrixedictBoostSystem.json';
+import PrixedictComboPoolsArtifact from './abis/PrixedictComboPools.json';
+import PrixedictPoolFactoryArtifact from './abis/PrixedictPoolFactory.json';
+import PrixedictStakingArtifact from './abis/PrixedictStaking.json';
 import ReputationSystemArtifact from './abis/ReputationSystem.json';
 import OddysseyArtifact from './abis/Oddyssey.json';
 
-// Extract ABI arrays from artifacts
-const BitredictTokenABI = BitredictTokenArtifact.abi;
-const BitrFaucetABI = BitrFaucetArtifact.abi;
-const GuidedOracleABI = GuidedOracleArtifact.abi;
-const OptimisticOracleABI = OptimisticOracleArtifact.abi;
-const BitredictPoolCoreABI = BitredictPoolCoreArtifact.abi;
-const BitredictBoostSystemABI = BitredictBoostSystemArtifact.abi;
-const BitredictComboPoolsABI = BitredictComboPoolsArtifact.abi;
-const BitredictPoolFactoryABI = BitredictPoolFactoryArtifact.abi;
-const BitredictStakingABI = BitredictStakingArtifact.abi;
-const ReputationSystemABI = ReputationSystemArtifact.abi;
-const OddysseyABI = OddysseyArtifact.abi;
+// Extract ABI arrays from artifacts (ABI files are arrays directly, not objects with .abi property)
+const PrixedictTokenABI = PrixedictTokenArtifact as any;
+const PrixFaucetABI = PrixFaucetArtifact as any;
+const GuidedOracleABI = GuidedOracleArtifact as any;
+const OptimisticOracleABI = OptimisticOracleArtifact as any;
+const PrixedictPoolCoreABI = PrixedictPoolCoreArtifact as any;
+const PrixedictBoostSystemABI = PrixedictBoostSystemArtifact as any;
+const PrixedictComboPoolsABI = PrixedictComboPoolsArtifact as any;
+const PrixedictPoolFactoryABI = PrixedictPoolFactoryArtifact as any;
+const PrixedictStakingABI = PrixedictStakingArtifact as any;
+const ReputationSystemABI = ReputationSystemArtifact as any;
+const OddysseyABI = OddysseyArtifact as any;
 
 // Contract configurations - Updated for Modular Architecture
 export const CONTRACTS = {
   // Core Contracts
-  BITR_TOKEN: {
-    address: CONTRACT_ADDRESSES.BITR_TOKEN,
-    abi: BitredictTokenABI,
+  PRIX_TOKEN: {
+    address: CONTRACT_ADDRESSES.PRIX_TOKEN,
+    abi: PrixedictTokenABI,
   },
   POOL_CORE: {
     address: CONTRACT_ADDRESSES.POOL_CORE,
-    abi: BitredictPoolCoreABI,
+    abi: PrixedictPoolCoreABI,
   },
   BOOST_SYSTEM: {
     address: CONTRACT_ADDRESSES.BOOST_SYSTEM,
-    abi: BitredictBoostSystemABI,
+    abi: PrixedictBoostSystemABI,
   },
   COMBO_POOLS: {
     address: CONTRACT_ADDRESSES.COMBO_POOLS,
-    abi: BitredictComboPoolsABI,
+    abi: PrixedictComboPoolsABI,
   },
   FACTORY: {
     address: CONTRACT_ADDRESSES.FACTORY,
-    abi: BitredictPoolFactoryABI,
+    abi: PrixedictPoolFactoryABI,
   },
   
   // Oracle Contracts
@@ -67,11 +67,11 @@ export const CONTRACTS = {
   },
   STAKING_CONTRACT: {
     address: CONTRACT_ADDRESSES.STAKING_CONTRACT,
-    abi: BitredictStakingABI,
+    abi: PrixedictStakingABI,
   },
   FAUCET: {
     address: CONTRACT_ADDRESSES.FAUCET,
-    abi: BitrFaucetABI,
+    abi: PrixFaucetABI,
   },
   ODDYSSEY: {
     address: CONTRACT_ADDRESSES.ODDYSSEY,
@@ -79,28 +79,28 @@ export const CONTRACTS = {
   },
   
   // Legacy support (for backward compatibility) - DEPRECATED: Use POOL_CORE instead
-  BITREDICT_POOL: {
-    address: CONTRACT_ADDRESSES.BITREDICT_POOL, // DEPRECATED: Use POOL_CORE
-    abi: BitredictPoolCoreABI, // DEPRECATED: Use POOL_CORE.abi
+  PRIXEDICT_POOL: {
+    address: CONTRACT_ADDRESSES.PRIXEDICT_POOL, // DEPRECATED: Use POOL_CORE
+    abi: PrixedictPoolCoreABI, // DEPRECATED: Use POOL_CORE.abi
   },
-  BITREDICT_STAKING: {
-    address: CONTRACT_ADDRESSES.BITREDICT_STAKING,
-    abi: BitredictStakingABI,
+  PRIXEDICT_STAKING: {
+    address: CONTRACT_ADDRESSES.PRIXEDICT_STAKING,
+    abi: PrixedictStakingABI,
   },
 } as const;
 
 // Export contract addresses and ABIs for direct use
 export { CONTRACT_ADDRESSES } from '@/config/wagmi';
 export {
-  BitredictTokenABI,
-  BitrFaucetABI,
+  PrixedictTokenABI,
+  PrixFaucetABI,
   GuidedOracleABI,
   OptimisticOracleABI,
-  BitredictPoolCoreABI,
-  BitredictBoostSystemABI,
-  BitredictComboPoolsABI,
-  BitredictPoolFactoryABI,
-  BitredictStakingABI,
+  PrixedictPoolCoreABI,
+  PrixedictBoostSystemABI,
+  PrixedictComboPoolsABI,
+  PrixedictPoolFactoryABI,
+  PrixedictStakingABI,
   ReputationSystemABI,
   OddysseyABI,
 };
@@ -108,7 +108,7 @@ export {
 // Contract events - Updated for Modular Architecture
 export const CONTRACT_EVENTS = {
   // Core Contract Events
-  BITR_TOKEN: {
+  PRIX_TOKEN: {
     TRANSFER: 'Transfer',
     APPROVAL: 'Approval',
   },
@@ -169,13 +169,13 @@ export const CONTRACT_EVENTS = {
   },
   
   // Legacy events (for backward compatibility)
-  BITREDICT_POOL: {
+  PRIXEDICT_POOL: {
     POOL_CREATED: 'PoolCreated',
     BET_PLACED: 'BetPlaced',
     POOL_SETTLED: 'PoolSettled',
     WINNINGS_CLAIMED: 'WinningsClaimed',
   },
-  BITREDICT_STAKING: {
+  PRIXEDICT_STAKING: {
     STAKED: 'Staked',
     UNSTAKED: 'Unstaked',
     REWARDS_CLAIMED: 'RewardsClaimed',

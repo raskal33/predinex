@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAccount } from 'wagmi';
 import { useWebSocket } from './useWebSocket';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://bitredict-backend.fly.dev';
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://prixedict-backend.fly.dev';
 
 export interface Notification {
   id: number;

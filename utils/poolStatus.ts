@@ -35,7 +35,7 @@ export interface PoolData {
   eventStartTime: number;
   eventEndTime: number;
   bettingEndTime: number;
-  arbitrationDeadline?: number;
+  arprixationDeadline?: number;
   result?: string;
   resultTimestamp?: number;
   oracleType: 'GUIDED' | 'OPEN';
@@ -50,7 +50,7 @@ export function getPoolStatus(pool: PoolData): PoolStatusInfo {
   const eventStartTime = pool.eventStartTime * 1000;
   const eventEndTime = pool.eventEndTime * 1000;
   const bettingEndTime = pool.bettingEndTime * 1000;
-  const arbitrationDeadline = pool.arbitrationDeadline ? pool.arbitrationDeadline * 1000 : null;
+  const arprixationDeadline = pool.arprixationDeadline ? pool.arprixationDeadline * 1000 : null;
 
   // Enhanced settlement detection - check multiple indicators
   const isSettled = pool.settled || 

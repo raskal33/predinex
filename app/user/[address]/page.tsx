@@ -144,14 +144,14 @@ export default function PublicProfilePage() {
     : null;
 
   const formatCurrency = (value: number) => {
-    // Format STT values (not dollars, so no $ sign)
+    // Format BNB values (not dollars, so no $ sign)
     const absValue = Math.abs(value);
     if (absValue >= 1000000) {
-      return `${(value / 1000000).toFixed(2)}M STT`;
+      return `${(value / 1000000).toFixed(2)}M BNB`;
     } else if (absValue >= 1000) {
-      return `${(value / 1000).toFixed(2)}K STT`;
+      return `${(value / 1000).toFixed(2)}K BNB`;
     }
-    return `${value.toFixed(2)} STT`;
+    return `${value.toFixed(2)} BNB`;
   };
   
   const formatCompactCurrency = (value: number) => {
@@ -218,13 +218,13 @@ export default function PublicProfilePage() {
               <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-lg p-4 border border-gray-700/30">
                   <div className="text-xs text-gray-400 mb-1">Positions Value</div>
                 <div className="text-xl font-bold text-white">
-                  {formatCompactCurrency(normalizedStats.totalVolume)} STT
+                  {formatCompactCurrency(normalizedStats.totalVolume)} BNB
                 </div>
               </div>
               <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-lg p-4 border border-gray-700/30">
                 <div className="text-xs text-gray-400 mb-1">Biggest Win</div>
                 <div className="text-xl font-bold text-green-400">
-                  {formatCompactCurrency(normalizedStats.biggestWin)} STT
+                  {formatCompactCurrency(normalizedStats.biggestWin)} BNB
                 </div>
               </div>
               <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-lg p-4 border border-gray-700/30">
@@ -264,7 +264,7 @@ export default function PublicProfilePage() {
             </div>
             <div className="text-4xl font-bold mb-2">
               <span className={normalizedStats.profitLoss >= 0 ? 'text-green-400' : 'text-red-400'}>
-                {normalizedStats.profitLoss >= 0 ? '+' : ''}{formatCompactCurrency(normalizedStats.profitLoss)} STT
+                {normalizedStats.profitLoss >= 0 ? '+' : ''}{formatCompactCurrency(normalizedStats.profitLoss)} BNB
               </span>
             </div>
             <div className="text-sm text-gray-400">Total P&L across all markets</div>
@@ -285,7 +285,7 @@ export default function PublicProfilePage() {
             <div className="glass-card p-4 rounded-xl border border-gray-700/50">
               <div className="text-xs text-gray-400 mb-1">Total Volume</div>
               <div className="text-2xl font-bold text-white">
-                  {formatCompactCurrency(normalizedStats.totalVolume)} STT
+                  {formatCompactCurrency(normalizedStats.totalVolume)} BNB
               </div>
             </div>
           </div>
@@ -445,7 +445,7 @@ export default function PublicProfilePage() {
                           {activity.amount && (
                             <span className="text-xs text-gray-400">
                               • {typeof activity.amount === 'string' && activity.amount.match(/^\d+$/)
-                                  ? formatCompactCurrency(parseFloat(activity.amount) / 1e18) + ' STT'
+                                  ? formatCompactCurrency(parseFloat(activity.amount) / 1e18) + ' BNB'
                                   : activity.amount}
                             </span>
                           )}

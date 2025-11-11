@@ -15,7 +15,7 @@ export interface PoolData {
   marketType: number; // 0=MONEYLINE, 1=OVER_UNDER, 2=BOTH_TEAMS_SCORE, etc.
   eventStartTime: number;
   eventEndTime: number;
-  usesBitr: boolean;
+  usesPrix: boolean;
   creatorStake: string;
   marketId?: string; // Optional market ID
 }
@@ -26,7 +26,7 @@ export interface PoolExplanation {
   creatorPosition: string;
   bettingExplanation: string;
   currencyBadge: {
-    type: 'BITR' | 'STT';
+    type: 'PRIX' | 'BNB';
     color: string;
     bgColor: string;
   };
@@ -78,7 +78,7 @@ export class PoolExplanationService {
   static generateExplanation(poolData: PoolData): PoolExplanation {
     const eventTime = this.formatEventTime(poolData.eventStartTime);
     const marketTypeInfo = this.getMarketTypeInfo(poolData.marketType, poolData.predictedOutcome);
-    const currencyInfo = this.getCurrencyInfo(poolData.usesBitr);
+    const currencyInfo = this.getCurrencyInfo(poolData.usesPrix);
     
     return {
       title: this.generateTitle(poolData, eventTime),
@@ -280,16 +280,16 @@ export class PoolExplanationService {
   /**
    * Get currency info
    */
-  private static getCurrencyInfo(usesBitr: boolean): { type: 'BITR' | 'STT'; color: string; bgColor: string } {
-    if (usesBitr) {
+  private static getCurrencyInfo(usesPrix: boolean): { type: 'PRIX' | 'BNB'; color: string; bgColor: string } {
+    if (usesPrix) {
       return {
-        type: 'BITR',
+        type: 'PRIX',
         color: 'text-yellow-400',
         bgColor: 'bg-yellow-500/20'
       };
     } else {
       return {
-        type: 'STT',
+        type: 'BNB',
         color: 'text-blue-400', 
         bgColor: 'bg-blue-500/20'
       };
@@ -299,8 +299,8 @@ export class PoolExplanationService {
   /**
    * Generate currency badge component props
    */
-  static getCurrencyBadgeProps(usesBitr: boolean) {
-    const info = this.getCurrencyInfo(usesBitr);
+  static getCurrencyBadgeProps(usesPrix: boolean) {
+    const info = this.getCurrencyInfo(usesPrix);
     return {
       children: info.type,
       className: `px-2 py-1 rounded-full text-xs font-bold ${info.color} ${info.bgColor} border border-current/20`

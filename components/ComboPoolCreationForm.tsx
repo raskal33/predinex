@@ -37,7 +37,7 @@ interface ComboPoolFormData {
   creatorStake: number;
   combinedOdds: number;
   maxBetPerUser: number;
-  useBitr: boolean;
+  usePrix: boolean;
   isPrivate: boolean;
   conditions: ComboCondition[];
   eventStartTime: Date;
@@ -72,7 +72,7 @@ export default function ComboPoolCreationForm({ onSuccess, onClose }: {
     creatorStake: 100,
     combinedOdds: 2.0,
     maxBetPerUser: 1000,
-    useBitr: false,
+    usePrix: false,
     isPrivate: false,
     conditions: [],
     eventStartTime: new Date(),
@@ -207,7 +207,7 @@ export default function ComboPoolCreationForm({ onSuccess, onClose }: {
         latestEventEnd: BigInt(Math.floor(formData.eventEndTime.getTime() / 1000)),
         category: formData.category || "football",
         maxBetPerUser: BigInt(Math.floor(formData.maxBetPerUser * 1e18)),
-        useBitr: formData.useBitr
+        usePrix: formData.usePrix
       };
 
       const txHash = await createComboPool(comboPoolData);
@@ -378,7 +378,7 @@ export default function ComboPoolCreationForm({ onSuccess, onClose }: {
             max={1000000}
             step={0.1}
             allowDecimals={true}
-            currency={formData.useBitr ? 'BITR' : 'STT'}
+            currency={formData.usePrix ? 'PRIX' : 'BNB'}
             help="Your stake that acts as liquidity for the pool"
             error={errors.creatorStake}
           />
@@ -412,7 +412,7 @@ export default function ComboPoolCreationForm({ onSuccess, onClose }: {
             max={1000000}
             step={0.1}
             allowDecimals={true}
-            currency={formData.useBitr ? 'BITR' : 'STT'}
+            currency={formData.usePrix ? 'PRIX' : 'BNB'}
             help="Maximum bet amount per user (0 = unlimited)"
             error={errors.maxBetPerUser}
           />
@@ -425,25 +425,25 @@ export default function ComboPoolCreationForm({ onSuccess, onClose }: {
           </label>
           <div className="grid grid-cols-2 gap-3">
             <button
-              onClick={() => setFormData(prev => ({ ...prev, useBitr: false }))}
+              onClick={() => setFormData(prev => ({ ...prev, usePrix: false }))}
               className={`p-3 rounded-xl border text-center transition-all ${
-                !formData.useBitr
+                !formData.usePrix
                   ? 'border-primary bg-primary/10 text-primary'
                   : 'border-border-input bg-bg-card text-text-secondary hover:border-primary/50'
               }`}
             >
-              <div className="font-semibold">STT</div>
+              <div className="font-semibold">BNB</div>
               <div className="text-xs mt-1">Somnia Network</div>
             </button>
             <button
-              onClick={() => setFormData(prev => ({ ...prev, useBitr: true }))}
+              onClick={() => setFormData(prev => ({ ...prev, usePrix: true }))}
               className={`p-3 rounded-xl border text-center transition-all ${
-                formData.useBitr
+                formData.usePrix
                   ? 'border-primary bg-primary/10 text-primary'
                   : 'border-border-input bg-bg-card text-text-secondary hover:border-primary/50'
               }`}
             >
-              <div className="font-semibold">BITR</div>
+              <div className="font-semibold">PRIX</div>
               <div className="text-xs mt-1">Reduced fees</div>
             </button>
           </div>
@@ -509,13 +509,13 @@ export default function ComboPoolCreationForm({ onSuccess, onClose }: {
             <div>
               <label className="text-text-muted text-sm">Creator Stake</label>
               <p className="text-text-primary font-semibold">
-                {formData.creatorStake} {formData.useBitr ? 'BITR' : 'STT'}
+                {formData.creatorStake} {formData.usePrix ? 'PRIX' : 'BNB'}
               </p>
             </div>
             <div>
               <label className="text-text-muted text-sm">Potential Win</label>
               <p className="text-success font-bold text-xl">
-                {potentialWinnings.toFixed(2)} {formData.useBitr ? 'BITR' : 'STT'}
+                {potentialWinnings.toFixed(2)} {formData.usePrix ? 'PRIX' : 'BNB'}
               </p>
             </div>
           </div>

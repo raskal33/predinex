@@ -36,7 +36,7 @@ class WebSocketClient {
   private connect() {
     try {
       // Get WebSocket URL from environment or fallback to backend URL
-      const baseUrl = process.env.NEXT_PUBLIC_WS_URL || process.env.NEXT_PUBLIC_API_URL || 'https://bitredict-backend.fly.dev';
+      const baseUrl = process.env.NEXT_PUBLIC_WS_URL || process.env.NEXT_PUBLIC_API_URL || 'https://prixedict-backend.fly.dev';
       
       // Convert http/https to ws/wss
       let wsUrl = baseUrl.replace('http://', 'ws://').replace('https://', 'wss://');

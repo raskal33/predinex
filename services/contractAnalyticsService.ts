@@ -1,10 +1,10 @@
 import { ethers } from 'ethers';
 import { useReadContract } from 'wagmi';
 import { CONTRACT_ADDRESSES } from '@/config/wagmi';
-import PoolCoreArtifact from '@/contracts/abis/BitredictPoolCore.json';
+import PoolCoreArtifact from '@/contracts/abis/PrixedictPoolCore.json';
 
-// Extract ABI array from artifact
-const PoolCoreABI = PoolCoreArtifact.abi;
+// Extract ABI array from artifact (ABI files are arrays directly)
+const PoolCoreABI = PoolCoreArtifact as any;
 
 // ============================================================================
 // CONTRACT ANALYTICS SERVICE - Real-time blockchain data

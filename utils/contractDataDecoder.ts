@@ -173,7 +173,7 @@ export function decodePredictedOutcome(bytes32: string): string {
 export function decodePoolFlags(flags: number, isSettled: boolean = false) {
   // UPDATED FLAG SYSTEM (createPool):
   // - bit 2: isPrivate
-  // - bit 3: usesBitr  
+  // - bit 3: usesPrix  
   // - bit 0,1: reserved for settlement (settled, creatorSideWon)
   // - bit 4-7: reserved for future use
   //
@@ -187,7 +187,7 @@ export function decodePoolFlags(flags: number, isSettled: boolean = false) {
       settled: (flags & 1) !== 0,           // bit 0: settled
       creatorSideWon: (flags & 2) !== 0,    // bit 1: creatorSideWon
       isPrivate: false,                     // Cannot determine after settlement
-      usesBitr: false,                      // Cannot determine after settlement
+      usesPrix: false,                      // Cannot determine after settlement
       filledAbove60: (flags & 16) !== 0,   // bit 4: filledAbove60
     };
   } else {
@@ -196,7 +196,7 @@ export function decodePoolFlags(flags: number, isSettled: boolean = false) {
       settled: false,                       // Not settled yet
       creatorSideWon: false,               // Not settled yet
       isPrivate: (flags & 4) !== 0,       // bit 2: isPrivate (UPDATED)
-      usesBitr: (flags & 8) !== 0,        // bit 3: usesBitr (UPDATED)
+      usesPrix: (flags & 8) !== 0,        // bit 3: usesPrix (UPDATED)
       filledAbove60: (flags & 16) !== 0,  // bit 4: filledAbove60
     };
   }
@@ -214,12 +214,12 @@ export function processRawPoolData(rawPool: any) {
   const flags = decodePoolFlags(rawPool.flags || 0, isSettled);
   
   // Determine token type - if settled, flags are overwritten, so use stake analysis
-  let usesBitr = flags.usesBitr;
+  let usesPrix = flags.usesPrix;
   if (isSettled) {
     // For settled pools, determine token type by stake amount
-    // BITR pools have minimum 1000e18, STT pools have minimum 5e18
+    // PRIX pools have minimum 1000e18, BNB pools have minimum 5e18
     const stakeAmount = parseFloat(rawPool.creatorStake.toString()) / 1e18;
-    usesBitr = stakeAmount >= 1000; // If stake >= 1000, likely BITR
+    usesPrix = stakeAmount >= 1000; // If stake >= 1000, likely PRIX
   }
   
   // Check if the data is already decoded (strings) or needs decoding (hex)
@@ -252,7 +252,7 @@ export function processRawPoolData(rawPool: any) {
   const category = determineCategoryFromContractData(rawPool);
   
   // Generate readable titles
-  const tokenSymbol = usesBitr ? 'BITR' : 'STT';
+  const tokenSymbol = usesPrix ? 'PRIX' : 'BNB';
   const hasTeamNames = homeTeam !== 'Team A' && awayTeam !== 'Team B';
   const poolTitle = hasTeamNames 
     ? `${homeTeam} vs ${awayTeam} (${tokenSymbol})`
@@ -285,7 +285,7 @@ export function processRawPoolData(rawPool: any) {
     settled: statusInfo.settled,
     creatorSideWon: statusInfo.creatorSideWon,
     isPrivate: flags.isPrivate,
-    usesBitr: usesBitr, // Use corrected value
+    usesPrix: usesPrix, // Use corrected value
     filledAbove60: flags.filledAbove60,
     
     // Additional status information
@@ -318,7 +318,7 @@ export async function processRawPoolDataWithMetadata(rawPool: any) {
     
     if (metadata) {
       // Use enriched data
-      const tokenSymbol = basicPool.usesBitr ? 'BITR' : 'STT';
+      const tokenSymbol = basicPool.usesPrix ? 'PRIX' : 'BNB';
       const poolTitle = `${metadata.homeTeam} vs ${metadata.awayTeam} (${tokenSymbol})`;
       
       return {

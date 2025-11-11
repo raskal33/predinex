@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useAccount } from "wagmi";
 import { useBettingHistory } from "@/hooks/usePortfolio";
-import { formatSTT, formatRelativeTime, formatShortDate } from "@/utils/formatters";
+import { formatBNB, formatRelativeTime, formatShortDate } from "@/utils/formatters";
 import {
   MagnifyingGlassIcon,
   TrophyIcon,
@@ -208,7 +208,7 @@ export default function BettingHistoryPage() {
                     <div className="text-right">
                       <div className="text-sm text-text-muted mb-1">Staked</div>
                       <div className="font-medium text-text-primary">
-                        {formatSTT(bet.amount)}
+                        {formatBNB(bet.amount)}
                       </div>
                     </div>
                     
@@ -216,7 +216,7 @@ export default function BettingHistoryPage() {
                       <div className="text-right">
                         <div className="text-sm text-text-muted mb-1">Payout</div>
                         <div className="font-medium text-green-400">
-                          {formatSTT(bet.payoutAmount)}
+                          {formatBNB(bet.payoutAmount)}
                         </div>
                       </div>
                     )}
@@ -224,7 +224,7 @@ export default function BettingHistoryPage() {
                     <div className="text-right">
                       <div className="text-sm text-text-muted mb-1">P&L</div>
                       <div className={`font-bold ${realizedPL >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                        {realizedPL >= 0 ? '+' : ''}{formatSTT(bet.realizedPL)}
+                        {realizedPL >= 0 ? '+' : ''}{formatBNB(bet.realizedPL)}
                       </div>
                     </div>
                   </div>

@@ -369,7 +369,7 @@ export default function PoolLeaderboardPage() {
                             {entry.poolsCreated || 0}
                           </td>
                           <td className="px-6 py-4 text-sm text-text-secondary font-medium">
-                            {formatCurrency(entry.volume)} <span className="text-text-muted">STT</span>
+                            {formatCurrency(entry.volume)} <span className="text-text-muted">BNB</span>
                           </td>
                           <td className="px-6 py-4 text-sm text-green-400 font-semibold">
                             {entry.wins || 0}
@@ -380,7 +380,7 @@ export default function PoolLeaderboardPage() {
                           <td className={`px-6 py-4 text-sm font-bold ${
                             (entry.pnl || 0) >= 0 ? 'text-green-400' : 'text-red-400'
                           }`}>
-                            {(entry.pnl || 0) >= 0 ? '+' : ''}{formatCurrency(entry.pnl)} <span className="text-text-muted">STT</span>
+                            {(entry.pnl || 0) >= 0 ? '+' : ''}{formatCurrency(entry.pnl)} <span className="text-text-muted">BNB</span>
                           </td>
                         </>
                       )}
@@ -391,7 +391,7 @@ export default function PoolLeaderboardPage() {
                             {entry.poolsChallenged || 0}
                           </td>
                           <td className="px-6 py-4 text-sm text-text-secondary font-medium">
-                            {formatCurrency(entry.volume)} <span className="text-text-muted">STT</span>
+                            {formatCurrency(entry.volume)} <span className="text-text-muted">BNB</span>
                           </td>
                           <td className="px-6 py-4 text-sm text-green-400 font-semibold">
                             {entry.wins || 0}
@@ -402,7 +402,7 @@ export default function PoolLeaderboardPage() {
                           <td className={`px-6 py-4 text-sm font-bold ${
                             (entry.pnl || 0) >= 0 ? 'text-green-400' : 'text-red-400'
                           }`}>
-                            {(entry.pnl || 0) >= 0 ? '+' : ''}{formatCurrency(entry.pnl)} <span className="text-text-muted">STT</span>
+                            {(entry.pnl || 0) >= 0 ? '+' : ''}{formatCurrency(entry.pnl)} <span className="text-text-muted">BNB</span>
                           </td>
                         </>
                       )}

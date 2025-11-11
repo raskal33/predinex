@@ -73,7 +73,7 @@ export default function CreateGuidedMarketForm({ onSuccess, onClose }: CreateGui
     league: '',
     category: 'football',
     region: 'Global',
-    useBitr: false,
+    usePrix: false,
     maxBetPerUser: '',
     isPrivate: false,
     marketId: '',
@@ -164,8 +164,8 @@ export default function CreateGuidedMarketForm({ onSuccess, onClose }: CreateGui
       // Convert form data to contract data using the helper function
       const poolData = convertFormToContractData(formData);
 
-      // Check faucet eligibility if needed (only for STT pools)
-      if (!formData.useBitr) {
+      // Check faucet eligibility if needed (only for BNB pools)
+      if (!formData.usePrix) {
         const isEligible = await checkEligibility();
         if (!isEligible) {
           toast.error('You need to claim from the faucet first to create pools');
@@ -391,19 +391,19 @@ export default function CreateGuidedMarketForm({ onSuccess, onClose }: CreateGui
         {/* Creator Stake */}
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-2">
-            Creator Stake ({formData.useBitr ? 'BITR' : 'STT'})
+            Creator Stake ({formData.usePrix ? 'PRIX' : 'BNB'})
           </label>
           <input
             type="number"
             step="0.01"
-            min={formData.useBitr ? "1000" : "5"}
+            min={formData.usePrix ? "1000" : "5"}
             value={formData.creatorStake}
             onChange={(e) => handleInputChange('creatorStake', e.target.value)}
             className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder={formData.useBitr ? "1000" : "5"}
+            placeholder={formData.usePrix ? "1000" : "5"}
           />
           <p className="text-xs text-gray-400 mt-1">
-            Minimum: {formData.useBitr ? "1000 BITR" : "5 STT"}
+            Minimum: {formData.usePrix ? "1000 PRIX" : "5 BNB"}
           </p>
         </div>
 
@@ -511,7 +511,7 @@ export default function CreateGuidedMarketForm({ onSuccess, onClose }: CreateGui
           {/* Max Bet Per User */}
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Max Bet Per User (STT)
+              Max Bet Per User (BNB)
             </label>
             <input
               type="number"
@@ -527,17 +527,17 @@ export default function CreateGuidedMarketForm({ onSuccess, onClose }: CreateGui
             )}
           </div>
 
-          {/* Use BITR */}
+          {/* Use PRIX */}
           <div className="flex items-center space-x-2">
             <input
               type="checkbox"
-              id="useBitr"
-              checked={formData.useBitr}
-              onChange={(e) => handleInputChange('useBitr', e.target.checked)}
+              id="usePrix"
+              checked={formData.usePrix}
+              onChange={(e) => handleInputChange('usePrix', e.target.checked)}
               className="w-4 h-4 text-blue-600 bg-gray-800 border-gray-600 rounded focus:ring-blue-500"
             />
-            <label htmlFor="useBitr" className="text-sm font-medium text-gray-300">
-              Use BITR tokens for this pool
+            <label htmlFor="usePrix" className="text-sm font-medium text-gray-300">
+              Use PRIX tokens for this pool
             </label>
           </div>
 

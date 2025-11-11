@@ -264,7 +264,7 @@ const guidelinesData = [
             transition={{ delay: 0.5 }}
             className="text-xl text-text-secondary max-w-2xl mx-auto text-center"
           >
-            Join discussions, share insights, and connect with fellow members of the BitRedict community.
+            Join discussions, share insights, and connect with fellow members of the Predinex community.
           </motion.p>
         </div>
       </motion.div>
@@ -630,7 +630,7 @@ const guidelinesData = [
                 Earn Recognition
               </h4>
               <p className="text-text-secondary text-sm">
-                Active community members earn badges and BITR rewards! Contribute thoughtfully to discussions, 
+                Active community members earn badges and PRIX rewards! Contribute thoughtfully to discussions, 
                 help newcomers, and engage positively to unlock special achievements.
               </p>
             </div>

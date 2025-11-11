@@ -33,13 +33,13 @@ import ReputationBadge from "@/components/ReputationBadge";
 import { GuidedMarketService, Cryptocurrency, FootballMatch } from "@/services/guidedMarketService";
 // import { useGuidedMarketCreation } from "@/services/guidedMarketWalletService"; // Not used - using direct contract calls
 import { useWalletConnection } from "@/hooks/useWalletConnection";
-import { useBITRToken } from "@/hooks/useBITRToken";
+import { usePRIXToken } from "@/hooks/usePRIXToken";
 import { useReputationCheck } from "@/hooks/useReputationCheck";
 
 
 
 // Import the full contract ABI (commented out as not currently used)
-// import BitredictPoolABI from '@/contracts/abis/BitredictPool.json';
+// import PrixedictPoolABI from '@/contracts/abis/PrixedictPool.json';
 
 // Contract address (commented out as not currently used)
 // const CONTRACT_ADDRESS = CONTRACTS.POOL_CORE.address; // Updated to use POOL_CORE
@@ -147,7 +147,7 @@ function CreateMarketPageContent() {
   // Transaction feedback system
   const { transactionStatus, showSuccess, showError, showInfo, clearStatus } = useTransactionFeedback();
   
-  // BITR Token approval state
+  // PRIX Token approval state
   const [approvalConfirmed, setApprovalConfirmed] = useState(false);
   
   // Market type selection
@@ -160,7 +160,7 @@ function CreateMarketPageContent() {
     description: ''
   });
 
-  const [useBitr, setUseBitr] = useState<boolean>(false);
+  const [usePrix, setUsePrix] = useState<boolean>(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState(1);
@@ -177,7 +177,7 @@ function CreateMarketPageContent() {
   const userReputation = address ? getUserReputation(address) : null;
   const canCreate = address ? canCreateMarket(address) : false;
 
-  const token = useBITRToken();
+  const token = usePRIXToken();
 
   // Helper functions for crypto market creation
   const getTimeframeHours = (timeframe: string): number => {
@@ -260,7 +260,7 @@ function CreateMarketPageContent() {
   // Notify backend about pool creation for immediate indexing
   const notifyPoolCreation = useCallback(async (transactionHash: string) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://bitredict-backend.fly.dev'}/api/pools/notify-creation`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://prixedict-backend.fly.dev'}/api/pools/notify-creation`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -269,7 +269,7 @@ function CreateMarketPageContent() {
           transactionHash,
           creator: address,
           category: data.category,
-          useBitr,
+          usePrix,
           creatorStake: data.creatorStake,
           odds: data.odds
         }),
@@ -283,7 +283,7 @@ function CreateMarketPageContent() {
     } catch (error) {
       console.error('Failed to notify pool creation:', error);
     }
-  }, [address, data.category, useBitr, data.creatorStake, data.odds]);
+  }, [address, data.category, usePrix, data.creatorStake, data.odds]);
 
   // Initialize data
   useEffect(() => {
@@ -425,7 +425,7 @@ function CreateMarketPageContent() {
           errorMessage = 'Odds must be between 1.01x and 100x';
         } else if (errorStr.includes('stake below minimum')) {
           errorTitle = 'Invalid Stake';
-          errorMessage = 'Creator stake must be at least 20 BITR';
+          errorMessage = 'Creator stake must be at least 20 PRIX';
         } else if (errorStr.includes('event must be in future')) {
           errorTitle = 'Invalid Timing';
           errorMessage = 'Event must start in the future';
@@ -435,9 +435,9 @@ function CreateMarketPageContent() {
         } else if (errorStr.includes('event too far')) {
           errorTitle = 'Invalid Timing';
           errorMessage = 'Event cannot be more than 365 days in the future';
-        } else if (errorStr.includes('bitr transfer failed')) {
+        } else if (errorStr.includes('prix transfer failed')) {
           errorTitle = 'Token Transfer Failed';
-          errorMessage = 'BITR token transfer failed - check your balance and allowance';
+          errorMessage = 'PRIX token transfer failed - check your balance and allowance';
         } else if (errorStr.includes('gas')) {
           errorTitle = 'Gas Error';
           errorMessage = 'Transaction failed due to gas issues - try again';
@@ -531,14 +531,14 @@ function CreateMarketPageContent() {
   useEffect(() => {
     if (token.isPending) {
       console.log('🔄 Token approval pending - showing feedback');
-      showInfo('Approval Pending', 'Please confirm the BITR token approval in your wallet...');
+      showInfo('Approval Pending', 'Please confirm the PRIX token approval in your wallet...');
     }
   }, [token.isPending, showInfo]);
 
   useEffect(() => {
     if (token.isConfirming) {
       console.log('⏳ Token approval confirming - showing feedback');
-      showInfo('Approval Confirming', 'Your BITR token approval is being processed on the blockchain...');
+      showInfo('Approval Confirming', 'Your PRIX token approval is being processed on the blockchain...');
     }
   }, [token.isConfirming, showInfo]);
 
@@ -547,7 +547,7 @@ function CreateMarketPageContent() {
     if (isApprovalSuccess && !approvalConfirmed) {
       console.log('✅ Token approval successful - showing feedback with hash:', token.hash);
       setApprovalConfirmed(true);
-      showSuccess('Approval Confirmed!', 'BITR token approval confirmed! You can now create the pool.', token.hash);
+      showSuccess('Approval Confirmed!', 'PRIX token approval confirmed! You can now create the pool.', token.hash);
     }
   }, [isApprovalSuccess, approvalConfirmed, showSuccess, token.hash]);
 
@@ -555,7 +555,7 @@ function CreateMarketPageContent() {
   useEffect(() => {
     if (token.error) {
       console.log('❌ Token approval failed - showing error feedback');
-      showError('Approval Failed', token.error.message || 'Failed to approve BITR tokens');
+      showError('Approval Failed', token.error.message || 'Failed to approve PRIX tokens');
     }
   }, [token.error, showError]);
 
@@ -726,9 +726,9 @@ function CreateMarketPageContent() {
       }
       
       // Contract minimum stake requirements
-      const minStake = useBitr ? 20 : 20; // Both STT and BITR have same minimum (20 tokens)
+      const minStake = usePrix ? 20 : 20; // Both BNB and PRIX have same minimum (20 tokens)
       if (!data.creatorStake || data.creatorStake < minStake) {
-        newErrors.creatorStake = `Creator stake must be at least ${minStake} ${useBitr ? 'BITR' : 'STT'}`;
+        newErrors.creatorStake = `Creator stake must be at least ${minStake} ${usePrix ? 'PRIX' : 'BNB'}`;
       }
 
       if (!data.predictionOutcome) {
@@ -854,16 +854,16 @@ function CreateMarketPageContent() {
 
   // Removed generateOutcomeType - not used
 
-  // BITR Token approval function (commented out as not currently used)
-  // const approveBitrTokens = async (amount: string) => {
+  // PRIX Token approval function (commented out as not currently used)
+  // const approvePrixTokens = async (amount: string) => {
   //   if (!address) return false;
   //   
   //   try {
-  //     // Use the BITR token hook for approval
+  //     // Use the PRIX token hook for approval
   //     await token.approve(CONTRACTS.POOL_CORE.address, amount); // Updated to use POOL_CORE
   //     return true;
   //   } catch (error) {
-  //     console.error('BITR approval error:', error);
+  //     console.error('PRIX approval error:', error);
   //     // Error will be handled by the useEffect hook monitoring token.error
   //     return false;
   //   }
@@ -926,15 +926,15 @@ function CreateMarketPageContent() {
         const eventEndTime = new Date(eventStartTime.getTime() + 2 * 60 * 60 * 1000); // 2 hours after start
         
         // Validate minimum stake requirements
-        const minStakeBITR = parseUnits("1000", 18); // 1000 BITR minimum
-        const minStakeSTT = parseUnits("5", 18); // 5 STT minimum
+        const minStakePRIX = parseUnits("1000", 18); // 1000 PRIX minimum
+        const minStakeBNB = parseUnits("5", 18); // 5 BNB minimum
         const creatorStake = parseUnits(data.creatorStake.toString(), 18);
         
-        if (useBitr && creatorStake < minStakeBITR) {
-          throw new Error(`Minimum stake for BITR pools is 1000 BITR. You provided ${data.creatorStake} BITR.`);
+        if (usePrix && creatorStake < minStakePRIX) {
+          throw new Error(`Minimum stake for PRIX pools is 1000 PRIX. You provided ${data.creatorStake} PRIX.`);
         }
-        if (!useBitr && creatorStake < minStakeSTT) {
-          throw new Error(`Minimum stake for STT pools is 5 STT. You provided ${data.creatorStake} STT.`);
+        if (!usePrix && creatorStake < minStakeBNB) {
+          throw new Error(`Minimum stake for BNB pools is 5 BNB. You provided ${data.creatorStake} BNB.`);
         }
         
         // Validate odds (stored as basis points: 101-10000)
@@ -953,7 +953,7 @@ function CreateMarketPageContent() {
           category: 'football',
           isPrivate: data.isPrivate || false,
           maxBetPerUser: data.maxBetPerUser ? parseUnits(data.maxBetPerUser.toString(), 18) : BigInt(0),
-          useBitr: useBitr,
+          usePrix: usePrix,
           oracleType: 0, // GUIDED
           marketId: data.selectedFixture.id.toString(), // 🎯 SportMonks fixture ID
           marketType: data.marketType || 0, // Use selected market type or default to MONEYLINE
@@ -980,8 +980,8 @@ function CreateMarketPageContent() {
         });
         console.log('🔍 Stake validation:', {
           creatorStake: poolData.creatorStake.toString(),
-          minRequired: useBitr ? '1000000000000000000000' : '5000000000000000000',
-          meetsMinimum: useBitr ? poolData.creatorStake >= BigInt('1000000000000000000000') : poolData.creatorStake >= BigInt('5000000000000000000')
+          minRequired: usePrix ? '1000000000000000000000' : '5000000000000000000',
+          meetsMinimum: usePrix ? poolData.creatorStake >= BigInt('1000000000000000000000') : poolData.creatorStake >= BigInt('5000000000000000000')
         });
         
         showInfo('Creating Market', 'Preparing market creation transaction...');
@@ -991,10 +991,10 @@ function CreateMarketPageContent() {
         
         if (txHash) {
           // Calculate total cost for display
-          const creationFee = useBitr ? '70 BITR' : '1 STT'; // ✅ FIX: Contract uses 70 BITR, not 50
-        // ✅ FIX: Boost cost is always in STT (not BITR), regardless of pool currency
+          const creationFee = usePrix ? '70 PRIX' : '1 BNB'; // ✅ FIX: Contract uses 70 PRIX, not 50
+        // ✅ FIX: Boost cost is always in BNB (not PRIX), regardless of pool currency
         const boostCost = data.boostTier && data.boostTier !== 'NONE' 
-          ? `${data.boostTier === 'BRONZE' ? '2' : data.boostTier === 'SILVER' ? '3' : '5'} STT`
+          ? `${data.boostTier === 'BRONZE' ? '2' : data.boostTier === 'SILVER' ? '3' : '5'} BNB`
           : '0';
           const totalCost = data.boostTier && data.boostTier !== 'NONE' 
             ? `${boostCost} + ${creationFee}`
@@ -1038,15 +1038,15 @@ function CreateMarketPageContent() {
         const eventEndTime = new Date(eventStartTime.getTime() + (hours * 60 * 60 * 1000)); // Event Start + Timeframe
         
         // Validate minimum stake requirements
-        const minStakeBITR = parseUnits("1000", 18); // 1000 BITR minimum
-        const minStakeSTT = parseUnits("5", 18); // 5 STT minimum
+        const minStakePRIX = parseUnits("1000", 18); // 1000 PRIX minimum
+        const minStakeBNB = parseUnits("5", 18); // 5 BNB minimum
         const creatorStake = parseUnits(data.creatorStake.toString(), 18);
         
-        if (useBitr && creatorStake < minStakeBITR) {
-          throw new Error(`Minimum stake for BITR pools is 1000 BITR. You provided ${data.creatorStake} BITR.`);
+        if (usePrix && creatorStake < minStakePRIX) {
+          throw new Error(`Minimum stake for PRIX pools is 1000 PRIX. You provided ${data.creatorStake} PRIX.`);
         }
-        if (!useBitr && creatorStake < minStakeSTT) {
-          throw new Error(`Minimum stake for STT pools is 5 STT. You provided ${data.creatorStake} STT.`);
+        if (!usePrix && creatorStake < minStakeBNB) {
+          throw new Error(`Minimum stake for BNB pools is 5 BNB. You provided ${data.creatorStake} BNB.`);
         }
         
         // Validate odds (stored as basis points: 101-10000)
@@ -1069,7 +1069,7 @@ function CreateMarketPageContent() {
           category: 'cryptocurrency',
           isPrivate: data.isPrivate || false,
           maxBetPerUser: data.maxBetPerUser ? parseUnits(data.maxBetPerUser.toString(), 18) : BigInt(0),
-          useBitr: useBitr,
+          usePrix: usePrix,
           oracleType: 0, // GUIDED
           marketId: marketIdHash, // Use keccak256 hash for crypto markets
           marketType: 0, // MONEYLINE for crypto price direction
@@ -1095,10 +1095,10 @@ function CreateMarketPageContent() {
         
         if (txHash) {
         // Calculate total cost for display
-        const creationFee = useBitr ? '50 BITR' : '1 STT';
-        // ✅ FIX: Boost cost is always in STT (not BITR), regardless of pool currency
+        const creationFee = usePrix ? '50 PRIX' : '1 BNB';
+        // ✅ FIX: Boost cost is always in BNB (not PRIX), regardless of pool currency
         const boostCost = data.boostTier && data.boostTier !== 'NONE' 
-          ? `${data.boostTier === 'BRONZE' ? '2' : data.boostTier === 'SILVER' ? '3' : '5'} STT`
+          ? `${data.boostTier === 'BRONZE' ? '2' : data.boostTier === 'SILVER' ? '3' : '5'} BNB`
           : '0';
         const totalCost = data.boostTier && data.boostTier !== 'NONE' 
           ? `${boostCost} + ${creationFee}`
@@ -1536,13 +1536,13 @@ function CreateMarketPageContent() {
               value={data.creatorStake.toString()}
               onChange={(value) => {
                 const numValue = parseFloat(value);
-                const minStake = useBitr ? 20 : 20; // Both STT and BITR have same minimum
+                const minStake = usePrix ? 20 : 20; // Both BNB and PRIX have same minimum
                 if (!isNaN(numValue) && numValue >= minStake && numValue <= 1000000) {
                   handleInputChange('creatorStake', numValue);
                 }
               }}
               onValueChange={(numValue) => {
-                const minStake = useBitr ? 20 : 20;
+                const minStake = usePrix ? 20 : 20;
                 if (numValue >= minStake && numValue <= 1000000) {
                   handleInputChange('creatorStake', numValue);
                 }
@@ -1553,8 +1553,8 @@ function CreateMarketPageContent() {
               step={0.1}
               allowDecimals={true}
               decimals={2}
-              currency={useBitr ? 'BITR' : 'STT'}
-              help={`Your stake that acts as liquidity for the market. Minimum: 20 ${useBitr ? 'BITR' : 'STT'}`}
+              currency={usePrix ? 'PRIX' : 'BNB'}
+              help={`Your stake that acts as liquidity for the market. Minimum: 20 ${usePrix ? 'PRIX' : 'BNB'}`}
             />
             {errors.creatorStake && (
               <p className="text-red-400 text-sm">{errors.creatorStake}</p>
@@ -1567,26 +1567,26 @@ function CreateMarketPageContent() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <motion.button
                 whileHover={{ scale: 1.02 }}
-                onClick={() => setUseBitr(false)}
+                onClick={() => setUsePrix(false)}
                 className={`p-3 rounded-lg border text-center transition-all ${
-                  !useBitr
+                  !usePrix
                     ? 'border-cyan-500 bg-cyan-500/10 text-cyan-400'
                     : 'border-gray-600 bg-gray-800/50 text-gray-300 hover:border-cyan-400'
                 }`}
               >
-                <div className="font-semibold text-sm sm:text-base">STT</div>
+                <div className="font-semibold text-sm sm:text-base">BNB</div>
                 <div className="text-xs mt-1">Somnia Network Currency</div>
               </motion.button>
               <motion.button
                 whileHover={{ scale: 1.02 }}
-                onClick={() => setUseBitr(true)}
+                onClick={() => setUsePrix(true)}
                 className={`p-3 rounded-lg border text-center transition-all ${
-                  useBitr
+                  usePrix
                     ? 'border-cyan-500 bg-cyan-500/10 text-cyan-400'
                     : 'border-gray-600 bg-gray-800/50 text-gray-300 hover:border-cyan-400'
                 }`}
               >
-                <div className="font-semibold text-sm sm:text-base">BITR</div>
+                <div className="font-semibold text-sm sm:text-base">PRIX</div>
                 <div className="text-xs mt-1">Reduced fees & bonuses</div>
               </motion.button>
             </div>
@@ -1752,7 +1752,7 @@ function CreateMarketPageContent() {
               }`}
             >
               <div className="font-semibold text-sm">🥉 Bronze</div>
-              <div className="text-xs mt-1">2 {useBitr ? 'BITR' : 'STT'}</div>
+              <div className="text-xs mt-1">2 {usePrix ? 'PRIX' : 'BNB'}</div>
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.02 }}
@@ -1764,7 +1764,7 @@ function CreateMarketPageContent() {
               }`}
             >
               <div className="font-semibold text-sm">🥈 Silver</div>
-              <div className="text-xs mt-1">5 {useBitr ? 'BITR' : 'STT'}</div>
+              <div className="text-xs mt-1">5 {usePrix ? 'PRIX' : 'BNB'}</div>
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.02 }}
@@ -1776,7 +1776,7 @@ function CreateMarketPageContent() {
               }`}
             >
               <div className="font-semibold text-sm">🥇 Gold</div>
-              <div className="text-xs mt-1">10 {useBitr ? 'BITR' : 'STT'}</div>
+              <div className="text-xs mt-1">10 {usePrix ? 'PRIX' : 'BNB'}</div>
             </motion.button>
           </div>
 
@@ -1805,7 +1805,7 @@ function CreateMarketPageContent() {
                     {data.boostTier === 'SILVER' && '3'}
                     {data.boostTier === 'GOLD' && '5'}
                     <span className="text-sm text-gray-400 ml-1">
-                      STT {/* ✅ FIX: Boost is always paid in STT, not BITR */}
+                      BNB {/* ✅ FIX: Boost is always paid in BNB, not PRIX */}
                     </span>
                   </div>
                   <div className="text-xs text-gray-400">
@@ -1873,7 +1873,7 @@ function CreateMarketPageContent() {
                 className="w-full px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-cyan-500"
               />
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm">
-                {useBitr ? 'BITR' : 'STT'}
+                {usePrix ? 'PRIX' : 'BNB'}
               </div>
             </div>
             <p className="text-xs text-gray-400">
@@ -1965,7 +1965,7 @@ function CreateMarketPageContent() {
               </div>
               <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                 <span className="text-gray-300">Your Stake:</span>
-                <span className="text-white">{data.creatorStake} {useBitr ? 'BITR' : 'STT'}</span>
+                <span className="text-white">{data.creatorStake} {usePrix ? 'PRIX' : 'BNB'}</span>
               </div>
             </div>
           </div>
@@ -2065,13 +2065,13 @@ function CreateMarketPageContent() {
             <div className="space-y-1 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-300">Creation Fee:</span>
-                <span className="text-white">{useBitr ? '50 BITR' : '1 STT'}</span>
+                <span className="text-white">{usePrix ? '50 PRIX' : '1 BNB'}</span>
               </div>
               {data.boostTier && data.boostTier !== 'NONE' && (
                 <div className="flex justify-between">
                   <span className="text-gray-300">Boost Fee ({data.boostTier}):</span>
                   <span className="text-white">
-                    {data.boostTier === 'BRONZE' ? '2' : data.boostTier === 'SILVER' ? '3' : '5'} STT
+                    {data.boostTier === 'BRONZE' ? '2' : data.boostTier === 'SILVER' ? '3' : '5'} BNB
                   </span>
                 </div>
               )}
@@ -2081,11 +2081,11 @@ function CreateMarketPageContent() {
                   {data.boostTier && data.boostTier !== 'NONE' 
                     ? `${(() => {
                         const boostAmount = data.boostTier === 'BRONZE' ? 2 : data.boostTier === 'SILVER' ? 3 : 5;
-                        const creationAmount = useBitr ? 70 : 1;
+                        const creationAmount = usePrix ? 70 : 1;
                         const total = boostAmount + creationAmount;
-                        return `${boostAmount} STT + ${creationAmount} ${useBitr ? 'BITR' : 'STT'} = ${useBitr ? `${creationAmount} BITR + ${boostAmount} STT` : `${total} STT`}`;
+                        return `${boostAmount} BNB + ${creationAmount} ${usePrix ? 'PRIX' : 'BNB'} = ${usePrix ? `${creationAmount} PRIX + ${boostAmount} BNB` : `${total} BNB`}`;
                       })()}`
-                    : `${useBitr ? '70 BITR' : '1 STT'}`}
+                    : `${usePrix ? '70 PRIX' : '1 BNB'}`}
                 </span>
               </div>
             </div>
@@ -2155,11 +2155,11 @@ function CreateMarketPageContent() {
               </div>
               <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                 <span className="text-gray-300">Your Stake:</span>
-                <span className="text-white font-medium">{data.creatorStake} {useBitr ? 'BITR' : 'STT'}</span>
+                <span className="text-white font-medium">{data.creatorStake} {usePrix ? 'PRIX' : 'BNB'}</span>
               </div>
               <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                 <span className="text-gray-300">Payment Token:</span>
-                <span className="text-white font-medium">{useBitr ? 'BITR' : 'STT'}</span>
+                <span className="text-white font-medium">{usePrix ? 'PRIX' : 'BNB'}</span>
               </div>
               {data.description && (
                 <div className="flex flex-col gap-1">
@@ -2212,11 +2212,11 @@ function CreateMarketPageContent() {
               </div>
               <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                 <span className="text-gray-300">Your Stake:</span>
-                <span className="text-white font-medium">{data.creatorStake} {useBitr ? 'BITR' : 'STT'}</span>
+                <span className="text-white font-medium">{data.creatorStake} {usePrix ? 'PRIX' : 'BNB'}</span>
               </div>
               <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                 <span className="text-gray-300">Payment Token:</span>
-                <span className="text-white font-medium">{useBitr ? 'BITR' : 'STT'}</span>
+                <span className="text-white font-medium">{usePrix ? 'PRIX' : 'BNB'}</span>
               </div>
               {data.description && (
                 <div className="flex flex-col gap-1">

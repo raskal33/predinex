@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { useAccount } from "wagmi";
 import { usePortfolio } from "@/hooks/usePortfolio";
-import { formatSTT, formatRelativeTime } from "@/utils/formatters";
+import { formatBNB, formatRelativeTime } from "@/utils/formatters";
 import {
   BellIcon,
   TrophyIcon,
@@ -61,7 +61,7 @@ export default function Page() {
       activityType = 'position_won';
       icon = <TrophyIcon className="h-5 w-5" />;
       color = 'green';
-      message = `Won ${formatSTT(position.payoutAmount || position.prizeAmount || '0')} from "${position.title}"`;
+      message = `Won ${formatBNB(position.payoutAmount || position.prizeAmount || '0')} from "${position.title}"`;
     } else if (position.status === 'lost') {
       activityType = 'position_lost';
       icon = <XCircleIcon className="h-5 w-5" />;
@@ -81,7 +81,7 @@ export default function Page() {
       activityType = 'bet_placed';
       icon = <SparklesIcon className="h-5 w-5" />;
       color = 'cyan';
-      message = `Placed ${formatSTT(position.amount)} on "${position.title}"`;
+      message = `Placed ${formatBNB(position.amount)} on "${position.title}"`;
     }
 
     return {

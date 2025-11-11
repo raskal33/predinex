@@ -102,7 +102,7 @@ export default function BetDisplay({ poolId, className = "" }: BetDisplayProps) 
 
   const formatAmount = (amount: string) => {
     const num = parseFloat(amount);
-    if (num >= 1000000000000000000) { // 1e18 (1 ETH/STT in wei)
+    if (num >= 1000000000000000000) { // 1e18 (1 ETH/BNB in wei)
       return `${(num / 1000000000000000000).toFixed(1)}`;
     } else if (num >= 1000000000000000) { // 1e15
       return `${(num / 1000000000000000).toFixed(1)}K`;

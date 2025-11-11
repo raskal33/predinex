@@ -21,7 +21,7 @@ export interface ComboPoolData {
   latestEventEnd: bigint;      // Latest event end timestamp
   category: string;            // Category string (will be hashed)
   maxBetPerUser: bigint;       // Max bet per user (0 = unlimited)
-  useBitr: boolean;           // Use BITR token (true) or STT (false)
+  usePrix: boolean;           // Use PRIX token (true) or BNB (false)
 }
 
 export function useComboPools() {
@@ -44,24 +44,24 @@ export function useComboPools() {
       }));
       
       // Calculate total required payment
-      const creationFeeBITR = 70n * 10n**18n; // 70 BITR
-      const creationFeeSTT = 1n * 10n**18n;   // 1 STT
-      const totalRequired = poolData.useBitr 
-        ? creationFeeBITR + poolData.creatorStake
-        : creationFeeSTT + poolData.creatorStake;
+      const creationFeePRIX = 70n * 10n**18n; // 70 PRIX
+      const creationFeeBNB = 1n * 10n**18n;   // 1 BNB
+      const totalRequired = poolData.usePrix 
+        ? creationFeePRIX + poolData.creatorStake
+        : creationFeeBNB + poolData.creatorStake;
       
-      // For BITR pools, we need to approve tokens first
-      if (poolData.useBitr && address) {
-        // First approve BITR tokens for the combo pools contract
+      // For PRIX pools, we need to approve tokens first
+      if (poolData.usePrix && address) {
+        // First approve PRIX tokens for the combo pools contract
         await writeContractAsync({
-          address: CONTRACT_ADDRESSES.BITR_TOKEN,
-          abi: CONTRACTS.BITR_TOKEN.abi,
+          address: CONTRACT_ADDRESSES.PRIX_TOKEN,
+          abi: CONTRACTS.PRIX_TOKEN.abi,
           functionName: 'approve',
           args: [CONTRACT_ADDRESSES.COMBO_POOLS, totalRequired],
           ...getTransactionOptions(),
         });
         
-        toast.success('BITR tokens approved for combo pool creation!');
+        toast.success('PRIX tokens approved for combo pool creation!');
       }
       
       const txHash = await writeContractAsync({
@@ -76,9 +76,9 @@ export function useComboPools() {
           poolData.latestEventEnd,
           categoryHash,
           poolData.maxBetPerUser,
-          poolData.useBitr
+          poolData.usePrix
         ],
-        value: poolData.useBitr ? 0n : totalRequired, // Only send ETH for STT pools
+        value: poolData.usePrix ? 0n : totalRequired, // Only send ETH for BNB pools
         ...getTransactionOptions(),
       });
       

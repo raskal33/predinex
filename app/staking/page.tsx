@@ -10,7 +10,7 @@ import AnimatedTitle from "@/components/AnimatedTitle";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import AmountInput from "@/components/AmountInput";
 import { useStaking, DurationOption, StakeWithRewards } from "@/hooks/useStaking";
-import { useBITRToken } from "@/hooks/useBITRToken";
+import { usePRIXToken } from "@/hooks/usePRIXToken";
 import { useTransactionFeedback, TransactionFeedback } from "@/components/TransactionFeedback";
 import { CONTRACTS } from "@/contracts";
 import { parseUnits } from "viem";
@@ -49,7 +49,7 @@ export default function StakingPage() {
   
   // Smart contract hooks
   const staking = useStaking();
-  const token = useBITRToken();
+  const token = usePRIXToken();
   
   // Transaction feedback system
   const { transactionStatus, showSuccess, showError, showInfo, clearStatus } = useTransactionFeedback();
@@ -78,7 +78,7 @@ export default function StakingPage() {
   // Check if approval is needed
   useEffect(() => {
     if (stakeAmount && token.balance && isMountedRef.current) {
-      const allowance = token.getAllowance(CONTRACTS.BITREDICT_STAKING.address);
+      const allowance = token.getAllowance(CONTRACTS.PRIXEDICT_STAKING.address);
       const stakeAmountWei = parseUnits(stakeAmount, 18);
       setNeedsApproval(!allowance || (allowance as bigint) < stakeAmountWei);
     }
@@ -170,7 +170,7 @@ export default function StakingPage() {
     if (token.isPending && isMountedRef.current) {
       showInfo("Approval Pending", "Please confirm the approval transaction in your wallet...");
     } else if (token.isConfirmed && isMountedRef.current) {
-      showSuccess("Approval Successful", "Successfully approved BITR for staking", token.hash);
+      showSuccess("Approval Successful", "Successfully approved PRIX for staking", token.hash);
     }
   }, [token.isPending, token.isConfirmed, token.hash, showInfo, showSuccess]);
 
@@ -202,7 +202,7 @@ export default function StakingPage() {
     }
   };
 
-  // Handle BITR approval for staking
+  // Handle PRIX approval for staking
   const handleApprove = async () => {
     try {
       if (!stakeAmount) {
@@ -211,13 +211,13 @@ export default function StakingPage() {
       }
 
       const stakeAmountWei = parseUnits(stakeAmount, 18);
-      await token.approve(CONTRACTS.BITREDICT_STAKING.address, stakeAmountWei.toString());
-      showSuccess("Approval Successful", "BITR tokens approved for staking. You can now create your stake.");
+      await token.approve(CONTRACTS.PRIXEDICT_STAKING.address, stakeAmountWei.toString());
+      showSuccess("Approval Successful", "PRIX tokens approved for staking. You can now create your stake.");
       
       // Reset approval state after successful approval
       setNeedsApproval(false);
     } catch (error: unknown) {
-      showError("Approval Failed", (error as Error).message || "Failed to approve BITR tokens. Please try again.");
+      showError("Approval Failed", (error as Error).message || "Failed to approve PRIX tokens. Please try again.");
     }
   };
 
@@ -330,7 +330,7 @@ export default function StakingPage() {
           <BoltSolid className="h-16 w-16 text-purple-400 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-white mb-4">Connect Your Wallet</h2>
           <p className="text-gray-300 mb-6">
-            Connect your wallet to start staking BITR tokens and earn rewards.
+            Connect your wallet to start staking PRIX tokens and earn rewards.
           </p>
         </motion.div>
       </div>
@@ -358,7 +358,7 @@ export default function StakingPage() {
         leftIcon={BoltSolid}
         rightIcon={CurrencySolid}
       >
-        BITR Staking
+        PRIX Staking
             </AnimatedTitle>
       
       <motion.p 
@@ -367,7 +367,7 @@ export default function StakingPage() {
         transition={{ delay: 0.5 }}
         className="text-base text-text-secondary max-w-2xl mx-auto text-center mb-6"
       >
-        Stake your BITR tokens to earn rewards and unlock exclusive tiers. Higher tiers provide better rewards and platform benefits.
+        Stake your PRIX tokens to earn rewards and unlock exclusive tiers. Higher tiers provide better rewards and platform benefits.
       </motion.p>
 
         {/* Staking Information Cards */}
@@ -387,21 +387,21 @@ export default function StakingPage() {
                 <span className="text-orange-400 font-medium">🥉 Bronze</span>
                 <div className="text-right">
                   <div className="text-white font-semibold">6% APY</div>
-                  <div className="text-gray-400 text-sm">1,000+ BITR</div>
+                  <div className="text-gray-400 text-sm">1,000+ PRIX</div>
                 </div>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-300 font-medium">🥈 Silver</span>
                 <div className="text-right">
                   <div className="text-white font-semibold">12% APY</div>
-                  <div className="text-gray-400 text-sm">3,000+ BITR</div>
+                  <div className="text-gray-400 text-sm">3,000+ PRIX</div>
                 </div>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-yellow-400 font-medium">🥇 Gold</span>
                 <div className="text-right">
                   <div className="text-white font-semibold">18% APY</div>
-                  <div className="text-gray-400 text-sm">10,000+ BITR</div>
+                  <div className="text-gray-400 text-sm">10,000+ PRIX</div>
                 </div>
               </div>
             </div>
@@ -460,7 +460,7 @@ export default function StakingPage() {
               </div>
             </div>
             <p className="text-xs text-gray-400 mt-3">
-              Monthly distribution of platform revenue in BITR + STT
+              Monthly distribution of platform revenue in PRIX + BNB
             </p>
           </motion.div>
         </div>
@@ -478,7 +478,7 @@ export default function StakingPage() {
               <div className="bg-blue-500/20 rounded-xl p-4 mb-4">
                 <FaCoins className="h-8 w-8 text-blue-400 mx-auto" />
               </div>
-              <h4 className="text-lg font-semibold text-white mb-2">1. Stake BITR</h4>
+              <h4 className="text-lg font-semibold text-white mb-2">1. Stake PRIX</h4>
               <p className="text-gray-300 text-sm">
                 Choose your amount, tier, and lock duration. Higher amounts and longer durations yield better rewards.
               </p>
@@ -489,7 +489,7 @@ export default function StakingPage() {
               </div>
               <h4 className="text-lg font-semibold text-white mb-2">2. Earn Rewards</h4>
               <p className="text-gray-300 text-sm">
-                Receive daily BITR rewards based on your tier&apos;s APY plus duration bonuses. Claim anytime.
+                Receive daily PRIX rewards based on your tier&apos;s APY plus duration bonuses. Claim anytime.
               </p>
             </div>
             <div className="text-center">
@@ -498,7 +498,7 @@ export default function StakingPage() {
               </div>
               <h4 className="text-lg font-semibold text-white mb-2">3. Revenue Share</h4>
               <p className="text-gray-300 text-sm">
-                Monthly distribution of platform fees (BITR + STT) proportional to your tier and stake size.
+                Monthly distribution of platform fees (PRIX + BNB) proportional to your tier and stake size.
               </p>
             </div>
             <div className="text-center">
@@ -519,7 +519,7 @@ export default function StakingPage() {
               <li>• <strong>Revenue Share:</strong> Distributed monthly on the 1st, claim when available</li>
               <li>• <strong>Unstaking:</strong> Only possible after lock period expires, includes all unclaimed rewards</li>
               <li>• <strong>Early Exit:</strong> Unstaking before expiry forfeits all pending rewards</li>
-              <li>• <strong>Gas Fees:</strong> All transactions require STT for gas on Somnia Network</li>
+              <li>• <strong>Gas Fees:</strong> All transactions require BNB for gas on Somnia Network</li>
             </ul>
           </div>
         </motion.div>
@@ -545,13 +545,13 @@ export default function StakingPage() {
                 <div className="text-center">
                   <FaCoins className="h-8 w-8 text-yellow-400 mx-auto mb-2" />
                   <p className="text-gray-400 text-sm">Total Staked</p>
-                  <p className="text-2xl font-bold text-white">{staking.totalUserStaked} BITR</p>
+                  <p className="text-2xl font-bold text-white">{staking.totalUserStaked} PRIX</p>
                 </div>
                 
                 <div className="text-center">
                   <FaChartLine className="h-8 w-8 text-green-400 mx-auto mb-2" />
                   <p className="text-gray-400 text-sm">Total Rewards</p>
-                  <p className="text-2xl font-bold text-white">{staking.totalPendingRewards} BITR</p>
+                  <p className="text-2xl font-bold text-white">{staking.totalPendingRewards} PRIX</p>
                 </div>
 
                 <div className="text-center">
@@ -575,7 +575,7 @@ export default function StakingPage() {
                     />
                   </div>
                   <p className="text-gray-400 text-sm mt-2">
-                    Need {staking.nextTierThreshold} BITR to reach next tier
+                    Need {staking.nextTierThreshold} PRIX to reach next tier
                   </p>
                 </div>
               )}
@@ -592,25 +592,25 @@ export default function StakingPage() {
               {/* ✅ FIX: Debug info for revenue share */}
               {process.env.NODE_ENV === 'development' && (
                 <div className="mb-4 p-3 bg-black/20 rounded-lg text-xs text-gray-400">
-                  <div>Raw BITR: {staking.pendingRevenueBITR_raw?.toString() || '0'}</div>
-                  <div>Raw STT: {staking.pendingRevenueSTT_raw?.toString() || '0'}</div>
+                  <div>Raw PRIX: {staking.pendingRevenuePRIX_raw?.toString() || '0'}</div>
+                  <div>Raw BNB: {staking.pendingRevenueBNB_raw?.toString() || '0'}</div>
                   <div>Address: {staking.userStakes?.length > 0 ? 'Stakes exist' : 'No stakes'}</div>
                 </div>
               )}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="text-center">
                   <FaCoins className="h-8 w-8 text-yellow-400 mx-auto mb-2" />
-                  <p className="text-gray-400 text-sm">Pending BITR</p>
+                  <p className="text-gray-400 text-sm">Pending PRIX</p>
                   <p className="text-xl font-bold text-white">
-                    {staking.pendingRevenueBITR || '0'}
+                    {staking.pendingRevenuePRIX || '0'}
                   </p>
                 </div>
                 
                 <div className="text-center">
                   <FaGem className="h-8 w-8 text-blue-400 mx-auto mb-2" />
-                  <p className="text-gray-400 text-sm">Pending STT</p>
+                  <p className="text-gray-400 text-sm">Pending BNB</p>
                   <p className="text-xl font-bold text-white">
-                    {staking.pendingRevenueSTT || '0'}
+                    {staking.pendingRevenueBNB || '0'}
                   </p>
                 </div>
 
@@ -618,7 +618,7 @@ export default function StakingPage() {
                   <Button
                     onClick={handleClaimRevenueShare}
                     disabled={
-                      (parseFloat(staking.pendingRevenueBITR) === 0 && parseFloat(staking.pendingRevenueSTT) === 0) ||
+                      (parseFloat(staking.pendingRevenuePRIX) === 0 && parseFloat(staking.pendingRevenueBNB) === 0) ||
                       staking.isClaimingRevenue ||
                       staking.isPending ||
                       staking.isConfirming
@@ -672,7 +672,7 @@ export default function StakingPage() {
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                             <div>
                               <p className="text-gray-400">Amount</p>
-                              <p className="text-white font-medium">{staking.formatAmount(stake.amount)} BITR</p>
+                              <p className="text-white font-medium">{staking.formatAmount(stake.amount)} PRIX</p>
                             </div>
                             <div>
                               <p className="text-gray-400">Tier</p>
@@ -698,7 +698,7 @@ export default function StakingPage() {
                           </div>
                           <div className="flex items-center gap-1 text-green-400">
                             <FaCoins className="h-4 w-4" />
-                            <span>{staking.formatReward(stake.pendingRewards)} BITR pending</span>
+                            <span>{staking.formatReward(stake.pendingRewards)} PRIX pending</span>
                           </div>
                         </div>
                       </div>
@@ -724,7 +724,7 @@ export default function StakingPage() {
                               Claiming...
                             </div>
                           ) : (
-                            `Claim ${staking.formatAmount(stake.pendingRewards)} BITR`
+                            `Claim ${staking.formatAmount(stake.pendingRewards)} PRIX`
                           )}
                         </Button>
                         <Button
@@ -769,15 +769,15 @@ export default function StakingPage() {
                     value={stakeAmount}
                     onChange={(value) => setStakeAmount(value)}
                     onValueChange={(numValue) => setStakeAmount(numValue.toString())}
-                    placeholder="Enter BITR amount"
-                    currency="BITR"
+                    placeholder="Enter PRIX amount"
+                    currency="PRIX"
                     min={1}
                     max={parseFloat(token.balance) || 0}
                     decimals={18}
                     size="md"
                     showMaxButton={true}
                     maxValue={parseFloat(token.balance) || 0}
-                    help={`Available: ${token.balance} BITR`}
+                    help={`Available: ${token.balance} PRIX`}
                     variant="filled"
                     required
                   />
@@ -813,7 +813,7 @@ export default function StakingPage() {
                               <div>
                                 <p className="text-white font-medium">{staking.getTierName(index)}</p>
                                 <p className="text-gray-400 text-sm">
-                                  {formatPercentage((typeof tier.baseAPY === 'bigint' ? Number(tier.baseAPY) / 100 : tier.baseAPY / 100))} APY • Min: {staking.formatAmount(tier.minStake)} BITR
+                                  {formatPercentage((typeof tier.baseAPY === 'bigint' ? Number(tier.baseAPY) / 100 : tier.baseAPY / 100))} APY • Min: {staking.formatAmount(tier.minStake)} PRIX
                                 </p>
                               </div>
                             </div>
@@ -878,7 +878,7 @@ export default function StakingPage() {
                           Approving...
                         </div>
                       ) : (
-                        "Approve BITR"
+                        "Approve PRIX"
                       )}
                     </Button>
                   ) : (

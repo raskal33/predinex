@@ -18,7 +18,7 @@ export interface PoolClaimablePosition {
   potentialPayout: string;
   isWinner: boolean;
   claimed: boolean;
-  usesBitr: boolean;
+  usesPrix: boolean;
   marketTitle: string;
   category: string;
   league: string;

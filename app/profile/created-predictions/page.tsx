@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useAccount } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
-import { formatSTT, formatShortDate } from "@/utils/formatters";
+import { formatBNB, formatShortDate } from "@/utils/formatters";
 import {
   SparklesIcon,
   MagnifyingGlassIcon,
@@ -12,7 +12,7 @@ import {
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://bitredict-backend.fly.dev';
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://prixedict-backend.fly.dev';
 
 export default function CreatedPredictionsPage() {
   const { address } = useAccount();
@@ -222,14 +222,14 @@ export default function CreatedPredictionsPage() {
                   <div className="text-right">
                     <div className="text-sm text-text-muted mb-1">Total Volume</div>
                     <div className="font-medium text-text-primary">
-                      {formatSTT((parseFloat(pool.total_bettor_stake || '0') + parseFloat(pool.creator_stake || '0')).toString())}
+                      {formatBNB((parseFloat(pool.total_bettor_stake || '0') + parseFloat(pool.creator_stake || '0')).toString())}
                     </div>
                   </div>
                   
                   <div className="text-right">
                     <div className="text-sm text-text-muted mb-1">Your Liquidity</div>
                     <div className="font-medium text-cyan-400">
-                      {formatSTT(pool.creator_stake || '0')}
+                      {formatBNB(pool.creator_stake || '0')}
                     </div>
                   </div>
                   

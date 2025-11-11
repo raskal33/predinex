@@ -1,0 +1,1216 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_poolCore",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_comboPools",
+        "type": "address"
+      },
+      {
+        "internalType": "address payable",
+        "name": "_boostSystem",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_prixToken",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      }
+    ],
+    "name": "OwnableInvalidOwner",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "OwnableUnauthorizedAccount",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ReentrancyGuardReentrantCall",
+    "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "comboPoolId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "creator",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "boosted",
+        "type": "bool"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "totalCost",
+        "type": "uint256"
+      }
+    ],
+    "name": "ComboPoolCreatedWithBoost",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "contractName",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "oldAddress",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "newAddress",
+        "type": "address"
+      }
+    ],
+    "name": "ContractUpgraded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "totalPools",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "totalVolume",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "totalBoosted",
+        "type": "uint256"
+      }
+    ],
+    "name": "FactoryAnalyticsUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "previousOwner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "OwnershipTransferred",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "poolId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "creator",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "boosted",
+        "type": "bool"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "totalCost",
+        "type": "uint256"
+      }
+    ],
+    "name": "PoolCreatedWithBoost",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32[]",
+        "name": "_predictedOutcomes",
+        "type": "bytes32[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "_odds",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "_creatorStakes",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "string[]",
+        "name": "",
+        "type": "string[]"
+      },
+      {
+        "internalType": "string[]",
+        "name": "",
+        "type": "string[]"
+      },
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "name": "batchCreatePools",
+    "outputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "boostSystem",
+    "outputs": [
+      {
+        "internalType": "contract PredinexBoostSystem",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "creator",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "poolId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "applyBoost",
+        "type": "bool"
+      },
+      {
+        "internalType": "bool",
+        "name": "usePrix",
+        "type": "bool"
+      }
+    ],
+    "name": "canCreatePoolWithBoost",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "canCreate",
+        "type": "bool"
+      },
+      {
+        "internalType": "string",
+        "name": "reason",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "comboPools",
+    "outputs": [
+      {
+        "internalType": "contract PredinexComboPools",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "marketId",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "expectedOutcome",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bool",
+            "name": "resolved",
+            "type": "bool"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "actualOutcome",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "string",
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "internalType": "uint16",
+            "name": "odds",
+            "type": "uint16"
+          }
+        ],
+        "internalType": "struct PredinexComboPools.OutcomeCondition[]",
+        "name": "conditions",
+        "type": "tuple[]"
+      },
+      {
+        "internalType": "uint16",
+        "name": "combinedOdds",
+        "type": "uint16"
+      },
+      {
+        "internalType": "uint256",
+        "name": "creatorStake",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "earliestEventStart",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "latestEventEnd",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "category",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "maxBetPerUser",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "usePrix",
+        "type": "bool"
+      },
+      {
+        "internalType": "bool",
+        "name": "_applyBoost",
+        "type": "bool"
+      }
+    ],
+    "name": "createComboPoolWithBoost",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "comboPoolId",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_predictedOutcome",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_odds",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_creatorStake",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_eventStartTime",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_eventEndTime",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "_leagueHash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "_categoryHash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "_homeTeamHash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "_awayTeamHash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "_titleHash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bool",
+        "name": "_isPrivate",
+        "type": "bool"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_maxBetPerUser",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "_usePrix",
+        "type": "bool"
+      },
+      {
+        "internalType": "enum OracleType",
+        "name": "_oracleType",
+        "type": "uint8"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "_marketId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "enum MarketType",
+        "name": "_marketType",
+        "type": "uint8"
+      },
+      {
+        "internalType": "bool",
+        "name": "_applyBoost",
+        "type": "bool"
+      }
+    ],
+    "name": "createPoolWithBoost",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "poolId",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "emergencyPause",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "emergencyWithdraw",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "factoryAnalytics",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "totalPoolsCreated",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalComboPoolsCreated",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalVolumeProcessed",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalBoostedPools",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "averagePoolSize",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "factoryFees",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "lastUpdated",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getActivePoolsWithBoosts",
+    "outputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "poolIds",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "bool[]",
+        "name": "isBoosted",
+        "type": "bool[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "comboPoolId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getAllComboPoolData",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "creator",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "creatorStake",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "totalCreatorSideStake",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxBettorStake",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "totalBettorStake",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint16",
+            "name": "totalOdds",
+            "type": "uint16"
+          },
+          {
+            "internalType": "uint8",
+            "name": "flags",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint8",
+            "name": "conditionCount",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint256",
+            "name": "eventStartTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "eventEndTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "bettingEndTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "resultTimestamp",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "category",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxBetPerUser",
+            "type": "uint256"
+          },
+          {
+            "components": [
+              {
+                "internalType": "bytes32",
+                "name": "marketId",
+                "type": "bytes32"
+              },
+              {
+                "internalType": "bytes32",
+                "name": "expectedOutcome",
+                "type": "bytes32"
+              },
+              {
+                "internalType": "bool",
+                "name": "resolved",
+                "type": "bool"
+              },
+              {
+                "internalType": "bytes32",
+                "name": "actualOutcome",
+                "type": "bytes32"
+              },
+              {
+                "internalType": "string",
+                "name": "description",
+                "type": "string"
+              },
+              {
+                "internalType": "uint16",
+                "name": "odds",
+                "type": "uint16"
+              }
+            ],
+            "internalType": "struct PredinexComboPools.OutcomeCondition[]",
+            "name": "conditions",
+            "type": "tuple[]"
+          }
+        ],
+        "internalType": "struct PredinexComboPools.ComboPool",
+        "name": "comboPool",
+        "type": "tuple"
+      },
+      {
+        "internalType": "bool",
+        "name": "isBoosted",
+        "type": "bool"
+      },
+      {
+        "internalType": "uint256",
+        "name": "boostExpiry",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "poolId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getAllPoolData",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "creator",
+            "type": "address"
+          },
+          {
+            "internalType": "uint16",
+            "name": "odds",
+            "type": "uint16"
+          },
+          {
+            "internalType": "uint8",
+            "name": "flags",
+            "type": "uint8"
+          },
+          {
+            "internalType": "enum OracleType",
+            "name": "oracleType",
+            "type": "uint8"
+          },
+          {
+            "internalType": "enum MarketType",
+            "name": "marketType",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint8",
+            "name": "reserved",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint256",
+            "name": "creatorStake",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "totalCreatorSideStake",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxBettorStake",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "totalBettorStake",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "predictedOutcome",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "result",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "uint256",
+            "name": "eventStartTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "eventEndTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "bettingEndTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "resultTimestamp",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "arbitrationDeadline",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxBetPerUser",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "league",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "category",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "homeTeam",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "awayTeam",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "title",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "string",
+            "name": "marketId",
+            "type": "string"
+          }
+        ],
+        "internalType": "struct PredinexPoolCore.Pool",
+        "name": "pool",
+        "type": "tuple"
+      },
+      {
+        "internalType": "bool",
+        "name": "isBoosted",
+        "type": "bool"
+      },
+      {
+        "internalType": "uint256",
+        "name": "boostExpiry",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getContractAddresses",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "poolCoreAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "comboPoolsAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "boostSystemAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "prixTokenAddress",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "creator",
+        "type": "address"
+      }
+    ],
+    "name": "getCreatorAnalytics",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "totalPoolsCreated",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "successfulPools",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalVolumeGenerated",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "averagePoolSize",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "reputationScore",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "winRate",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalEarnings",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "activePoolsCount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "creatorPools",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "creatorComboPools",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalBoostedPools",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getFactoryAnalytics",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "totalPoolsCreated",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "totalComboPoolsCreated",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "totalVolumeProcessed",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "totalBoostedPools",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "averagePoolSize",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "factoryFees",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "lastUpdated",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct PredinexPoolFactory.FactoryAnalytics",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getGlobalAnalytics",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "totalPools",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalVolume",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "averagePoolSize",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "lastUpdated",
+        "type": "uint256"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "totalPoolsCreated",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "totalComboPoolsCreated",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "totalVolumeProcessed",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "totalBoostedPools",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "averagePoolSize",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "factoryFees",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "lastUpdated",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct PredinexPoolFactory.FactoryAnalytics",
+        "name": "factoryStats",
+        "type": "tuple"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalBoosted",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalComboVolume",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_creatorStake",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "_usePrix",
+        "type": "bool"
+      },
+      {
+        "internalType": "bool",
+        "name": "_applyBoost",
+        "type": "bool"
+      }
+    ],
+    "name": "getPoolCreationCost",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "totalCost",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "creationFee",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "boostCost",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "owner",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "poolCore",
+    "outputs": [
+      {
+        "internalType": "contract PredinexPoolCore",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "prixToken",
+    "outputs": [
+      {
+        "internalType": "contract IERC20",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "renounceOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "transferOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_newPoolCore",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_newComboPools",
+        "type": "address"
+      },
+      {
+        "internalType": "address payable",
+        "name": "_newBoostSystem",
+        "type": "address"
+      }
+    ],
+    "name": "upgradeContracts",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "stateMutability": "payable",
+    "type": "receive"
+  }
+]

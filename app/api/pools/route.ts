@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://bitredict-backend.fly.dev';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://prixedict-backend.fly.dev';
 
 export async function GET(request: NextRequest) {
   try {
@@ -27,15 +27,32 @@ export async function GET(request: NextRequest) {
       throw new Error(data.error || 'Failed to fetch pools');
     }
 
+    // Log first pool to see what backend returns
+    if (data.data?.pools?.length > 0) {
+      console.log('🔍 Backend pool data sample:', {
+        poolId: data.data.pools[0].id,
+        category: data.data.pools[0].category,
+        homeTeam: data.data.pools[0].homeTeam,
+        awayTeam: data.data.pools[0].awayTeam,
+        title: data.data.pools[0].title,
+        marketId: data.data.pools[0].marketId,
+        fixtureId: data.data.pools[0].fixtureId,
+        // Check for any logo fields
+        allKeys: Object.keys(data.data.pools[0]),
+      });
+    }
+
     // Transform and format the data for frontend
+    // Also pass through logo fields and fixtureId from backend
     const formattedPools = data.data.pools.map((pool: Record<string, unknown>) => ({
       poolId: pool.id,
+      id: pool.id,
       creator: pool.creator,
       odds: pool.odds,
       settled: pool.settled || false,
       creatorSideWon: pool.creatorSideWon || false,
       isPrivate: pool.isPrivate || false,
-      usesBitr: pool.usesBitr || false,
+      usesPrix: pool.usesPrix || false,
       filledAbove60: pool.filledAbove60 || false,
       oracleType: pool.oracleType || 'GUIDED',
       
@@ -46,13 +63,19 @@ export async function GET(request: NextRequest) {
       predictedOutcome: pool.predictedOutcome,
       result: pool.result || '',
       marketId: pool.marketId,
-      marketType: pool.marketType || 0, // Add marketType field
+      marketType: pool.marketType || 0,
+      // ✅ NEW: Include fixtureId from backend
+      fixtureId: pool.fixtureId,
+      // ✅ NEW: Include team logos from backend
+      homeTeamLogo: pool.homeTeamLogo,
+      awayTeamLogo: pool.awayTeamLogo,
+      leagueLogo: pool.leagueLogo,
       
       eventStartTime: typeof pool.eventStartTime === 'string' ? new Date(pool.eventStartTime).getTime() / 1000 : pool.eventStartTime,
       eventEndTime: typeof pool.eventEndTime === 'string' ? new Date(pool.eventEndTime).getTime() / 1000 : pool.eventEndTime,
       bettingEndTime: typeof pool.bettingEndTime === 'string' ? new Date(pool.bettingEndTime).getTime() / 1000 : pool.bettingEndTime,
       resultTimestamp: pool.resultTimestamp ? new Date(pool.resultTimestamp as string).getTime() / 1000 : 0,
-      arbitrationDeadline: pool.arbitrationDeadline ? new Date(pool.arbitrationDeadline as string).getTime() / 1000 : (typeof pool.eventEndTime === 'string' ? new Date(pool.eventEndTime as string).getTime() / 1000 + (24 * 60 * 60) : (pool.eventEndTime as number) + (24 * 60 * 60)),
+      arprixationDeadline: pool.arprixationDeadline ? new Date(pool.arprixationDeadline as string).getTime() / 1000 : (typeof pool.eventEndTime === 'string' ? new Date(pool.eventEndTime as string).getTime() / 1000 + (24 * 60 * 60) : (pool.eventEndTime as number) + (24 * 60 * 60)),
       
       league: pool.league || 'Unknown',
       category: pool.category || 'sports',

@@ -6,7 +6,7 @@ export async function GET() {
     // const { searchParams } = new URL(request.url);
     // const date = searchParams.get('date'); // Optional: specific date - not currently used
 
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://bitredict-backend.fly.dev';
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://prixedict-backend.fly.dev';
     // Use contract-matches endpoint to get data directly from contract with correct data types
     const url = `${backendUrl}/api/oddyssey/contract-matches`;
 

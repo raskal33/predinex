@@ -2,7 +2,7 @@
  * Number Formatting Utilities for Frontend
  * 
  * Handles BigInt, scientific notation, and proper token display
- * Prevents issues like "4e+21 BITR" → "4,000,000 BITR"
+ * Prevents issues like "4e+21 PRIX" → "4,000,000 PRIX"
  */
 
 import { formatUnits, parseUnits } from 'viem';
@@ -63,29 +63,29 @@ export function formatTokenAmount(
 }
 
 /**
- * Format STT (Somnia Test Token) amount
+ * Format BNB (BSC Testnet) amount
  * @param value - Value in wei
  * @param maxDecimals - Maximum decimal places (default 2)
- * @returns Formatted string with "STT" suffix (e.g., "1,234.56 STT")
+ * @returns Formatted string with "BNB" suffix (e.g., "1,234.56 BNB")
  */
-export function formatSTT(
+export function formatBNB(
   value: bigint | string | number | undefined | null,
   maxDecimals: number = 2
 ): string {
-  return `${formatTokenAmount(value, 18, maxDecimals)} STT`;
+  return `${formatTokenAmount(value, 18, maxDecimals)} BNB`;
 }
 
 /**
- * Format BITR (BitRedict Token) amount
+ * Format PRIX (Predinex Token) amount
  * @param value - Value in wei
  * @param maxDecimals - Maximum decimal places (default 2)
- * @returns Formatted string with "BITR" suffix (e.g., "1,234.56 BITR")
+ * @returns Formatted string with "PRIX" suffix (e.g., "1,234.56 PRIX")
  */
-export function formatBITR(
+export function formatPRIX(
   value: bigint | string | number | undefined | null,
   maxDecimals: number = 2
 ): string {
-  return `${formatTokenAmount(value, 18, maxDecimals)} BITR`;
+  return `${formatTokenAmount(value, 18, maxDecimals)} PRIX`;
 }
 
 /**
@@ -149,12 +149,12 @@ export function formatWinRate(
 /**
  * Format profit/loss with sign
  * @param value - P&L value
- * @param token - Token symbol (default "STT")
- * @returns Formatted string with sign (e.g., "+1,234.56 STT", "-56.78 STT")
+ * @param token - Token symbol (default "BNB")
+ * @returns Formatted string with sign (e.g., "+1,234.56 BNB", "-56.78 BNB")
  */
 export function formatProfitLoss(
   value: bigint | string | number | undefined | null,
-  token: string = 'STT'
+  token: string = 'BNB'
 ): string {
   if (value === undefined || value === null) return `0 ${token}`;
   

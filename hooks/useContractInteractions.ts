@@ -9,8 +9,8 @@ import { formatTeamNamesForPool } from '@/utils/teamNameFormatter';
 
 // Enhanced contract interaction hooks for modular architecture
 
-// BITR Token Contract Hooks
-export function useBitrToken() {
+// PRIX Token Contract Hooks
+export function usePrixToken() {
   const { address } = useAccount();
   const { writeContractAsync } = useWriteContract();
   const publicClient = usePublicClient();
@@ -18,15 +18,15 @@ export function useBitrToken() {
   const approve = useCallback(async (spender: `0x${string}`, amount: bigint) => {
     try {
       const txHash = await writeContractAsync({
-        address: CONTRACT_ADDRESSES.BITR_TOKEN,
-        abi: CONTRACTS.BITR_TOKEN.abi,
+        address: CONTRACT_ADDRESSES.PRIX_TOKEN,
+        abi: CONTRACTS.PRIX_TOKEN.abi,
         functionName: 'approve',
         args: [spender, amount],
         ...getTransactionOptions(),
       });
       
-      console.log('✅ BITR approval transaction submitted:', txHash);
-      toast.loading('Waiting for approval confirmation...', { id: 'bitr-approval-wait' });
+      console.log('✅ PRIX approval transaction submitted:', txHash);
+      toast.loading('Waiting for approval confirmation...', { id: 'prix-approval-wait' });
       
       // Wait for the approval transaction to be confirmed before proceeding
       if (!publicClient) {
@@ -37,17 +37,17 @@ export function useBitrToken() {
       
       if (receipt.status !== 'success') {
         console.error('❌ Approval transaction failed');
-        toast.dismiss('bitr-approval-wait');
+        toast.dismiss('prix-approval-wait');
         throw new Error('Approval transaction failed');
       }
       
-      console.log('✅ BITR approval confirmed on-chain');
-      toast.success('BITR tokens approved!', { id: 'bitr-approval-wait' });
+      console.log('✅ PRIX approval confirmed on-chain');
+      toast.success('PRIX tokens approved!', { id: 'prix-approval-wait' });
       return txHash;
     } catch (error) {
-      console.error('Error approving BITR:', error);
-      toast.dismiss('bitr-approval-wait');
-      toast.error('Failed to approve BITR');
+      console.error('Error approving PRIX:', error);
+      toast.dismiss('prix-approval-wait');
+      toast.error('Failed to approve PRIX');
       throw error;
     }
   }, [writeContractAsync, publicClient]);
@@ -56,15 +56,15 @@ export function useBitrToken() {
     try {
       const result = await executeContractCall(async (client) => {
         return await client.readContract({
-          address: CONTRACT_ADDRESSES.BITR_TOKEN,
-          abi: CONTRACTS.BITR_TOKEN.abi,
+          address: CONTRACT_ADDRESSES.PRIX_TOKEN,
+          abi: CONTRACTS.PRIX_TOKEN.abi,
           functionName: 'allowance',
           args: [owner, spender],
         });
       });
       return result as bigint;
     } catch (error) {
-      console.error('Error getting BITR allowance:', error);
+      console.error('Error getting PRIX allowance:', error);
       return 0n;
     }
   }, []);
@@ -73,15 +73,15 @@ export function useBitrToken() {
     try {
       const result = await executeContractCall(async (client) => {
         return await client.readContract({
-          address: CONTRACT_ADDRESSES.BITR_TOKEN,
-          abi: CONTRACTS.BITR_TOKEN.abi,
+          address: CONTRACT_ADDRESSES.PRIX_TOKEN,
+          abi: CONTRACTS.PRIX_TOKEN.abi,
           functionName: 'balanceOf',
           args: [account || address || '0x0'],
         });
       });
       return result as bigint;
     } catch (error) {
-      console.error('Error getting BITR balance:', error);
+      console.error('Error getting PRIX balance:', error);
       return 0n;
     }
   }, [address]);
@@ -97,7 +97,7 @@ export function useBitrToken() {
 export function usePoolCore() {
   const { address } = useAccount();
   const { writeContractAsync } = useWriteContract();
-  const { approve, getAllowance, getBalance } = useBitrToken();
+  const { approve, getAllowance, getBalance } = usePrixToken();
   const publicClient = usePublicClient();
 
   const createPool = useCallback(async (poolData: {
@@ -110,7 +110,7 @@ export function usePoolCore() {
     category: string;
     isPrivate: boolean;
     maxBetPerUser: bigint;
-    useBitr: boolean;
+    usePrix: boolean;
     oracleType: number;
     marketId: string;
     marketType: number;
@@ -132,71 +132,71 @@ export function usePoolCore() {
         : poolData.marketId; // For custom markets, use as-is
 
       // Calculate total required amount (creation fee + creator stake + boost cost)
-      // ✅ FIX: Match contract values - BITR = 70e18, STT = 1e18
-      const creationFeeBITR = 70n * 10n**18n; // 70 BITR in wei (contract uses 70e18, not 50e18!)
-      const creationFeeSTT = 1n * 10n**18n; // 1 STT in wei
+      // ✅ FIX: Match contract values - PRIX = 70e18, BNB = 1e18
+      const creationFeePRIX = 70n * 10n**18n; // 70 PRIX in wei (contract uses 70e18, not 50e18!)
+      const creationFeeBNB = 1n * 10n**18n; // 1 BNB in wei
       
-      // ✅ FIX: Calculate boost cost (always in STT, even for BITR pools)
-      // Boost costs: BRONZE = 2 STT, SILVER = 3 STT, GOLD = 5 STT
+      // ✅ FIX: Calculate boost cost (always in BNB, even for PRIX pools)
+      // Boost costs: BRONZE = 2 BNB, SILVER = 3 BNB, GOLD = 5 BNB
       let boostCost = 0n;
       const hasBoost = poolData.boostTier && poolData.boostTier !== 'NONE';
       if (hasBoost) {
         if (poolData.boostTier === 'BRONZE') {
-          boostCost = 2n * 10n**18n; // 2 STT
+          boostCost = 2n * 10n**18n; // 2 BNB
         } else if (poolData.boostTier === 'SILVER') {
-          boostCost = 3n * 10n**18n; // 3 STT
+          boostCost = 3n * 10n**18n; // 3 BNB
         } else if (poolData.boostTier === 'GOLD') {
-          boostCost = 5n * 10n**18n; // 5 STT
+          boostCost = 5n * 10n**18n; // 5 BNB
         }
       }
       
-      // ✅ FIX: For BITR pools, totalRequired does NOT include boostCost (boost is paid in STT separately)
-      // For STT pools, totalRequired includes everything (creation fee + stake + boost cost)
-      const totalRequired = poolData.useBitr 
-        ? poolData.creatorStake + creationFeeBITR  // Only creation fee + stake in BITR (boost is in STT)
-        : poolData.creatorStake + creationFeeSTT + boostCost;   // Everything in STT: stake + creation fee + boost cost
+      // ✅ FIX: For PRIX pools, totalRequired does NOT include boostCost (boost is paid in BNB separately)
+      // For BNB pools, totalRequired includes everything (creation fee + stake + boost cost)
+      const totalRequired = poolData.usePrix 
+        ? poolData.creatorStake + creationFeePRIX  // Only creation fee + stake in PRIX (boost is in BNB)
+        : poolData.creatorStake + creationFeeBNB + boostCost;   // Everything in BNB: stake + creation fee + boost cost
       
       // ✅ FIX: Transaction value for msg.value
-      // BITR pools: only send boost cost (in STT) as msg.value (creation fee + stake are transferred as BITR tokens)
-      // STT pools: send everything (creation fee + stake + boost cost) as msg.value
-      const transactionValue = poolData.useBitr 
-        ? boostCost  // BITR pools: only boost cost in STT via msg.value
-        : totalRequired; // STT pools: everything in STT via msg.value
+      // PRIX pools: only send boost cost (in BNB) as msg.value (creation fee + stake are transferred as PRIX tokens)
+      // BNB pools: send everything (creation fee + stake + boost cost) as msg.value
+      const transactionValue = poolData.usePrix 
+        ? boostCost  // PRIX pools: only boost cost in BNB via msg.value
+        : totalRequired; // BNB pools: everything in BNB via msg.value
 
-      // For BITR pools, we need to ensure the contract has sufficient allowance
+      // For PRIX pools, we need to ensure the contract has sufficient allowance
       // The contract will handle the token transfer internally
-      if (poolData.useBitr) {
-        console.log(`💰 BITR Pool Creation Flow Started`);
-        console.log(`   Creation Fee: ${creationFeeBITR / BigInt(10**18)} BITR`);
-        console.log(`   Creator Stake: ${poolData.creatorStake / BigInt(10**18)} BITR`);
-        console.log(`   Total Required: ${totalRequired / BigInt(10**18)} BITR`);
+      if (poolData.usePrix) {
+        console.log(`💰 PRIX Pool Creation Flow Started`);
+        console.log(`   Creation Fee: ${creationFeePRIX / BigInt(10**18)} PRIX`);
+        console.log(`   Creator Stake: ${poolData.creatorStake / BigInt(10**18)} PRIX`);
+        console.log(`   Total Required: ${totalRequired / BigInt(10**18)} PRIX`);
         if (boostCost > 0n) {
-          console.log(`   Boost Cost: ${boostCost / BigInt(10**18)} STT (paid in native STT)`);
+          console.log(`   Boost Cost: ${boostCost / BigInt(10**18)} BNB (paid in native BNB)`);
         }
         
-        // Check BITR balance first (for creation fee + creator stake only, NOT boost cost)
+        // Check PRIX balance first (for creation fee + creator stake only, NOT boost cost)
         const balance = await getBalance();
-        console.log(`🔍 BITR Balance Check: ${balance / BigInt(10**18)} BITR (required: ${totalRequired / BigInt(10**18)} BITR)`);
-        console.log(`   Note: Boost cost (${boostCost / BigInt(10**18)} STT) is paid separately in native STT`);
+        console.log(`🔍 PRIX Balance Check: ${balance / BigInt(10**18)} PRIX (required: ${totalRequired / BigInt(10**18)} PRIX)`);
+        console.log(`   Note: Boost cost (${boostCost / BigInt(10**18)} BNB) is paid separately in native BNB`);
         
         if (balance < totalRequired) {
           const shortfall = totalRequired - balance;
-          const errorMsg = `Insufficient BITR balance. You have ${balance / BigInt(10**18)} BITR but need ${totalRequired / BigInt(10**18)} BITR (shortfall: ${shortfall / BigInt(10**18)} BITR)`;
+          const errorMsg = `Insufficient PRIX balance. You have ${balance / BigInt(10**18)} PRIX but need ${totalRequired / BigInt(10**18)} PRIX (shortfall: ${shortfall / BigInt(10**18)} PRIX)`;
           console.error(`❌ ${errorMsg}`);
           toast.error(errorMsg);
           throw new Error(errorMsg);
         }
         
-        // ✅ FIX: For BITR pools with boost, check STT balance for boost payment
+        // ✅ FIX: For PRIX pools with boost, check BNB balance for boost payment
         if (boostCost > 0n && address) {
-          const sttBalance = await publicClient?.getBalance({ address });
-          if (!sttBalance || sttBalance < boostCost) {
-            const errorMsg = `Insufficient STT balance for boost. You need ${boostCost / BigInt(10**18)} STT but have ${sttBalance ? sttBalance / BigInt(10**18) : 0} STT`;
+          const bnbBalance = await publicClient?.getBalance({ address });
+          if (!bnbBalance || bnbBalance < boostCost) {
+            const errorMsg = `Insufficient BNB balance for boost. You need ${boostCost / BigInt(10**18)} BNB but have ${bnbBalance ? bnbBalance / BigInt(10**18) : 0} BNB`;
             console.error(`❌ ${errorMsg}`);
             toast.error(errorMsg);
             throw new Error(errorMsg);
           }
-          console.log(`✅ STT balance check passed for boost: ${sttBalance / BigInt(10**18)} STT >= ${boostCost / BigInt(10**18)} STT`);
+          console.log(`✅ BNB balance check passed for boost: ${bnbBalance / BigInt(10**18)} BNB >= ${boostCost / BigInt(10**18)} BNB`);
         }
         
         console.log(`✅ Balance check passed`);
@@ -205,11 +205,11 @@ export function usePoolCore() {
         // ✅ FIX: For boosted pools, approve FACTORY (not POOL_CORE) since we're calling createPoolWithBoost
         const approvalTarget = hasBoost ? CONTRACT_ADDRESSES.FACTORY : CONTRACT_ADDRESSES.POOL_CORE;
         const currentAllowance = await getAllowance(address as `0x${string}`, approvalTarget);
-        console.log(`🔍 BITR Allowance Check:`, {
+        console.log(`🔍 PRIX Allowance Check:`, {
           currentAllowance: currentAllowance.toString(),
-          currentAllowanceFormatted: `${currentAllowance / BigInt(10**18)} BITR`,
+          currentAllowanceFormatted: `${currentAllowance / BigInt(10**18)} PRIX`,
           totalRequired: totalRequired.toString(),
-          totalRequiredFormatted: `${totalRequired / BigInt(10**18)} BITR`,
+          totalRequiredFormatted: `${totalRequired / BigInt(10**18)} PRIX`,
           needsApproval: currentAllowance < totalRequired,
           shortfall: currentAllowance < totalRequired ? (totalRequired - currentAllowance).toString() : '0'
         });
@@ -217,17 +217,17 @@ export function usePoolCore() {
         if (currentAllowance < totalRequired) {
           const shortfall = totalRequired - currentAllowance;
           console.log(`⚠️ Insufficient allowance detected!`);
-          console.log(`   Current: ${currentAllowance / BigInt(10**18)} BITR`);
-          console.log(`   Required: ${totalRequired / BigInt(10**18)} BITR`);
-          console.log(`   Shortfall: ${shortfall / BigInt(10**18)} BITR`);
-          console.log(`🔄 Requesting approval for ${totalRequired / BigInt(10**18)} BITR tokens...`);
+          console.log(`   Current: ${currentAllowance / BigInt(10**18)} PRIX`);
+          console.log(`   Required: ${totalRequired / BigInt(10**18)} PRIX`);
+          console.log(`   Shortfall: ${shortfall / BigInt(10**18)} PRIX`);
+          console.log(`🔄 Requesting approval for ${totalRequired / BigInt(10**18)} PRIX tokens...`);
           
-          toast.loading('Approving BITR tokens for pool creation...', { id: 'bitr-approval' });
+          toast.loading('Approving PRIX tokens for pool creation...', { id: 'prix-approval' });
           try {
             const approvalTx = await approve(approvalTarget, totalRequired);
             console.log(`✅ Approval transaction confirmed: ${approvalTx}`);
-            toast.dismiss('bitr-approval');
-            toast.success('BITR tokens approved for pool creation!');
+            toast.dismiss('prix-approval');
+            toast.success('PRIX tokens approved for pool creation!');
             
             // 🚨 CRITICAL: Verify the approval was successful by checking allowance again
             const newAllowance = await getAllowance(address as `0x${string}`, CONTRACT_ADDRESSES.POOL_CORE);
@@ -237,13 +237,13 @@ export function usePoolCore() {
               throw new Error(`Approval failed: Allowance is still insufficient (${newAllowance} < ${totalRequired})`);
             }
           } catch (approveError) {
-            toast.dismiss('bitr-approval');
-            console.error('❌ Error approving BITR tokens:', approveError);
-            toast.error('Failed to approve BITR tokens for pool creation');
+            toast.dismiss('prix-approval');
+            console.error('❌ Error approving PRIX tokens:', approveError);
+            toast.error('Failed to approve PRIX tokens for pool creation');
             throw approveError;
           }
         } else {
-          console.log(`✅ Sufficient allowance already exists (${currentAllowance / BigInt(10**18)} BITR >= ${totalRequired / BigInt(10**18)} BITR)`);
+          console.log(`✅ Sufficient allowance already exists (${currentAllowance / BigInt(10**18)} PRIX >= ${totalRequired / BigInt(10**18)} PRIX)`);
           
           // 🚨 CRITICAL FIX: Even if allowance is "sufficient", it might be EXACTLY equal
           // If it's exactly equal or close, we should refresh it to avoid edge cases
@@ -253,26 +253,26 @@ export function usePoolCore() {
             console.log(`   This might cause issues if there's any rounding or previous consumption`);
             console.log(`   Refreshing approval to ensure sufficient buffer...`);
             
-            toast.loading('Refreshing BITR token approval...', { id: 'bitr-approval-refresh' });
+            toast.loading('Refreshing PRIX token approval...', { id: 'prix-approval-refresh' });
             try {
               // Approve a larger amount to avoid this issue in future
               const bufferAmount = totalRequired * 2n; // Approve 2x to cover multiple pools
               const approvalTx = await approve(CONTRACT_ADDRESSES.POOL_CORE, bufferAmount);
-              console.log(`✅ Approval refreshed with buffer: ${bufferAmount / BigInt(10**18)} BITR`);
-              toast.dismiss('bitr-approval-refresh');
-              toast.success('BITR tokens approved!');
+              console.log(`✅ Approval refreshed with buffer: ${bufferAmount / BigInt(10**18)} PRIX`);
+              toast.dismiss('prix-approval-refresh');
+              toast.success('PRIX tokens approved!');
               
               // Verify the new approval
               const newAllowance = await getAllowance(address as `0x${string}`, CONTRACT_ADDRESSES.POOL_CORE);
-              console.log(`✅ New allowance after refresh: ${newAllowance / BigInt(10**18)} BITR`);
+              console.log(`✅ New allowance after refresh: ${newAllowance / BigInt(10**18)} PRIX`);
               
               if (newAllowance < totalRequired) {
                 throw new Error(`Approval refresh failed: Allowance is still insufficient`);
               }
             } catch (refreshError) {
-              toast.dismiss('bitr-approval-refresh');
+              toast.dismiss('prix-approval-refresh');
               console.error('❌ Error refreshing approval:', refreshError);
-              toast.error('Failed to refresh BITR token approval');
+              toast.error('Failed to refresh PRIX token approval');
               throw refreshError;
             }
           }
@@ -283,9 +283,9 @@ export function usePoolCore() {
         predictedOutcomeBytes32,
         odds: poolData.odds,
         creatorStake: poolData.creatorStake,
-        useBitr: poolData.useBitr,
+        usePrix: poolData.usePrix,
         totalRequired,
-        value: poolData.useBitr ? 0n : totalRequired
+        value: poolData.usePrix ? 0n : totalRequired
       });
 
       // Format team names to ensure they fit within bytes32 constraints
@@ -375,7 +375,7 @@ export function usePoolCore() {
       // Log critical validation info before sending transaction
       console.log('🔍 Pre-transaction validation:', {
         address: address,
-        useBitr: poolData.useBitr,
+        usePrix: poolData.usePrix,
         creatorStake: poolData.creatorStake.toString(),
         totalRequired: totalRequired.toString(),
         boostCost: boostCost.toString(),
@@ -410,15 +410,15 @@ export function usePoolCore() {
               titleBytes32,
               poolData.isPrivate,
               poolData.maxBetPerUser,
-              poolData.useBitr,
+              poolData.usePrix,
               poolData.oracleType,
               marketIdString,
               poolData.marketType,
               boostTierEnum, // ✅ Boost tier enum (0=NONE, 1=BRONZE, 2=SILVER, 3=GOLD)
             ],
-            value: transactionValue, // ✅ Includes boost cost for both BITR and STT pools
-            // For BITR pools: value = boostCost (in STT)
-            // For STT pools: value = totalRequired + boostCost
+            value: transactionValue, // ✅ Includes boost cost for both PRIX and BNB pools
+            // For PRIX pools: value = boostCost (in BNB)
+            // For BNB pools: value = totalRequired + boostCost
             gas: BigInt(12000000), // Slightly higher gas for factory function
           })
         : await writeContractAsync({
@@ -438,12 +438,12 @@ export function usePoolCore() {
               titleBytes32, // 🎯 bytes32 encoded title
               poolData.isPrivate,
               poolData.maxBetPerUser,
-              poolData.useBitr,
+              poolData.usePrix,
               poolData.oracleType,
               poolData.marketType,
               marketIdString, // 🎯 Market ID: keccak256(fixtureId) for guided, raw string for custom
             ],
-            value: poolData.useBitr ? 0n : totalRequired, // For BITR pools, value is 0 (token transfer handles it)
+            value: poolData.usePrix ? 0n : totalRequired, // For PRIX pools, value is 0 (token transfer handles it)
             gas: BigInt(10000000), // ✅ Reduced gas limit for lightweight function (10M instead of 14M)
           });
       
@@ -479,9 +479,9 @@ export function usePoolCore() {
       // Provide more specific error messages
       if (error instanceof Error) {
         if (error.message.includes('insufficient funds')) {
-          toast.error('Insufficient BITR balance for pool creation');
+          toast.error('Insufficient PRIX balance for pool creation');
         } else if (error.message.includes('allowance')) {
-          toast.error('Insufficient BITR allowance. Please approve more tokens.');
+          toast.error('Insufficient PRIX allowance. Please approve more tokens.');
         } else if (error.message.includes('revert')) {
           toast.error('Transaction reverted. Check your parameters and try again.');
         } else if (error.message.includes('Transaction failed with status')) {
@@ -497,18 +497,18 @@ export function usePoolCore() {
     }
   }, [writeContractAsync, address, getAllowance, approve, publicClient]);
 
-  const placeBet = useCallback(async (poolId: bigint, betAmount: bigint, useBitr: boolean = false) => {
+  const placeBet = useCallback(async (poolId: bigint, betAmount: bigint, usePrix: boolean = false) => {
     try {
-      // For BITR pools, check and handle approval first
-      if (useBitr && address) {
+      // For PRIX pools, check and handle approval first
+      if (usePrix && address) {
         const currentAllowance = await getAllowance(address, CONTRACT_ADDRESSES.POOL_CORE);
         
         if (currentAllowance < betAmount) {
-          console.log('BITR approval needed for bet placement');
-          toast.loading('Approving BITR tokens...', { id: 'bitr-approval' });
+          console.log('PRIX approval needed for bet placement');
+          toast.loading('Approving PRIX tokens...', { id: 'prix-approval' });
           
           await approve(CONTRACT_ADDRESSES.POOL_CORE, betAmount);
-          toast.success('BITR tokens approved!', { id: 'bitr-approval' });
+          toast.success('PRIX tokens approved!', { id: 'prix-approval' });
         }
       }
       
@@ -517,7 +517,7 @@ export function usePoolCore() {
         abi: CONTRACTS.POOL_CORE.abi,
         functionName: 'placeBet',
         args: [poolId, betAmount],
-        value: useBitr ? 0n : betAmount, // Only send ETH if not using BITR
+        value: usePrix ? 0n : betAmount, // Only send ETH if not using PRIX
         ...getTransactionOptions(),
       });
       
@@ -540,12 +540,12 @@ export function usePoolCore() {
     } catch (error) {
       console.error('Error placing bet:', error);
       toast.dismiss('bet-placement');
-      toast.dismiss('bitr-approval');
+      toast.dismiss('prix-approval');
       
       if (error instanceof Error && error.message.includes('Transaction failed with status')) {
         toast.error('Bet transaction failed on-chain. Please try again.');
       } else if (error instanceof Error && error.message.includes('insufficient allowance')) {
-        toast.error('Insufficient BITR allowance. Please approve more tokens.');
+        toast.error('Insufficient PRIX allowance. Please approve more tokens.');
       } else {
         toast.error('Failed to place bet');
       }
@@ -636,7 +636,7 @@ export function usePoolFactory() {
     eventEndTime: bigint;
     league: string;
     category: string;
-    useBitr: boolean;
+    usePrix: boolean;
     maxBetPerUser?: bigint;
     isPrivate?: boolean;
     boostTier?: number;
@@ -653,7 +653,7 @@ export function usePoolFactory() {
           poolData.eventEndTime,
           poolData.league,
           poolData.category,
-          poolData.useBitr,
+          poolData.usePrix,
           poolData.maxBetPerUser || BigInt(0),
           poolData.isPrivate || false,
           poolData.boostTier || 0,

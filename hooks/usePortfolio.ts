@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAccount } from 'wagmi';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://bitredict-backend.fly.dev';
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://prixedict-backend.fly.dev';
 
 interface PortfolioPosition {
   id: string;
@@ -24,7 +24,7 @@ interface PortfolioPosition {
   payoutAmount?: string;
   prizeAmount?: string;
   transactionHash?: string;
-  token: 'STT' | 'BITR';
+  token: 'BNB' | 'PRIX';
   score?: number | null;
   rank?: number | null;
 }

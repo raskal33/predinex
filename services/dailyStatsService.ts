@@ -139,7 +139,7 @@ export class DailyStatsService {
       : 0;
 
     return {
-      averagePrizePool: `${averagePrizePool.toFixed(2)} STT`,
+      averagePrizePool: `${averagePrizePool.toFixed(2)} BNB`,
       totalPlayers: totalPlayers.toLocaleString(),
       winRate: `${winRate.toFixed(1)}%`,
       averageOdds: `${averageOdds.toFixed(1)}x`

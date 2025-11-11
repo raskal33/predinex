@@ -25,7 +25,7 @@ import {
 } from "@heroicons/react/24/solid";
 import { Pool, Comment } from "@/lib/types";
 import { usePools } from "@/hooks/usePools";
-import { useBITRToken } from "@/hooks/useBITRToken";
+import { usePRIXToken } from "@/hooks/usePRIXToken";
 import { TransactionFeedback } from "@/components/TransactionFeedback";
 import { optimizedPoolService } from "@/services/optimizedPoolService";
 import { frontendCache } from "@/services/frontendCache";
@@ -60,9 +60,9 @@ export default function BetPage() {
   const params = useParams();
   const poolId = params.id as string;
   const { placeBet, addLiquidity } = usePools();
-  const { approve, isConfirmed: isApproveConfirmed } = useBITRToken();
+  const { approve, isConfirmed: isApproveConfirmed } = usePRIXToken();
   
-  // Helper function to check if BITR approval is needed
+  // Helper function to check if PRIX approval is needed
   const needsApproval = (): boolean => {
     return false; // Simplified - no approval needed
   };
@@ -93,7 +93,7 @@ export default function BetPage() {
     eventStartTime: number;
     eventEndTime: number;
     bettingEndTime: number;
-    arbitrationDeadline: number;
+    arprixationDeadline: number;
     result: string;
     resultTimestamp: number;
     oracleType: number;
@@ -215,7 +215,7 @@ export default function BetPage() {
         marketType: poolData.marketType || 0, // Use actual marketType from API
         eventStartTime: poolData.eventStartTime,
         eventEndTime: poolData.eventEndTime,
-        usesBitr: poolData.currency === 'BITR',
+        usesPrix: poolData.currency === 'PRIX',
         creatorStake: poolData.creatorStake
       };
       
@@ -270,7 +270,7 @@ export default function BetPage() {
           successRate: poolData.creator.successRate || 0,
           challengeScore: Math.round((poolData.odds / 100) * 20), // Convert basis points to decimal first
           totalVolume: typeof poolData.creator.totalVolume === 'string' 
-            ? parseFloat(poolData.creator.totalVolume) / 1e18  // Convert from Wei to ETH/BITR
+            ? parseFloat(poolData.creator.totalVolume) / 1e18  // Convert from Wei to ETH/PRIX
             : (poolData.creator.totalVolume || 0) / 1e18,
           badges: poolData.creator.badges || [],
           createdAt: new Date().toISOString(),
@@ -292,7 +292,7 @@ export default function BetPage() {
         boostTier: poolData.boostTier === 'GOLD' ? 3 : poolData.boostTier === 'SILVER' ? 2 : poolData.boostTier === 'BRONZE' ? 1 : 0,
         socialStats: poolData.socialStats || { likes: 0, comments: 0, shares: 0, views: 0 },
         defeated: poolData.defeated || 0,
-        currency: poolData.currency || 'STT',
+        currency: poolData.currency || 'BNB',
         endDate: new Date(poolData.eventEndTime * 1000).toISOString().split('T')[0],
         poolType: "single",
         comments: [],
@@ -341,7 +341,7 @@ export default function BetPage() {
         eventStartTime: poolData.eventStartTime,
         eventEndTime: poolData.eventEndTime,
         bettingEndTime: poolData.bettingEndTime,
-        arbitrationDeadline: poolData.eventEndTime + (24 * 60 * 60),
+        arprixationDeadline: poolData.eventEndTime + (24 * 60 * 60),
         result: '',
         resultTimestamp: 0,
         oracleType: 0,
@@ -485,20 +485,20 @@ export default function BetPage() {
   const [waitingForApproval, setWaitingForApproval] = useState(false);
   const [pendingBetData, setPendingBetData] = useState<{amount: number, type: 'yes' | 'no'} | null>(null);
 
-  // Handle BITR approval confirmation and proceed with bet
+  // Handle PRIX approval confirmation and proceed with bet
   useEffect(() => {
     if (isApproveConfirmed && waitingForApproval && pendingBetData && address) {
       const proceedWithBet = async () => {
         try {
           toast.loading('Placing bet...', { id: 'bet-tx' });
-          const useBitr = pool?.currency === 'BITR';
+          const usePrix = pool?.currency === 'PRIX';
           
           if (pendingBetData.type === 'yes') {
             // Challenge creator - use placeBet
-            await placeBet(parseInt(poolId), pendingBetData.amount.toString(), useBitr);
+            await placeBet(parseInt(poolId), pendingBetData.amount.toString(), usePrix);
           } else if (pendingBetData.type === 'no') {
             // Support creator - use addLiquidity
-            await addLiquidity(parseInt(poolId), pendingBetData.amount.toString(), useBitr);
+            await addLiquidity(parseInt(poolId), pendingBetData.amount.toString(), usePrix);
           }
           toast.success('Bet placed successfully!', { id: 'bet-tx' });
           
@@ -652,14 +652,14 @@ export default function BetPage() {
       // Show loading toast
       toast.loading('Preparing transaction...', { id: 'bet-tx' });
       
-      // Check if this is a BITR pool and if approval is needed
-        if (pool && pool.currency === 'BITR' && needsApproval()) {
+      // Check if this is a PRIX pool and if approval is needed
+        if (pool && pool.currency === 'PRIX' && needsApproval()) {
         
         // Store bet data for after approval
         setPendingBetData({ amount: betAmount, type: betType });
         setWaitingForApproval(true);
         
-        toast.loading('Approving BITR tokens...', { id: 'bet-tx' });
+        toast.loading('Approving PRIX tokens...', { id: 'bet-tx' });
         await approve(CONTRACT_ADDRESSES.POOL_CORE as `0x${string}`, betAmount.toString());
         
         // The useEffect will handle the bet placement after approval
@@ -667,15 +667,15 @@ export default function BetPage() {
         return;
       }
       
-      // For STT pools or if no approval needed, place bet or add liquidity based on bet type
-      const useBitr = pool?.currency === 'BITR';
+      // For BNB pools or if no approval needed, place bet or add liquidity based on bet type
+      const usePrix = pool?.currency === 'PRIX';
       
       if (betType === 'yes') {
         // Challenge creator - use placeBet
-        await placeBet(parseInt(poolId), betAmount.toString(), useBitr);
+        await placeBet(parseInt(poolId), betAmount.toString(), usePrix);
       } else if (betType === 'no') {
         // Support creator - use addLiquidity
-        await addLiquidity(parseInt(poolId), betAmount.toString(), useBitr);
+        await addLiquidity(parseInt(poolId), betAmount.toString(), usePrix);
       }
       
       // Success toast is handled by placeBet function
@@ -1060,7 +1060,7 @@ export default function BetPage() {
                       })()}
                       timeframe="1d" // Default timeframe, should be extracted from pool data
                       odds={(pool.odds / 100).toFixed(2)}
-                      currency={pool.currency || 'BITR'}
+                      currency={pool.currency || 'PRIX'}
                       className="mb-4"
                     />
                   ) : (
@@ -1094,7 +1094,7 @@ export default function BetPage() {
                       eventStartTime: contractData.eventStartTime,
                       eventEndTime: contractData.eventEndTime,
                       bettingEndTime: contractData.bettingEndTime,
-                      arbitrationDeadline: contractData.arbitrationDeadline,
+                      arprixationDeadline: contractData.arprixationDeadline,
                       result: contractData.result,
                       resultTimestamp: contractData.resultTimestamp,
                       oracleType: contractData.oracleType === 0 ? 'GUIDED' : 'OPEN',

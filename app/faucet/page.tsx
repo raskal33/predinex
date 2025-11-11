@@ -8,7 +8,7 @@ import Button from "@/components/button";
 import AnimatedTitle from "@/components/AnimatedTitle";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { useFaucet } from "@/hooks/useFaucet";
-import { useBITRToken } from "@/hooks/useBITRToken";
+import { usePRIXToken } from "@/hooks/usePRIXToken";
 import { FaucetService, FaucetStatistics } from "@/services/faucetService";
 import { TransactionFeedback, useTransactionFeedback } from "@/components/TransactionFeedback";
 import { 
@@ -40,7 +40,7 @@ export default function FaucetPage() {
   
   // Smart contract hooks
   const faucet = useFaucet();
-  const token = useBITRToken();
+  const token = usePRIXToken();
 
   // Backend fallback state
   const [backendFaucetData, setBackendFaucetData] = useState<FaucetStatistics | null>(null);
@@ -108,9 +108,9 @@ export default function FaucetPage() {
     
     try {
       // Show pending status
-      showPending("Claiming BITR", "Please confirm the transaction in your wallet...");
+      showPending("Claiming PRIX", "Please confirm the transaction in your wallet...");
       
-      await faucet.claimBitr();
+      await faucet.claimPrix();
       
       // Transaction submitted - show confirming status
       if (faucet.hash) {
@@ -131,7 +131,7 @@ export default function FaucetPage() {
   useEffect(() => {
     // Handle pending state
     if (faucet.isPending && transactionStatus?.type !== 'pending') {
-      showPending("Claiming BITR", "Please confirm the transaction in your wallet...");
+      showPending("Claiming PRIX", "Please confirm the transaction in your wallet...");
     }
     
     // Handle confirming state
@@ -155,7 +155,7 @@ export default function FaucetPage() {
         // Show success modal
         showSuccess(
           "Claim Successful! 🎉",
-          `You have successfully claimed ${faucet.faucetAmount} BITR tokens from the faucet.`,
+          `You have successfully claimed ${faucet.faucetAmount} PRIX tokens from the faucet.`,
           faucet.hash,
           undefined,
           undefined,
@@ -220,7 +220,7 @@ export default function FaucetPage() {
     if (faucet.faucetBalance === '0' && backendFaucetData?.formatted?.balance) {
       return backendFaucetData.formatted.balance;
     }
-    return faucet.faucetBalance + ' BITR';
+    return faucet.faucetBalance + ' PRIX';
   };
 
   // Get the actual total distributed with fallback logic
@@ -229,7 +229,7 @@ export default function FaucetPage() {
     if (faucet.totalDistributed === '0' && backendFaucetData?.formatted?.totalDistributed) {
       return backendFaucetData.formatted.totalDistributed;
     }
-    return faucet.totalDistributed + ' BITR';
+    return faucet.totalDistributed + ' PRIX';
   };
 
   // Get the claim button text
@@ -241,7 +241,7 @@ export default function FaucetPage() {
     } else if (!faucet.canClaim) {
       return 'Not Eligible';
     } else {
-      return `Claim ${faucet.faucetAmount} BITR`;
+      return `Claim ${faucet.faucetAmount} PRIX`;
     }
   };
 
@@ -256,7 +256,7 @@ export default function FaucetPage() {
           <BeakerSolid className="h-16 w-16 text-blue-400 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-white mb-4">Connect Your Wallet</h2>
           <p className="text-gray-300 mb-6">
-            Connect your wallet to claim your testnet BITR tokens from the faucet.
+            Connect your wallet to claim your testnet PRIX tokens from the faucet.
           </p>
         </motion.div>
       </div>
@@ -284,7 +284,7 @@ export default function FaucetPage() {
         transition={{ delay: 0.5 }}
         className="text-base text-text-secondary max-w-2xl mx-auto text-center mb-6"
       >
-        Claim your free testnet BITR tokens to start participating in prediction markets and staking.
+        Claim your free testnet PRIX tokens to start participating in prediction markets and staking.
       </motion.p>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -310,8 +310,8 @@ export default function FaucetPage() {
                 </h2>
                 <p className="text-gray-400">
                   {faucet.hasClaimed 
-                    ? `You claimed ${faucet.faucetAmount} BITR on ${faucet.claimDate}`
-                    : `Get ${faucet.faucetAmount} BITR tokens for free`
+                    ? `You claimed ${faucet.faucetAmount} PRIX on ${faucet.claimDate}`
+                    : `Get ${faucet.faucetAmount} PRIX tokens for free`
                   }
                 </p>
               </div>
@@ -322,7 +322,7 @@ export default function FaucetPage() {
                   <div>
                     <FaCoins className="h-8 w-8 text-yellow-400 mx-auto mb-2" />
                     <p className="text-gray-400 text-sm">Claim Amount</p>
-                    <p className="text-2xl font-bold text-white">{faucet.faucetAmount} BITR</p>
+                    <p className="text-2xl font-bold text-white">{faucet.faucetAmount} PRIX</p>
                   </div>
                   
                   <div>
@@ -453,11 +453,11 @@ export default function FaucetPage() {
                         {faucet.hasClaimed ? (
                           <div className="mt-2 p-2 bg-black/20 rounded">
                             <p className="text-xs text-gray-300">
-                              🎉 <strong>Congratulations!</strong> You&apos;ve claimed your BITR tokens. Now you can:
+                              🎉 <strong>Congratulations!</strong> You&apos;ve claimed your PRIX tokens. Now you can:
                             </p>
                             <ul className="text-xs text-gray-300 mt-2 ml-4 list-disc space-y-1">
-                              <li>Create prediction pools using your BITR tokens</li>
-                              <li>Stake your BITR to earn APY rewards and revenue sharing</li>
+                              <li>Create prediction pools using your PRIX tokens</li>
+                              <li>Stake your PRIX to earn APY rewards and revenue sharing</li>
                               <li>Participate in more Oddyssey predictions</li>
                             </ul>
                             <div className="flex gap-2 mt-3">
@@ -494,7 +494,7 @@ export default function FaucetPage() {
                       Already Claimed!
                     </h3>
                     <p className="text-gray-300 mb-4">
-                      You have already claimed your testnet BITR tokens on {faucet.claimDate}.
+                      You have already claimed your testnet PRIX tokens on {faucet.claimDate}.
                     </p>
                     <p className="text-gray-400 text-sm">
                       Each wallet can only claim once. Use your tokens for staking and prediction markets!
@@ -560,14 +560,14 @@ export default function FaucetPage() {
 
               {/* Usage Instructions */}
               <div className="mt-8 border-t border-gray-600 pt-8">
-                <h3 className="text-xl font-bold text-white mb-4">What to do with your BITR?</h3>
+                <h3 className="text-xl font-bold text-white mb-4">What to do with your PRIX?</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex items-start gap-3 p-4 bg-black/20 rounded-xl">
                     <FaTrophy className="h-6 w-6 text-yellow-400 mt-1" />
                     <div>
                       <h4 className="text-white font-medium mb-1">Stake for Rewards</h4>
                       <p className="text-gray-400 text-sm">
-                        Stake your BITR tokens to earn APY rewards and revenue sharing
+                        Stake your PRIX tokens to earn APY rewards and revenue sharing
                       </p>
                     </div>
                   </div>
@@ -577,7 +577,7 @@ export default function FaucetPage() {
                     <div>
                       <h4 className="text-white font-medium mb-1">Prediction Markets</h4>
                       <p className="text-gray-400 text-sm">
-                        Use BITR to create pools and place bets on future events
+                        Use PRIX to create pools and place bets on future events
                       </p>
                     </div>
                   </div>
@@ -600,7 +600,7 @@ export default function FaucetPage() {
                   <FaCoins className="h-12 w-12 text-yellow-400" />
                 </div>
                 <p className="text-3xl font-bold text-white mb-2">{token.balance}</p>
-                <p className="text-gray-400">BITR Tokens</p>
+                <p className="text-gray-400">PRIX Tokens</p>
                 
                 <div className="flex items-center justify-center gap-2 mt-4">
                   <span className="text-gray-400 text-sm truncate">{formatAddress(address!)}</span>

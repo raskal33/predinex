@@ -68,7 +68,7 @@ export default function ComboMarketsPage() {
                 <div>
                   <label className="text-gray-400 text-sm">Total Volume</label>
                   <p className="text-white font-medium">
-                    {Number((selectedPool as ComboPool).totalCreatorSideStake || 0).toLocaleString()} BITR
+                    {Number((selectedPool as ComboPool).totalCreatorSideStake || 0).toLocaleString()} PRIX
                   </p>
                 </div>
                 <div>
@@ -81,7 +81,7 @@ export default function ComboMarketsPage() {
                   <div>
                     <label className="text-gray-400 text-sm">Max Bet Per User</label>
                     <p className="text-white font-medium">
-                      {Number(selectedPool.maxBetPerUser).toLocaleString()} BITR
+                      {Number(selectedPool.maxBetPerUser).toLocaleString()} PRIX
                     </p>
                   </div>
                 )}

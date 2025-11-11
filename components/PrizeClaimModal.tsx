@@ -342,7 +342,7 @@ export default function PrizeClaimModal({ isOpen, onClose, userAddress }: PrizeC
                             <div className={`font-bold ${
                               position.claimStatus === 'eligible' ? 'text-green-400' : 'text-red-400'
                             }`}>
-                              {position.claimStatus === 'eligible' ? '+' : ''}{parseFloat(position.prizeAmount).toFixed(2)} STT
+                              {position.claimStatus === 'eligible' ? '+' : ''}{parseFloat(position.prizeAmount).toFixed(2)} BNB
                             </div>
                             <div className="text-xs text-gray-400">
                               {position.claimStatus === 'eligible' ? 'Prize' : position.reason || 'Not Eligible'}

@@ -25,7 +25,7 @@ interface SettingsState {
 
 export default function Page() {
   const [settings, setSettings] = useState<SettingsState>({
-    username: "BitRedict User",
+    username: "Predinex User",
     bio: "Prediction market enthusiast",
     profilePicture: "",
     defaultStake: 10,

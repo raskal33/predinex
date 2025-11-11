@@ -160,7 +160,7 @@ export default function CycleProgress({ cycleInfo, className = "" }: CycleProgre
           <div className="text-lg sm:text-xl font-bold text-primary mb-1">
             {formatEther(cycleInfo.prizePool)}
           </div>
-          <div className="text-xs text-gray-400">Prize Pool (STT)</div>
+          <div className="text-xs text-gray-400">Prize Pool (BNB)</div>
           {cycleInfo.rolloverAmount && cycleInfo.rolloverAmount > 0n && (
             <div className="text-xs text-green-400 mt-1">
               +{formatEther(cycleInfo.rolloverAmount)} rollover

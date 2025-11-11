@@ -38,7 +38,7 @@ interface ComboPoolBettingModalProps {
   combinedOdds: number;
   creatorStake: string;
   maxBetPerUser: string;
-  useBitr: boolean;
+  usePrix: boolean;
   currentBettors: number;
   maxBettors: number;
   bettingEndTime: string;
@@ -54,7 +54,7 @@ export default function ComboPoolBettingModal({
   combinedOdds,
   creatorStake,
   maxBetPerUser,
-  useBitr,
+  usePrix,
   currentBettors,
   maxBettors,
   bettingEndTime,
@@ -120,7 +120,7 @@ export default function ComboPoolBettingModal({
     }
 
     if (parseFloat(betAmount) > parseFloat(formatEther(BigInt(maxBetPerUser)))) {
-      toast.error(`Maximum bet amount is ${parseFloat(formatEther(BigInt(maxBetPerUser)))} ${useBitr ? 'BITR' : 'STT'}`);
+      toast.error(`Maximum bet amount is ${parseFloat(formatEther(BigInt(maxBetPerUser)))} ${usePrix ? 'PRIX' : 'BNB'}`);
       return;
     }
 
@@ -190,7 +190,7 @@ export default function ComboPoolBettingModal({
                 <div className="text-2xl font-bold text-success">
                   {parseFloat(formatEther(BigInt(creatorStake))).toFixed(2)}
                 </div>
-                <div className="text-sm text-text-muted">Creator Stake ({useBitr ? 'BITR' : 'STT'})</div>
+                <div className="text-sm text-text-muted">Creator Stake ({usePrix ? 'PRIX' : 'BNB'})</div>
               </div>
               <div className="text-center p-4 bg-bg-card/50 rounded-lg">
                 <div className="text-2xl font-bold text-warning">{timeLeft}</div>
@@ -290,8 +290,8 @@ export default function ComboPoolBettingModal({
                   max={parseFloat(formatEther(BigInt(maxBetPerUser)))}
                   step={0.1}
                   allowDecimals={true}
-                  currency={useBitr ? 'BITR' : 'STT'}
-                  help={`Maximum bet: ${parseFloat(formatEther(BigInt(maxBetPerUser)))} ${useBitr ? 'BITR' : 'STT'}`}
+                  currency={usePrix ? 'PRIX' : 'BNB'}
+                  help={`Maximum bet: ${parseFloat(formatEther(BigInt(maxBetPerUser)))} ${usePrix ? 'PRIX' : 'BNB'}`}
                 />
               </div>
 
@@ -303,10 +303,10 @@ export default function ComboPoolBettingModal({
                     <span className="font-semibold text-text-primary">Potential Winnings</span>
                   </div>
                   <div className="text-2xl font-bold text-primary">
-                    {potentialWinnings.toFixed(2)} {useBitr ? 'BITR' : 'STT'}
+                    {potentialWinnings.toFixed(2)} {usePrix ? 'PRIX' : 'BNB'}
                   </div>
                   <div className="text-sm text-text-muted">
-                    Total return: {(parseFloat(betAmount) + potentialWinnings).toFixed(2)} {useBitr ? 'BITR' : 'STT'}
+                    Total return: {(parseFloat(betAmount) + potentialWinnings).toFixed(2)} {usePrix ? 'PRIX' : 'BNB'}
                   </div>
                 </div>
               )}

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://bitredict-backend.fly.dev';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://prixedict-backend.fly.dev';
 
 export async function GET(
   request: NextRequest,

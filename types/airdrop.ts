@@ -2,14 +2,14 @@ export interface FaucetClaim {
   hasClaimed: boolean;
   amount?: string;
   claimedAt?: string;
-  hadPriorSTTActivity: boolean;
-  sttActivityCountBeforeFaucet: number;
+  hadPriorBNBActivity: boolean;
+  bnbActivityCountBeforeFaucet: number;
 }
 
 export interface AirdropRequirements {
   faucetClaim: boolean;
-  sttActivityBeforeFaucet: boolean;
-  bitrActions: {
+  bnbActivityBeforeFaucet: boolean;
+  prixActions: {
     current: number;
     required: number;
     met: boolean;
@@ -33,8 +33,8 @@ export interface ActivityBreakdown {
   poolCreations: number;
   betsPlaced: number;
   stakingActions: number;
-  firstBITRActivity?: string;
-  lastBITRActivity?: string;
+  firstPRIXActivity?: string;
+  lastPRIXActivity?: string;
 }
 
 export interface AirdropInfo {
@@ -61,16 +61,16 @@ export interface AirdropStatistics {
     totalFaucetClaims: number;
     totalEligible: number;
     eligibilityRate: number;
-    totalEligibleBITR: string;
+    totalEligiblePRIX: string;
     totalAirdropAllocated: string;
     suspiciousWallets: number;
-    averageBITRActions: string;
+    averagePRIXActions: string;
     averageOddysseySlips: string;
   };
   requirementFunnel: {
     claimedFaucet: number;
-    hadSTTActivity: number;
-    sufficientBITRActions: number;
+    hadBNBActivity: number;
+    sufficientPRIXActions: number;
     hasStaking: number;
     sufficientOddyssey: number;
     fullyEligible: number;
@@ -84,15 +84,15 @@ export interface AirdropStatistics {
     blockNumber: number;
     timestamp: string;
     eligibleWallets: number;
-    totalEligibleBITR: string;
+    totalEligiblePRIX: string;
     isFinal: boolean;
   } | null;
   constants: {
     totalAirdropPool: string;
     faucetAmountPerUser: string;
     requirements: {
-      sttActivityBeforeFaucet: boolean;
-      minBITRActions: number;
+      bnbActivityBeforeFaucet: boolean;
+      minPRIXActions: number;
       stakingRequired: boolean;
       minOddysseySlips: number;
     };

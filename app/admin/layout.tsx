@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Admin Dashboard - Bitredict",
+  title: "Admin Dashboard - Prixedict",
   description: "System administration and monitoring dashboard",
 };
 

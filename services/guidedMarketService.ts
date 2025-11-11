@@ -512,7 +512,7 @@ export class GuidedMarketService {
     predictedOutcome: string;
     odds: number;
     creatorStake: number;
-    useBitr?: boolean;
+    usePrix?: boolean;
     description?: string;
     isPrivate?: boolean;
     maxBetPerUser?: number;
@@ -536,7 +536,7 @@ export class GuidedMarketService {
     predictedOutcome: string;
     odds: number;
     creatorStake: number;
-    useBitr?: boolean;
+    usePrix?: boolean;
     description?: string;
     isPrivate?: boolean;
     maxBetPerUser?: number;
@@ -624,7 +624,7 @@ export class GuidedMarketService {
     predictedOutcome: string;
     odds: number;
     creatorStake: number;
-    useBitr?: boolean;
+    usePrix?: boolean;
     description?: string;
     isPrivate?: boolean;
     maxBetPerUser?: number;

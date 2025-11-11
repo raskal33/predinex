@@ -6,7 +6,7 @@ interface CryptoTitleRowProps {
   direction: 'above' | 'below' | 'up' | 'down';
   timeframe: string;
   odds: string;
-  currency: 'BITR' | 'STT';
+  currency: 'PRIX' | 'BNB';
   className?: string;
 }
 
@@ -107,7 +107,7 @@ export default function CryptoTitleRow({
             <div className="flex items-center space-x-2">
               <span className="text-sm sm:text-base text-white font-semibold">{odds}</span>
               <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                currency === 'BITR' 
+                currency === 'PRIX' 
                   ? 'bg-blue-100 text-blue-800' 
                   : 'bg-gray-100 text-gray-800'
               }`}>

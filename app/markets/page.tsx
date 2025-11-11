@@ -11,6 +11,7 @@ import { frontendCache } from "@/services/frontendCache";
 import RecentBetsLane from "@/components/RecentBetsLane";
 import SkeletonLoader from "@/components/SkeletonLoader";
 import EnhancedPoolCard, { type EnhancedPool } from "@/components/EnhancedPoolCard";
+import { PoolCardCatalog, PoolCardModal } from "@/components/PoolCard";
 import { 
   FaChartLine, 
   FaFilter, 
@@ -40,12 +41,14 @@ export default function MarketsPage() {
   const [sortBy, setSortBy] = useState<SortBy>("newest");
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+  const [selectedPool, setSelectedPool] = useState<EnhancedPool | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [enhancedPools, setEnhancedPools] = useState<Array<OptimizedPool & { isSettled?: boolean; creatorSideWon?: boolean }>>([]);
   const [filteredPools, setFilteredPools] = useState<Array<OptimizedPool & { isSettled?: boolean; creatorSideWon?: boolean }>>([]);
   const [stats, setStats] = useState({
     totalVolume: "0",
-    bitrVolume: "0",
-    sttVolume: "0",
+    prixVolume: "0",
+    bnbVolume: "0",
     activeMarkets: 0,
     participants: 0,
     totalPools: 0,
@@ -63,7 +66,7 @@ export default function MarketsPage() {
       settled: pool.isSettled || false,
       creatorSideWon: pool.creatorSideWon || false,
       isPrivate: false, // Not supported in OptimizedPool
-      usesBitr: pool.currency === 'BITR',
+      usesPrix: pool.currency === 'PRIX',
       filledAbove60: pool.fillPercentage >= 60,
       oracleType: (pool.oracleType as 'GUIDED' | 'OPEN') || 'GUIDED',
       status: pool.status as 'active' | 'closed' | 'settled' | 'cancelled',
@@ -74,11 +77,17 @@ export default function MarketsPage() {
       predictedOutcome: pool.predictedOutcome || 'Unknown',
       result: '',
       marketId: pool.marketId || '',
+      // Preserve fixtureId for match-center API
+      ...(pool.fixtureId && { fixtureId: pool.fixtureId }),
+      // Preserve team logos from backend
+      ...(pool.homeTeamLogo && { homeTeamLogo: pool.homeTeamLogo }),
+      ...(pool.awayTeamLogo && { awayTeamLogo: pool.awayTeamLogo }),
+      ...(pool.leagueLogo && { leagueLogo: pool.leagueLogo }),
       eventStartTime: pool.eventStartTime,
       eventEndTime: pool.eventEndTime,
       bettingEndTime: pool.bettingEndTime,
       resultTimestamp: 0,
-      arbitrationDeadline: 0,
+      arprixationDeadline: 0,
       league: pool.league || '',
       category: pool.category,
       region: pool.region || 'Global',
@@ -178,8 +187,8 @@ export default function MarketsPage() {
         // Set analytics stats
         setStats({
           totalVolume: analyticsData.totalVolume,
-          bitrVolume: analyticsData.bitrVolume,
-          sttVolume: analyticsData.sttVolume,
+          prixVolume: analyticsData.prixVolume,
+          bnbVolume: analyticsData.bnbVolume,
           activeMarkets: analyticsData.activePools,
           participants: analyticsData.participants,
           totalPools: analyticsData.totalPools,
@@ -200,8 +209,8 @@ export default function MarketsPage() {
         setFilteredPools([]);
         setStats({
           totalVolume: "0",
-          bitrVolume: "0", 
-          sttVolume: "0",
+          prixVolume: "0", 
+          bnbVolume: "0",
           activeMarkets: 0,
           participants: 0,
           totalPools: 0,
@@ -353,317 +362,273 @@ export default function MarketsPage() {
   }, [enhancedPools, activeCategory, categoryFilter, searchTerm, sortBy]);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-8"
-    >
-      {/* Header */}
-      <AnimatedTitle 
-        size="md"
-        leftIcon={FaChartLine}
-        rightIcon={FaTrophy}
-      >
-        Prediction Markets
-      </AnimatedTitle>
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      {/* Subtle grid pattern background */}
+      <div 
+        className="fixed inset-0 opacity-[0.02] pointer-events-none"
+        style={{
+          backgroundImage: `
+            linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
+          `,
+          backgroundSize: '40px 40px',
+        }}
+      />
       
-      <motion.p 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-        className="text-base text-text-secondary max-w-2xl mx-auto text-center mb-6"
-      >
-        Discover and participate in prediction markets across sports, crypto, and more. 
-        Put your knowledge to the test and earn rewards for accurate predictions.
-      </motion.p>
-
-      {/* Recent Bets Lane */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="mb-8"
+        className="relative space-y-4 max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6"
       >
-        <RecentBetsLane />
-      </motion.div>
-
-      {/* Filters & Search */}
-      <div className="mb-8">
-        {/* Category Tabs */}
-        <div className="flex flex-wrap gap-2 justify-center mb-6">
-          {categories.map((category) => {
-            const Icon = category.icon;
-            return (
-              <button
-                key={category.id}
-                onClick={() => setActiveCategory(category.id)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all text-sm sm:text-base ${
-                  activeCategory === category.id
-                    ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg"
-                    : "bg-white/10 text-gray-300 hover:text-white hover:bg-white/20"
-                }`}
-              >
-                <Icon className={`h-4 w-4 ${category.color}`} />
-                <span className="hidden sm:inline">{category.label}</span>
-                <span className="sm:hidden">{category.label.split(' ')[0]}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Sport/Category Filter */}
-        <div className="flex flex-wrap gap-2 justify-center mb-6">
-          {[
-            { id: "all" as CategoryFilter, label: "All Sports", icon: "🏆" },
-            { id: "football" as CategoryFilter, label: "Football", icon: "⚽" },
-            { id: "crypto" as CategoryFilter, label: "Crypto", icon: "₿" },
-            { id: "basketball" as CategoryFilter, label: "Basketball", icon: "🏀" },
-            { id: "other" as CategoryFilter, label: "Other", icon: "🎯" }
-          ].map((category) => (
-            <button
-              key={category.id}
-              onClick={() => setCategoryFilter(category.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all text-sm sm:text-base ${
-                categoryFilter === category.id
-                  ? "bg-gradient-to-r from-green-500 to-teal-500 text-white shadow-lg"
-                  : "bg-white/10 text-gray-300 hover:text-white hover:bg-white/20"
-              }`}
-            >
-              <span className="text-lg">{category.icon}</span>
-              <span className="hidden sm:inline">{category.label}</span>
-              <span className="sm:hidden">{category.label.split(' ')[0]}</span>
-            </button>
-          ))}
-        </div>
-
-        {/* Search and Sort Controls */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-between items-center glass-card p-4">
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <div className="relative flex-1 sm:w-80">
-              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <input
-                type="text"
-                placeholder="Search markets..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-              />
-            </div>
+        {/* Compact Header - Responsive */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+          <div>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-1 flex items-center gap-2 sm:gap-3">
+              <FaChartLine className="text-cyan-400 h-5 w-5 sm:h-6 sm:w-6" />
+              Markets
+            </h1>
+            <p className="text-xs sm:text-sm text-gray-400">
+              The pump.fun of prediction markets
+            </p>
           </div>
-          
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <div className="flex items-center gap-2">
-              <FaSort className="h-4 w-4 text-gray-400" />
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as SortBy)}
-                className="bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-              >
-                {sortOptions.map((option) => (
-                  <option key={option.id} value={option.id} className="bg-gray-800">
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all text-sm ${
-                showFilters 
-                  ? "bg-blue-500 text-white" 
-                  : "bg-white/10 text-gray-300 hover:text-white hover:bg-white/20"
-              }`}
-            >
-              <FaFilter className="h-4 w-4" />
-              <span className="hidden sm:inline">Filters</span>
-            </button>
+          <div className="flex items-center gap-2 text-xs text-gray-500">
+            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+            <span>{filteredPools.length} active</span>
           </div>
         </div>
 
-        {/* Active Category Description */}
-        <div className="mt-4 text-center">
-          <p className="text-gray-300">
-            {categories.find(c => c.id === activeCategory)?.description}
-          </p>
-        </div>
-      </div>
+        {/* Compact Recent Bets Lane */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="mb-4"
+        >
+          <RecentBetsLane className="!p-3" />
+        </motion.div>
 
-      {/* Markets Grid */}
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
-        {/* Markets List */}
-        <div className="xl:col-span-3">
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-4 sm:p-8 border border-white/20">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-              <div className="flex items-center gap-3">
-                <FaChartLine className="h-5 w-5 text-blue-400" />
-                <h2 className="text-xl sm:text-2xl font-bold text-white">
-                  {categories.find(c => c.id === activeCategory)?.label || "All"} Markets
-                </h2>
+        {/* Professional Filters & Search - Compact & Responsive */}
+        <div className="bg-slate-800/30 backdrop-blur-xl border border-slate-700/50 rounded-xl p-3 mb-4">
+          <div className="space-y-3">
+            {/* Top Row: Market Filters & Search */}
+            <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+              {/* Market Status Filters - Compact Horizontal */}
+              <div className="flex flex-wrap gap-1.5 flex-1 min-w-0">
+                {categories.map((category) => {
+                  const Icon = category.icon;
+                  const isActive = activeCategory === category.id;
+                  return (
+                    <button
+                      key={category.id}
+                      onClick={() => setActiveCategory(category.id)}
+                      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-medium transition-all text-xs whitespace-nowrap ${
+                        isActive
+                          ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-md shadow-cyan-500/20"
+                          : "bg-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-700/70"
+                      }`}
+                    >
+                      <Icon className={`h-3 w-3 ${isActive ? 'text-white' : category.color}`} />
+                      <span className="hidden sm:inline">{category.label}</span>
+                      <span className="sm:hidden">{category.label.split(' ')[0]}</span>
+                    </button>
+                  );
+                })}
               </div>
-              <div className="flex items-center gap-2 text-gray-300 justify-center sm:justify-start">
-                <span className="text-sm sm:text-base">
-                  {isLoading ? "Loading markets..." : `${filteredPools.length} markets found`}
-                </span>
-              </div>
-            </div>
-            
-            {isLoading ? (
-              <div className="text-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
-                <p className="text-gray-400">Loading markets...</p>
-              </div>
-            ) : filteredPools.length === 0 ? (
-              <div className="text-center py-12">
-                <FaChartLine className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-white mb-2">No Markets Found</h3>
-                <p className="text-gray-400 mb-6">
-                  {activeCategory === "all" 
-                    ? "No prediction markets are currently available."
-                    : `No ${activeCategory} markets found. Try a different category or create a new market.`
-                  }
-                </p>
-                <button
-                  onClick={handleCreateMarket}
-                  className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white font-semibold py-3 px-6 rounded-lg transition-all"
-                >
-                  Create Market
-                </button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {isLoading ? (
-                  <SkeletonLoader type="markets-list" count={6} />
-                ) : (
-                <AnimatePresence>
-                  {filteredPools.map((pool, index) => (
-                    <EnhancedPoolCard
-                      key={pool.id}
-                      pool={convertToEnhancedPool(pool)}
-                      index={index}
-                      className="w-full"
-                    />
-                  ))}
-                </AnimatePresence>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
 
-        {/* Sidebar */}
-        <div className="xl:col-span-1">
-          <div className="space-y-6">
-            {/* Quick Stats */}
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-              <h3 className="text-xl font-bold text-white mb-4">Market Stats</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-gray-300">BITR Volume</span>
-                  <span className="text-white font-semibold">{formatNumber(stats.bitrVolume || "0")} BITR</span>
+              {/* Search & Sort - Right Side */}
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {/* Search */}
+                <div className="relative flex-1 sm:flex-initial sm:w-48 min-w-[120px]">
+                  <FaSearch className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-400 h-3.5 w-3.5" />
+                  <input
+                    type="text"
+                    placeholder="Search..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-8 pr-3 py-1.5 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white text-xs placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30"
+                  />
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-300">STT Volume</span>
-                  <span className="text-white font-semibold">{formatNumber(stats.sttVolume || "0")} STT</span>
+
+                {/* Sort */}
+                <div className="flex items-center gap-1.5">
+                  <FaSort className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as SortBy)}
+                    className="bg-slate-700/50 border border-slate-600/50 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:border-cyan-500/50 min-w-[100px]"
+                  >
+                    {sortOptions.map((option) => (
+                      <option key={option.id} value={option.id} className="bg-slate-800">
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-300">Active Markets</span>
+              </div>
+            </div>
+
+            {/* Bottom Row: Category Filters */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs text-gray-400 font-medium hidden sm:inline">Category:</span>
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  { id: "all" as CategoryFilter, label: "All", icon: "🏆", name: "All Sports" },
+                  { id: "football" as CategoryFilter, label: "⚽", icon: "⚽", name: "Football" },
+                  { id: "crypto" as CategoryFilter, label: "₿", icon: "₿", name: "Crypto" },
+                  { id: "basketball" as CategoryFilter, label: "🏀", icon: "🏀", name: "Basketball" },
+                  { id: "other" as CategoryFilter, label: "🎯", icon: "🎯", name: "Other" }
+                ].map((category) => {
+                  const isActive = categoryFilter === category.id;
+                  return (
+                    <button
+                      key={category.id}
+                      onClick={() => setCategoryFilter(category.id)}
+                      className={`px-2.5 py-1.5 rounded-lg font-medium transition-all text-xs ${
+                        isActive
+                          ? "bg-emerald-500/80 text-white shadow-md"
+                          : "bg-slate-700/50 text-gray-400 hover:text-white hover:bg-slate-700/70"
+                      }`}
+                      title={category.name}
+                    >
+                      {category.icon}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Markets Grid - Compact Layout - Fully Responsive */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 sm:gap-4">
+          {/* Markets List */}
+          <div className="lg:col-span-3 order-2 lg:order-1">
+            <div className="bg-slate-800/30 backdrop-blur-xl border border-slate-700/50 rounded-xl p-4">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-lg font-bold text-white">
+                    {categories.find(c => c.id === activeCategory)?.label || "All"} Markets
+                  </h2>
+                  <span className="text-xs text-gray-400 bg-slate-700/50 px-2 py-0.5 rounded">
+                    {isLoading ? "..." : filteredPools.length}
+                  </span>
+                </div>
+              </div>
+              
+              {isLoading ? (
+                <div className="text-center py-16">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-500 mx-auto mb-4"></div>
+                  <p className="text-gray-400 text-sm">Loading markets...</p>
+                </div>
+              ) : filteredPools.length === 0 ? (
+                <div className="text-center py-16">
+                  <FaChartLine className="h-10 w-10 text-gray-500 mx-auto mb-3" />
+                  <h3 className="text-lg font-bold text-white mb-2">No Markets Found</h3>
+                  <p className="text-gray-400 text-sm mb-4">
+                    {activeCategory === "all" 
+                      ? "No prediction markets available."
+                      : `No ${activeCategory} markets found.`
+                    }
+                  </p>
+                  <button
+                    onClick={handleCreateMarket}
+                    className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition-all text-sm"
+                  >
+                    Create Market
+                  </button>
+                </div>
+              ) : (
+                <div className="w-full overflow-x-hidden">
+                  <PoolCardCatalog
+                    pools={filteredPools.map(convertToEnhancedPool)}
+                    onPoolClick={(pool) => {
+                      setSelectedPool(pool);
+                      setIsModalOpen(true);
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Compact Sidebar - Responsive */}
+          <div className="lg:col-span-1 space-y-3 order-1 lg:order-2">
+            {/* Quick Stats - Compact */}
+            <div className="bg-slate-800/30 backdrop-blur-xl border border-slate-700/50 rounded-xl p-4">
+              <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                <FaChartLine className="h-4 w-4 text-cyan-400" />
+                Stats
+              </h3>
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">PRIX Vol</span>
+                  <span className="text-white font-semibold">{formatNumber(stats.prixVolume || "0")}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">BNB Vol</span>
+                  <span className="text-white font-semibold">{formatNumber(stats.bnbVolume || "0")}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Active</span>
                   <span className="text-white font-semibold">{stats.activeMarkets}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-300">Participants</span>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Users</span>
                   <span className="text-white font-semibold">{stats.participants}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-300">Total Pools</span>
-                  <span className="text-white font-semibold">{stats.totalPools}</span>
                 </div>
               </div>
             </div>
 
-            {/* Quick Actions */}
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-              <h3 className="text-xl font-bold text-white mb-4">Quick Actions</h3>
-              <div className="space-y-3">
+            {/* Quick Actions - Compact */}
+            <div className="bg-slate-800/30 backdrop-blur-xl border border-slate-700/50 rounded-xl p-4">
+              <h3 className="text-sm font-bold text-white mb-3">Actions</h3>
+              <div className="space-y-2">
                 <button
                   onClick={handleCreateMarket}
-                  className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-semibold py-3 px-4 rounded-lg transition-all"
+                  className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold py-2 px-3 rounded-lg transition-all text-xs"
                 >
                   Create Market
                 </button>
-                
                 <button
                   onClick={() => router.push("/oddyssey")}
-                  className="w-full bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white font-semibold py-3 px-4 rounded-lg transition-all"
+                  className="w-full bg-gradient-to-r from-green-500/80 to-emerald-500/80 hover:from-green-500 hover:to-emerald-500 text-white font-semibold py-2 px-3 rounded-lg transition-all text-xs"
                 >
                   Play Oddyssey
                 </button>
-                
-                <button
-                  onClick={() => router.push("/staking")}
-                  className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold py-3 px-4 rounded-lg transition-all"
-                >
-                  Stake BITR
-                </button>
               </div>
             </div>
 
-            {/* Boost Information */}
-            <div className="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border border-yellow-500/20 rounded-2xl p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <FaBolt className="h-6 w-6 text-yellow-400" />
-                <h3 className="text-xl font-bold text-white">Boost Rewards</h3>
+            {/* Boost Info - Compact */}
+            <div className="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border border-yellow-500/20 rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <FaBolt className="h-4 w-4 text-yellow-400" />
+                <h3 className="text-sm font-bold text-white">Boost</h3>
               </div>
-              <p className="text-gray-300 mb-4 text-sm">
-                Pool creators can boost their markets for better visibility and higher rewards.
-              </p>
-              <div className="space-y-2 text-sm">
+              <div className="space-y-1.5 text-xs">
                 <div className="flex justify-between">
-                  <span className="text-orange-400">🥉 Bronze</span>
-                  <span className="text-white">2 STT</span>
+                  <span className="text-orange-400">🥉</span>
+                  <span className="text-white">2 BNB</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-300">🥈 Silver</span>
-                  <span className="text-white">3 STT</span>
+                  <span className="text-gray-300">🥈</span>
+                  <span className="text-white">3 BNB</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-yellow-400">🥇 Gold</span>
-                  <span className="text-white">5 STT</span>
-                </div>
-              </div>
-              <p className="text-xs text-gray-400 mt-3">
-                Boost fees are distributed to winners as additional rewards.
-              </p>
-            </div>
-
-            {/* Features Info */}
-            <div className="bg-gradient-to-br from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-2xl p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <FaGift className="h-6 w-6 text-purple-400" />
-                <h3 className="text-xl font-bold text-white">Features</h3>
-              </div>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-2">
-                  <FaStar className="h-3 w-3 text-green-400" />
-                  <span className="text-gray-300">Combo Pools</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <FaLock className="h-3 w-3 text-purple-400" />
-                  <span className="text-gray-300">Private Markets</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <FaBolt className="h-3 w-3 text-yellow-400" />
-                  <span className="text-gray-300">Boost System</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <FaShieldAlt className="h-3 w-3 text-blue-400" />
-                  <span className="text-gray-300">Oracle Integration</span>
+                  <span className="text-yellow-400">🥇</span>
+                  <span className="text-white">5 BNB</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </motion.div>
+
+        {/* Pool Card Modal */}
+        <PoolCardModal
+          pool={selectedPool}
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+        />
+      </motion.div>
+    </div>
   );
 }

@@ -3,8 +3,8 @@ import { CONTRACT_ADDRESSES } from '@/config/wagmi';
 import { parseUnits, formatUnits } from 'viem';
 import OddysseyArtifact from '@/contracts/abis/Oddyssey.json';
 
-// Extract ABI array from artifact
-const ODDYSSEY_ABI = OddysseyArtifact.abi;
+// Extract ABI array from artifact (ABI files are arrays directly)
+const ODDYSSEY_ABI = OddysseyArtifact as any;
 
 export interface UserStats {
   totalSlips: bigint;

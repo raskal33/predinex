@@ -2,7 +2,7 @@
  * Pool Calculation Utilities
  * 
  * Standardized calculations for pool size, fill percentage, and betting limits
- * based on the BitredictPoolCore contract formula.
+ * based on the PrixedictPoolCore contract formula.
  */
 
 export interface PoolCalculationInputs {
@@ -119,12 +119,12 @@ export function calculateProfit(
 
 /**
  * Example calculation for your scenario:
- * - Creator stake: 600 BITR
+ * - Creator stake: 600 PRIX
  * - Odds: 1.65
- * - Max bettor stake: (600 * 100) / (165 - 100) = 60,000 / 65 = 923.08 BITR
+ * - Max bettor stake: (600 * 100) / (165 - 100) = 60,000 / 65 = 923.08 PRIX
  */
 export function getExampleCalculation() {
-  const creatorStake = 600; // BITR
+  const creatorStake = 600; // PRIX
   const odds = 1.65;
   const maxBettorStake = calculateMaxBettorStake(creatorStake, odds, false);
   
@@ -132,6 +132,6 @@ export function getExampleCalculation() {
     creatorStake,
     odds,
     maxBettorStake,
-    explanation: `With ${creatorStake} BITR creator stake and ${odds}x odds, bettors can stake up to ${maxBettorStake.toFixed(2)} BITR`
+    explanation: `With ${creatorStake} PRIX creator stake and ${odds}x odds, bettors can stake up to ${maxBettorStake.toFixed(2)} PRIX`
   };
 }

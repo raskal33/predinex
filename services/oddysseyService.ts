@@ -13,25 +13,26 @@ import {
   type WalletClient
 } from 'viem';
 
-// Define Somnia Testnet chain with fallback RPCs
-const somniaTestnet = defineChain({
-  id: 50312,
-  name: 'Somnia Testnet',
+// Define BSC Testnet chain with fallback RPCs
+const bscTestnet = defineChain({
+  id: 97,
+  name: 'BSC Testnet',
   nativeCurrency: {
     decimals: 18,
-    name: 'STT',
-    symbol: 'STT',
+    name: 'BNB',
+    symbol: 'BNB',
   },
   rpcUrls: {
     default: {
       http: [
-        'https://dream-rpc.somnia.network/',
-        'https://rpc.ankr.com/somnia_testnet/c8e336679a7fe85909f310fbbdd5fbb18d3b7560b1d3eca7aa97874b0bb81e97'
+        'https://bsc-testnet-rpc.publicnode.com',
+        'https://bsc-testnet.drpc.org',
+        'https://data-seed-prebsc-1-s1.binance.org:8545'
       ],
     },
   },
   blockExplorers: {
-    default: { name: 'Somnia Explorer', url: 'https://shannon-explorer.somnia.network' },
+    default: { name: 'BscScan', url: 'https://testnet.bscscan.com' },
   },
   testnet: true,
 });
@@ -152,7 +153,7 @@ class OddysseyService {
 
   constructor() {
     this.publicClient = createPublicClient({
-      chain: somniaTestnet,
+      chain: bscTestnet,
       transport: http(),
     });
   }
@@ -457,7 +458,7 @@ class OddysseyService {
       });
       
       const entryFeeBigInt = entryFeeResult as bigint;
-      console.log(`💰 Entry fee from contract: ${formatEther(entryFeeBigInt)} STT (${entryFeeBigInt.toString()} wei)`);
+      console.log(`💰 Entry fee from contract: ${formatEther(entryFeeBigInt)} BNB (${entryFeeBigInt.toString()} wei)`);
       
       // Convert predictions to contract format
       // ⚠️ IMPORTANT: Only include fields that exist in contract's UserPrediction struct
@@ -493,7 +494,7 @@ class OddysseyService {
         functionName: 'placeSlip',
         args: [contractPredictions],
         value: entryFeeBigInt, // ✅ Use actual entry fee from contract
-        chain: somniaTestnet,
+        chain: bscTestnet,
         account: this.walletClient.account,
       });
 
@@ -522,7 +523,7 @@ class OddysseyService {
             errorMessage.includes('user disapproved')) {
           throw new Error('Transaction was cancelled by user. Please try again if you want to place the slip.');
         } else if (errorMessage.includes('insufficient funds')) {
-          throw new Error('Insufficient funds. Please ensure you have enough STT tokens to pay the entry fee.');
+          throw new Error('Insufficient funds. Please ensure you have enough BNB tokens to pay the entry fee.');
         } else if (errorMessage.includes('gas')) {
           throw new Error('Gas estimation failed. Please try again or check your network connection.');
         } else if (errorMessage.includes('network')) {
@@ -1443,7 +1444,7 @@ class OddysseyService {
   // Get results by date from backend
   async getResultsByDate(date: string): Promise<{ success: boolean; data: any }> {
     try {
-      const response = await fetch(`https://bitredict-backend.fly.dev/api/oddyssey/results/${date}`);
+      const response = await fetch(`https://prixedict-backend.fly.dev/api/oddyssey/results/${date}`);
       const data = await response.json();
       
       if (data.success && data.data) {
@@ -1490,8 +1491,8 @@ class OddysseyService {
   async getLeaderboard(cycleId?: number): Promise<{ success: boolean; data: any }> {
     try {
       const url = cycleId 
-        ? `https://bitredict-backend.fly.dev/api/oddyssey/leaderboard/${cycleId}`
-        : 'https://bitredict-backend.fly.dev/api/oddyssey/leaderboard';
+        ? `https://prixedict-backend.fly.dev/api/oddyssey/leaderboard/${cycleId}`
+        : 'https://prixedict-backend.fly.dev/api/oddyssey/leaderboard';
       const response = await fetch(url);
       const data = await response.json();
       return {
@@ -1510,7 +1511,7 @@ class OddysseyService {
   // Check cycle sync status
   async checkCycleSync(): Promise<{ success: boolean; data: any }> {
     try {
-      const response = await fetch('https://bitredict-backend.fly.dev/api/oddyssey/cycle-sync');
+      const response = await fetch('https://prixedict-backend.fly.dev/api/oddyssey/cycle-sync');
       const data = await response.json();
       return {
         success: true,
@@ -1528,7 +1529,7 @@ class OddysseyService {
   // Get cycle stats
   async getCycleStats(): Promise<{ success: boolean; data: any }> {
     try {
-      const response = await fetch('https://bitredict-backend.fly.dev/api/oddyssey/stats');
+      const response = await fetch('https://prixedict-backend.fly.dev/api/oddyssey/stats');
       const data = await response.json();
       return {
         success: true,
@@ -1546,7 +1547,7 @@ class OddysseyService {
   // Get user slips for cycle from backend
   async getUserSlipsForCycleFromBackend(cycleId: number, address: string): Promise<{ success: boolean; data: any }> {
     try {
-      const response = await fetch(`https://bitredict-backend.fly.dev/api/oddyssey/user-slips/${address}/${cycleId}`);
+      const response = await fetch(`https://prixedict-backend.fly.dev/api/oddyssey/user-slips/${address}/${cycleId}`);
       const data = await response.json();
       return {
         success: true,

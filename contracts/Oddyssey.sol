@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 // Reputation System interface
 interface IReputationSystem {
     enum ReputationAction {
-        // BitredictPool actions
+        // PrixedictPool actions
         POOL_CREATED,
         BET_PLACED,
         BET_WON,
@@ -257,7 +257,7 @@ contract Oddyssey is Ownable, ReentrancyGuard {
 
     constructor(address _devWallet, uint256 _initialEntryFee) Ownable(msg.sender) {
         if (_devWallet == address(0)) revert InvalidInput();
-        if (_initialEntryFee != 0.5 ether) revert InvalidInput(); // Must be exactly 0.5 STT
+        if (_initialEntryFee != 0.5 ether) revert InvalidInput(); // Must be exactly 0.5 BNB
         
         devWallet = _devWallet;
         entryFee = _initialEntryFee;
@@ -280,7 +280,7 @@ contract Oddyssey is Ownable, ReentrancyGuard {
     }
 
     function setEntryFee(uint256 _newFee) external onlyOwner {
-        if (_newFee != 0.5 ether) revert InvalidInput(); // Must be exactly 0.5 STT
+        if (_newFee != 0.5 ether) revert InvalidInput(); // Must be exactly 0.5 BNB
         if (_newFee == entryFee) revert InvalidInput();
         entryFee = _newFee;
         emit EntryFeeSet(_newFee);

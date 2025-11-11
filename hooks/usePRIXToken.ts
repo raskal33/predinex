@@ -3,36 +3,36 @@ import { useAccount, useReadContract, useWriteContract, useWaitForTransactionRec
 import { CONTRACTS } from '@/contracts';
 import { formatUnits, parseUnits } from 'viem';
 
-export function useBITRToken() {
+export function usePRIXToken() {
   const { address } = useAccount();
   const { writeContract, data: hash, isPending, error: writeError } = useWriteContract();
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
 
   // Read contract functions
   const { data: balance, refetch: refetchBalance } = useReadContract({
-    ...CONTRACTS.BITR_TOKEN,
+    ...CONTRACTS.PRIX_TOKEN,
     functionName: 'balanceOf',
     args: address ? [address] : undefined,
     query: { enabled: !!address }
   });
 
   const { data: totalSupply } = useReadContract({
-    ...CONTRACTS.BITR_TOKEN,
+    ...CONTRACTS.PRIX_TOKEN,
     functionName: 'totalSupply',
   });
 
   const { data: decimals } = useReadContract({
-    ...CONTRACTS.BITR_TOKEN,
+    ...CONTRACTS.PRIX_TOKEN,
     functionName: 'decimals',
   });
 
   const { data: name } = useReadContract({
-    ...CONTRACTS.BITR_TOKEN,
+    ...CONTRACTS.PRIX_TOKEN,
     functionName: 'name',
   });
 
   const { data: symbol } = useReadContract({
-    ...CONTRACTS.BITR_TOKEN,
+    ...CONTRACTS.PRIX_TOKEN,
     functionName: 'symbol',
   });
 
@@ -41,15 +41,15 @@ export function useBITRToken() {
 
   // Get allowance for staking contract (most common use case)
   const { data: stakingAllowance, refetch: refetchStakingAllowance } = useReadContract({
-    ...CONTRACTS.BITR_TOKEN,
+    ...CONTRACTS.PRIX_TOKEN,
     functionName: 'allowance',
-    args: address && CONTRACTS.BITREDICT_STAKING?.address ? [address, CONTRACTS.BITREDICT_STAKING.address] : undefined,
-    query: { enabled: !!(address && CONTRACTS.BITREDICT_STAKING?.address) }
+    args: address && CONTRACTS.PRIXEDICT_STAKING?.address ? [address, CONTRACTS.PRIXEDICT_STAKING.address] : undefined,
+    query: { enabled: !!(address && CONTRACTS.PRIXEDICT_STAKING?.address) }
   });
 
   // Get allowance for faucet contract
   const { data: faucetAllowance, refetch: refetchFaucetAllowance } = useReadContract({
-    ...CONTRACTS.BITR_TOKEN,
+    ...CONTRACTS.PRIX_TOKEN,
     functionName: 'allowance',
     args: address && CONTRACTS.FAUCET?.address ? [address, CONTRACTS.FAUCET.address] : undefined,
     query: { enabled: !!(address && CONTRACTS.FAUCET?.address) }
@@ -57,10 +57,10 @@ export function useBITRToken() {
 
   // Update allowances when data changes
   useEffect(() => {
-    if (stakingAllowance !== undefined && stakingAllowance !== null && CONTRACTS.BITREDICT_STAKING?.address) {
+    if (stakingAllowance !== undefined && stakingAllowance !== null && CONTRACTS.PRIXEDICT_STAKING?.address) {
       setAllowances(prev => ({
         ...prev,
-        [CONTRACTS.BITREDICT_STAKING.address]: stakingAllowance as bigint
+        [CONTRACTS.PRIXEDICT_STAKING.address]: stakingAllowance as bigint
       }));
     }
   }, [stakingAllowance]);
@@ -84,7 +84,7 @@ export function useBITRToken() {
     if (!decimals) return;
     const parsedAmount = parseUnits(amount, Number(decimals));
     writeContract({
-      ...CONTRACTS.BITR_TOKEN,
+      ...CONTRACTS.PRIX_TOKEN,
       functionName: 'transfer',
       args: [to, parsedAmount],
     });
@@ -94,7 +94,7 @@ export function useBITRToken() {
     if (!decimals) return;
     const parsedAmount = parseUnits(amount, Number(decimals));
     writeContract({
-      ...CONTRACTS.BITR_TOKEN,
+      ...CONTRACTS.PRIX_TOKEN,
       functionName: 'approve',
       args: [spender, parsedAmount],
     });
@@ -102,7 +102,7 @@ export function useBITRToken() {
 
   const approveMax = async (spender: `0x${string}`) => {
     writeContract({
-      ...CONTRACTS.BITR_TOKEN,
+      ...CONTRACTS.PRIX_TOKEN,
       functionName: 'approve',
       args: [spender, BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')],
     });

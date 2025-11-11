@@ -468,7 +468,7 @@ export default function AnalyticsDashboard({ cycleId = 1, className = "" }: Anal
             />
             <InfographicCard
               title="Total Volume"
-              value={`${platformAnalytics.globalMetrics?.totalVolume?.toFixed(1) || '0.0'}K STT`}
+              value={`${platformAnalytics.globalMetrics?.totalVolume?.toFixed(1) || '0.0'}K BNB`}
               icon={ArrowTrendingUpIcon}
               color="success"
             />

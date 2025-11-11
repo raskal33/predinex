@@ -1,27 +1,27 @@
 import { createPublicClient, http, type PublicClient, defineChain } from 'viem';
 import { NETWORK_CONNECTION_CONFIG, GAS_SETTINGS } from '@/config/wagmi';
 
-// Define Somnia chain for Viem compatibility
-const somniaChain = defineChain({
-  id: 50312,
-  name: 'Somnia Testnet',
+// Define BSC Testnet chain for Viem compatibility
+const bscTestnetChain = defineChain({
+  id: 97,
+  name: 'BSC Testnet',
   nativeCurrency: {
     decimals: 18,
-    name: 'STT',
-    symbol: 'STT',
+    name: 'BNB',
+    symbol: 'BNB',
   },
   rpcUrls: {
     default: {
-      http: ['https://dream-rpc.somnia.network/'],
+      http: ['https://bsc-testnet-rpc.publicnode.com'],
     },
   },
   blockExplorers: {
-    default: { name: 'Somnia Explorer', url: 'https://explorer.somnia.network' },
+    default: { name: 'BscScan', url: 'https://testnet.bscscan.com' },
   },
   testnet: true,
 });
 
-// Network connection manager for robust Somnia connectivity
+// Network connection manager for robust BSC Testnet connectivity
 class NetworkConnectionManager {
   private clients: PublicClient[] = [];
   private currentClientIndex = 0;
@@ -37,7 +37,7 @@ class NetworkConnectionManager {
     // Create multiple clients for redundancy
     this.clients = NETWORK_CONNECTION_CONFIG.rpcUrls.map((rpcUrl) => {
       return createPublicClient({
-        chain: somniaChain,
+        chain: bscTestnetChain,
         transport: http(rpcUrl, {
           timeout: NETWORK_CONNECTION_CONFIG.requestTimeout,
           retryCount: NETWORK_CONNECTION_CONFIG.retryAttempts,

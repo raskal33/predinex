@@ -23,7 +23,8 @@ import {
   BoltIcon,
   ArrowTrendingUpIcon,
   LockClosedIcon,
-  Squares2X2Icon
+  Squares2X2Icon,
+  SparklesIcon
 } from "@heroicons/react/24/outline";
 import Button from "@/components/button";
 import { useProfileStore } from '@/stores/useProfileStore';
@@ -32,7 +33,7 @@ import NotificationBadge from "@/components/NotificationBadge";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
-  const [isBitredictorOpen, setIsBitredictorOpen] = useState<boolean>(false);
+  const [isPrixedictorOpen, setIsPrixedictorOpen] = useState<boolean>(false);
   const [isMarketsOpen, setIsMarketsOpen] = useState<boolean>(false);
   const [isWalletDropdownOpen, setIsWalletDropdownOpen] = useState<boolean>(false);
   const [{ y }] = useWindowScroll();
@@ -40,7 +41,7 @@ export default function Header() {
   const [isRender, setIsRender] = useState<boolean>(false);
   
   // Refs for dropdown positioning
-  const bitredictorButtonRef = useRef<HTMLButtonElement>(null);
+  const prixedictorButtonRef = useRef<HTMLButtonElement>(null);
   const marketsButtonRef = useRef<HTMLButtonElement>(null);
   const walletButtonRef = useRef<HTMLButtonElement>(null);
   
@@ -90,8 +91,8 @@ export default function Header() {
   const handleClose = () => {
     setIsMenuOpen(false);
   };
-  const handleBitredictorToggle = () => setIsBitredictorOpen(!isBitredictorOpen);
-  const handleBitredictorClose = () => setIsBitredictorOpen(false);
+  const handlePrixedictorToggle = () => setIsPrixedictorOpen(!isPrixedictorOpen);
+  const handlePrixedictorClose = () => setIsPrixedictorOpen(false);
   const handleMarketsToggle = () => setIsMarketsOpen(!isMarketsOpen);
   const handleMarketsClose = () => setIsMarketsOpen(false);
   const handleWalletDropdownToggle = () => setIsWalletDropdownOpen(!isWalletDropdownOpen);
@@ -102,21 +103,21 @@ export default function Header() {
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = () => {
-      setIsBitredictorOpen(false);
+      setIsPrixedictorOpen(false);
       setIsMarketsOpen(false);
       setIsWalletDropdownOpen(false);
     };
 
-    if (isBitredictorOpen || isMarketsOpen || isWalletDropdownOpen) {
+    if (isPrixedictorOpen || isMarketsOpen || isWalletDropdownOpen) {
       document.addEventListener('click', handleClickOutside);
       return () => document.removeEventListener('click', handleClickOutside);
     }
-  }, [isBitredictorOpen, isMarketsOpen, isWalletDropdownOpen]);
+  }, [isPrixedictorOpen, isMarketsOpen, isWalletDropdownOpen]);
 
   // Close dropdowns on scroll
   useEffect(() => {
     const handleScroll = () => {
-      setIsBitredictorOpen(false);
+      setIsPrixedictorOpen(false);
       setIsMarketsOpen(false);
       setIsWalletDropdownOpen(false);
     };
@@ -144,7 +145,7 @@ export default function Header() {
                 <Link href="/" className="flex items-center gap-3">
                   <Image 
                     src="/logo.png" 
-                    alt="BitRedict Logo" 
+                    alt="Predinex Logo" 
                     width={140} 
                     height={50} 
                     className="logo-color-shift navbar-logo"
@@ -152,21 +153,21 @@ export default function Header() {
                   />
                 </Link>
 
-                {/* Bitredictor Dropdown */}
+                {/* Prixedictor Dropdown */}
                 <div className="relative hidden lg:block" style={{ zIndex: 1000 }}>
                   <motion.button
-                    ref={bitredictorButtonRef}
+                    ref={prixedictorButtonRef}
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleBitredictorToggle();
+                      handlePrixedictorToggle();
                     }}
                     whileHover={{ scale: 1.01 }}
                     className="flex items-center gap-2 px-4 py-2 rounded-button text-xs font-medium transition-all duration-200 text-text-secondary hover:text-text-primary hover:bg-bg-card"
                   >
                     <CubeTransparentIcon className="h-4 w-4 text-primary" />
-                    <span className="font-semibold">Bitredictor</span>
+                    <span className="font-semibold">Prixedictor</span>
                     <motion.div
-                      animate={{ rotate: isBitredictorOpen ? 180 : 0 }}
+                      animate={{ rotate: isPrixedictorOpen ? 180 : 0 }}
                       transition={{ duration: 0.2 }}
                     >
                       <ChevronDownIcon className="h-4 w-4" />
@@ -174,8 +175,8 @@ export default function Header() {
                   </motion.button>
 
                   <AnimatePresence>
-                    {isBitredictorOpen && (() => {
-                      const position = getDropdownPosition(bitredictorButtonRef);
+                    {isPrixedictorOpen && (() => {
+                      const position = getDropdownPosition(prixedictorButtonRef);
                       return (
                         <motion.div
                           initial={{ opacity: 0, y: -10, scale: 0.95 }}
@@ -191,11 +192,11 @@ export default function Header() {
                           onClick={(e) => e.stopPropagation()}
                         >
                         <div className="py-3 px-2">
-                          {bitredictorLinks.map((link) => (
+                          {prixedictorLinks.map((link) => (
                             <Link
                               key={link.href}
                               href={link.href}
-                              onClick={handleBitredictorClose}
+                              onClick={handlePrixedictorClose}
                               className={`flex items-center gap-3 px-3 py-2.5 mx-1 text-xs font-medium transition-all duration-200 rounded-xl group ${
                                 segment === link.segment
                                   ? "bg-gradient-primary text-black shadow-lg"
@@ -381,7 +382,7 @@ export default function Header() {
                                     }}
                                     className="w-full flex items-center gap-2 px-3 py-2 mx-1 text-sm font-medium transition-all duration-200 rounded-xl text-orange-400 hover:text-orange-300 hover:bg-[rgba(255,255,255,0.08)]"
                                   >
-                                    <span>Switch to Somnia</span>
+                                    <span>Switch to BSC Testnet</span>
                                   </button>
                                 )}
                                 <button
@@ -506,7 +507,7 @@ export default function Header() {
                     <Link href="/" className="flex items-center gap-2" onClick={handleClose}>
                       <Image 
                         src="/logo.png" 
-                        alt="BitRedict Logo" 
+                        alt="Predinex Logo" 
                         width={160} 
                         height={160} 
                         className="logo-color-shift"
@@ -517,11 +518,11 @@ export default function Header() {
 
                   {/* Navigation Links */}
                   <nav className="flex-1 p-4 overflow-y-auto">
-                    {/* Bitredictor Section */}
+                    {/* Prixedictor Section */}
                     <div className="mb-4">
-                      <h3 className="text-xs font-semibold text-text-secondary mb-2 px-2">BITREDICTOR</h3>
+                      <h3 className="text-xs font-semibold text-text-secondary mb-2 px-2">PRIXEDICTOR</h3>
                       <div className="space-y-1">
-                        {bitredictorLinks.map((link) => (
+                        {prixedictorLinks.map((link) => (
                           <Link
                             key={link.href}
                             href={link.href}
@@ -668,7 +669,7 @@ export default function Header() {
   }
 }
 
-const bitredictorLinks = [
+const prixedictorLinks = [
   {
     label: "Dashboard",
     href: "/dashboard",
@@ -701,6 +702,12 @@ const marketsLinks = [
     href: "/markets",
     segment: "markets",
     icon: ChartBarIcon,
+  },
+  {
+    label: "Pool Roulette",
+    href: "/roulette",
+    segment: "roulette",
+    icon: SparklesIcon,
   },
   {
     label: "Boosted Markets",

@@ -5,7 +5,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const { id } = await params;
     console.log(`🎯 Fetching fixture details for ID: ${id}`);
 
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://bitredict-backend.fly.dev';
+    // Use prixedict-backend for testing
+    const backendUrl = 'https://prixedict-backend.fly.dev';
     const response = await fetch(`${backendUrl}/api/match-center/fixture/${id}`, {
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate',

@@ -1,0 +1,1991 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_prixToken",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_feeCollector",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_poolCore",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      }
+    ],
+    "name": "OwnableInvalidOwner",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "OwnableUnauthorizedAccount",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ReentrancyGuardReentrantCall",
+    "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "comboPoolId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "totalVolume",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "participantCount",
+        "type": "uint256"
+      }
+    ],
+    "name": "ComboAnalyticsUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "comboPoolId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "bettor",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "ComboBetPlaced",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "comboPoolId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "conditionIndex",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes32",
+        "name": "actualOutcome",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "successful",
+        "type": "bool"
+      }
+    ],
+    "name": "ComboConditionResolved",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "comboPoolId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "provider",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "ComboLiquidityAdded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "comboPoolId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "creator",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "conditionCount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint16",
+        "name": "totalOdds",
+        "type": "uint16"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes32",
+        "name": "category",
+        "type": "bytes32"
+      }
+    ],
+    "name": "ComboPoolCreated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "comboPoolId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "score",
+        "type": "uint256"
+      }
+    ],
+    "name": "ComboPoolPerformanceUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "comboPoolId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "reason",
+        "type": "string"
+      }
+    ],
+    "name": "ComboPoolRefunded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "comboPoolId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "creatorSideWon",
+        "type": "bool"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "successfulConditions",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      }
+    ],
+    "name": "ComboPoolSettled",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "comboPoolId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "ComboRewardClaimed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "follower",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "creator",
+        "type": "address"
+      }
+    ],
+    "name": "ComboUserFollowed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "winRate",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "totalVolume",
+        "type": "uint256"
+      }
+    ],
+    "name": "ComboUserPerformanceUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "follower",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "creator",
+        "type": "address"
+      }
+    ],
+    "name": "ComboUserUnfollowed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "previousOwner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "OwnershipTransferred",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "enum ReputationSystem.ReputationAction",
+        "name": "action",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "value",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "poolId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      }
+    ],
+    "name": "ReputationActionOccurred",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "MAX_CONDITIONS",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "MAX_LP_PROVIDERS",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "MAX_PARTICIPANTS",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "MIN_CONDITIONS",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "comboPoolId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "addComboLiquidity",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "bettingGracePeriod",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "comboPoolId",
+        "type": "uint256"
+      }
+    ],
+    "name": "claimCombo",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "comboAnalytics",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "totalVolume",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "participantCount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "averageBetSize",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "successRate",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "averageOdds",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "conditionSuccessRates",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "lastActivityTime",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "comboBettorStakes",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "name": "comboCategoryTrendScore",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "comboClaimed",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "comboCreatorPerformanceScore",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "comboLPStakes",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "comboPoolBettors",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "comboPoolCount",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "comboPoolId",
+        "type": "uint256"
+      }
+    ],
+    "name": "comboPoolExists",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "comboPoolLPs",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "comboPoolPerformanceScore",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "comboPools",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "creator",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "creatorStake",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalCreatorSideStake",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "maxBettorStake",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalBettorStake",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint16",
+        "name": "totalOdds",
+        "type": "uint16"
+      },
+      {
+        "internalType": "uint8",
+        "name": "flags",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint8",
+        "name": "conditionCount",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint256",
+        "name": "eventStartTime",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "eventEndTime",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "bettingEndTime",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "resultTimestamp",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "category",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint256",
+        "name": "maxBetPerUser",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "comboStats",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "totalComboPools",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalComboVolume",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "averageConditions",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "mostPopularConditionCount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalSuccessfulCombos",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "marketId",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "expectedOutcome",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bool",
+            "name": "resolved",
+            "type": "bool"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "actualOutcome",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "string",
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "internalType": "uint16",
+            "name": "odds",
+            "type": "uint16"
+          }
+        ],
+        "internalType": "struct PredinexComboPools.OutcomeCondition[]",
+        "name": "conditions",
+        "type": "tuple[]"
+      },
+      {
+        "internalType": "uint16",
+        "name": "combinedOdds",
+        "type": "uint16"
+      },
+      {
+        "internalType": "uint256",
+        "name": "creatorStake",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "earliestEventStart",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "latestEventEnd",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "categoryHash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint256",
+        "name": "maxBetPerUser",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "usePrix",
+        "type": "bool"
+      }
+    ],
+    "name": "createComboPool",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "creationFeeBNB",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "creationFeePrix",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "stakingContract",
+        "type": "address"
+      }
+    ],
+    "name": "distributeFees",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "feeCollector",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "creator",
+        "type": "address"
+      }
+    ],
+    "name": "followComboCreator",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getActiveCombopools",
+    "outputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "categoryHash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getComboCategoryTrendScore",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "creator",
+        "type": "address"
+      }
+    ],
+    "name": "getComboCreatorPerformanceScore",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      }
+    ],
+    "name": "getComboFollowersList",
+    "outputs": [
+      {
+        "internalType": "address[]",
+        "name": "",
+        "type": "address[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      }
+    ],
+    "name": "getComboFollowingList",
+    "outputs": [
+      {
+        "internalType": "address[]",
+        "name": "",
+        "type": "address[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "comboPoolId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getComboPool",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "creator",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "creatorStake",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "totalCreatorSideStake",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxBettorStake",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "totalBettorStake",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint16",
+            "name": "totalOdds",
+            "type": "uint16"
+          },
+          {
+            "internalType": "uint8",
+            "name": "flags",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint8",
+            "name": "conditionCount",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint256",
+            "name": "eventStartTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "eventEndTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "bettingEndTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "resultTimestamp",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "category",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxBetPerUser",
+            "type": "uint256"
+          },
+          {
+            "components": [
+              {
+                "internalType": "bytes32",
+                "name": "marketId",
+                "type": "bytes32"
+              },
+              {
+                "internalType": "bytes32",
+                "name": "expectedOutcome",
+                "type": "bytes32"
+              },
+              {
+                "internalType": "bool",
+                "name": "resolved",
+                "type": "bool"
+              },
+              {
+                "internalType": "bytes32",
+                "name": "actualOutcome",
+                "type": "bytes32"
+              },
+              {
+                "internalType": "string",
+                "name": "description",
+                "type": "string"
+              },
+              {
+                "internalType": "uint16",
+                "name": "odds",
+                "type": "uint16"
+              }
+            ],
+            "internalType": "struct PredinexComboPools.OutcomeCondition[]",
+            "name": "conditions",
+            "type": "tuple[]"
+          }
+        ],
+        "internalType": "struct PredinexComboPools.ComboPool",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "comboPoolId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getComboPoolAnalytics",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "totalVolume",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "participantCount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "averageBetSize",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "successRate",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "averageOdds",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "conditionSuccessRates",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "lastActivityTime",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct PredinexComboPools.ComboAnalytics",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "comboPoolId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getComboPoolConditions",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "marketId",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "expectedOutcome",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bool",
+            "name": "resolved",
+            "type": "bool"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "actualOutcome",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "string",
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "internalType": "uint16",
+            "name": "odds",
+            "type": "uint16"
+          }
+        ],
+        "internalType": "struct PredinexComboPools.OutcomeCondition[]",
+        "name": "",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "comboPoolId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getComboPoolPerformanceScore",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "comboPoolId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getComboPoolWithType",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "creator",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "creatorStake",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "totalCreatorSideStake",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxBettorStake",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "totalBettorStake",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint16",
+            "name": "totalOdds",
+            "type": "uint16"
+          },
+          {
+            "internalType": "uint8",
+            "name": "flags",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint8",
+            "name": "conditionCount",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint256",
+            "name": "eventStartTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "eventEndTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "bettingEndTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "resultTimestamp",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "category",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxBetPerUser",
+            "type": "uint256"
+          },
+          {
+            "components": [
+              {
+                "internalType": "bytes32",
+                "name": "marketId",
+                "type": "bytes32"
+              },
+              {
+                "internalType": "bytes32",
+                "name": "expectedOutcome",
+                "type": "bytes32"
+              },
+              {
+                "internalType": "bool",
+                "name": "resolved",
+                "type": "bool"
+              },
+              {
+                "internalType": "bytes32",
+                "name": "actualOutcome",
+                "type": "bytes32"
+              },
+              {
+                "internalType": "string",
+                "name": "description",
+                "type": "string"
+              },
+              {
+                "internalType": "uint16",
+                "name": "odds",
+                "type": "uint16"
+              }
+            ],
+            "internalType": "struct PredinexComboPools.OutcomeCondition[]",
+            "name": "conditions",
+            "type": "tuple[]"
+          }
+        ],
+        "internalType": "struct PredinexComboPools.ComboPool",
+        "name": "pool",
+        "type": "tuple"
+      },
+      {
+        "internalType": "string",
+        "name": "poolType",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "creator",
+        "type": "address"
+      }
+    ],
+    "name": "getComboPoolsByCreator",
+    "outputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getComboStats",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "totalPools",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalVolume",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "averageConditions",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "mostPopularConditionCount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalSuccessful",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      }
+    ],
+    "name": "getUserComboBettingHistory",
+    "outputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      }
+    ],
+    "name": "getUserComboStats",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "totalBets",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalWins",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalVolume",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "winRate",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "name": "isComboFollowing",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "minBetAmount",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "minPoolStakeBNB",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "minPoolStakePrix",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "owner",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "comboPoolId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "placeComboBet",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "poolCore",
+    "outputs": [
+      {
+        "internalType": "contract PredinexPoolCore",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "prixToken",
+    "outputs": [
+      {
+        "internalType": "contract IERC20",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "comboPoolId",
+        "type": "uint256"
+      }
+    ],
+    "name": "refundComboPool",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "renounceOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "comboPoolId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "conditionIndex",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "actualOutcome",
+        "type": "bytes32"
+      }
+    ],
+    "name": "resolveComboCondition",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "totalCollectedBNB",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "totalCollectedPrix",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "transferOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "creator",
+        "type": "address"
+      }
+    ],
+    "name": "unfollowComboCreator",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "userComboBettingHistory",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "userComboFollowers",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "userComboFollowing",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "userComboPoolHistory",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "userComboTotalBets",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "userComboTotalVolume",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "userComboTotalWins",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "userComboWinRate",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]

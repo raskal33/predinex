@@ -77,7 +77,7 @@ export default function MySlipsPage() {
                   <div className="bg-gray-700/30 rounded-lg p-2 sm:p-3 md:p-4">
                     <div className="text-xs text-gray-400 mb-1">Prize Pool</div>
                     <div className="text-sm sm:text-base md:text-lg font-bold text-yellow-400">
-                      {(currentCycle.prizePool / 1e18).toFixed(2)} STT
+                      {(currentCycle.prizePool / 1e18).toFixed(2)} BNB
                     </div>
                   </div>
                   <div className="bg-gray-700/30 rounded-lg p-2 sm:p-3 md:p-4">
@@ -120,7 +120,7 @@ export default function MySlipsPage() {
                 <div className="bg-gray-700/30 rounded-lg p-2 sm:p-3">
                   <div className="text-xs text-gray-400 mb-1">Total Volume</div>
                   <div className="text-sm sm:text-base font-bold text-green-400">
-                    {(cycleStats.volume / 1e18).toFixed(2)} STT
+                    {(cycleStats.volume / 1e18).toFixed(2)} BNB
                   </div>
                 </div>
                 <div className="bg-gray-700/30 rounded-lg p-2 sm:p-3">

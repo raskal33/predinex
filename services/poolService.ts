@@ -21,7 +21,7 @@ export interface Pool {
   homeTeam: string; // Home team name
   awayTeam: string; // Away team name
   isPrivate: boolean;
-  usesBitr: boolean;
+  usesPrix: boolean;
   settled: boolean;
   creatorSideWon: boolean | null;
   boostTier?: "NONE" | "BRONZE" | "SILVER" | "GOLD";
@@ -35,7 +35,7 @@ export interface Pool {
   maxBettorStake?: string;
   result?: string | null;
   resultTimestamp?: string | null;
-  arbitrationDeadline?: string | null;
+  arprixationDeadline?: string | null;
   txHash?: string;
   blockNumber?: number;
   createdAt?: string;
@@ -43,8 +43,8 @@ export interface Pool {
 
 export interface PoolStats {
   totalVolume: string;
-  bitrVolume?: string;
-  sttVolume?: string;
+  prixVolume?: string;
+  bnbVolume?: string;
   activeMarkets: number;
   participants: number;
   totalPools: number;
@@ -99,7 +99,7 @@ export class PoolService {
           title: pool.title,
           homeTeam: pool.homeTeam,
           awayTeam: pool.awayTeam,
-          usesBitr: pool.usesBitr
+          usesPrix: pool.usesPrix
         });
         return pool;
       }
@@ -136,10 +136,10 @@ export class PoolService {
     eventStartTime: number,
     eventEndTime: number,
     bettingEndTime: number,
-    arbitrationDeadline: number,
+    arprixationDeadline: number,
     maxBetPerUser: string,
     isPrivate: boolean,
-    useBitr: boolean,
+    usePrix: boolean,
     oracleType: string,
     marketId: string,
     boostTier: string
@@ -163,7 +163,7 @@ export class PoolService {
     }
   }
 
-  static async placeBet(poolId: number, amount: string, useBitr: boolean = false): Promise<{ success: boolean; error?: string }> {
+  static async placeBet(poolId: number, amount: string, usePrix: boolean = false): Promise<{ success: boolean; error?: string }> {
     try {
       console.log('🚧 Placing bet requires wallet interaction - not implemented yet');
       return { success: false, error: 'Placing bet requires wallet connection' };
@@ -248,8 +248,8 @@ export class PoolService {
       
       return {
         totalVolume: totalVolume.toString(),
-        bitrVolume: pools.filter(p => p.usesBitr).reduce((sum, pool) => sum + (parseFloat(pool.creatorStake) || 0), 0).toString(),
-        sttVolume: pools.filter(p => !p.usesBitr).reduce((sum, pool) => sum + (parseFloat(pool.creatorStake) || 0), 0).toString(),
+        prixVolume: pools.filter(p => p.usesPrix).reduce((sum, pool) => sum + (parseFloat(pool.creatorStake) || 0), 0).toString(),
+        bnbVolume: pools.filter(p => !p.usesPrix).reduce((sum, pool) => sum + (parseFloat(pool.creatorStake) || 0), 0).toString(),
         activeMarkets: activePools,
         participants: pools.length, // Simplified
         totalPools: poolCount,
@@ -261,8 +261,8 @@ export class PoolService {
       console.error('❌ Error fetching pool stats from contract:', error);
       return {
         totalVolume: "0",
-        bitrVolume: "0",
-        sttVolume: "0",
+        prixVolume: "0",
+        bnbVolume: "0",
         activeMarkets: 0,
         participants: 0,
         totalPools: 0,

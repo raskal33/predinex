@@ -35,7 +35,7 @@ interface BetData {
   away_team?: string;
   is_settled: boolean;
   creator_side_won: boolean;
-  use_bitr?: boolean;
+  use_prix?: boolean;
   odds?: number; // Pool odds for P&L calculation
 }
 
@@ -50,7 +50,7 @@ export async function GET(
     const limit = parseInt(searchParams.get('limit') || '50');
     const offset = parseInt(searchParams.get('offset') || '0');
     
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://bitredict-backend.fly.dev';
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://prixedict-backend.fly.dev';
 
     console.log('🎯 Fetching user bets for address:', { address, status, limit, offset });
 
@@ -156,7 +156,7 @@ export async function GET(
         profitLossPercent: profitLossPercent,
         result: result,
         isForOutcome: isForOutcome,
-        currency: bet.use_bitr ? 'BITR' : 'STT',
+        currency: bet.use_prix ? 'PRIX' : 'BNB',
         timestamp: bet.created_at,
         settledAt: bet.settled_at || null,
         isSettled: isSettled,

@@ -4,10 +4,10 @@ import { useState, useEffect } from "react";
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract } from "wagmi";
 import { toast } from "react-hot-toast";
 import { CONTRACT_ADDRESSES } from "@/config/wagmi";
-import BitredictPoolCoreArtifact from "@/contracts/abis/BitredictPoolCore.json";
+import PrixedictPoolCoreArtifact from "@/contracts/abis/PrixedictPoolCore.json";
 
-// Extract ABI array from artifact
-const BitredictPoolCoreABI = BitredictPoolCoreArtifact.abi;
+// Extract ABI array from artifact (ABI files are arrays directly)
+const PrixedictPoolCoreABI = PrixedictPoolCoreArtifact as any;
 import { formatEther } from "viem";
 
 interface ClaimRewardsProps {
@@ -44,7 +44,7 @@ export default function ClaimRewards({ pool }: ClaimRewardsProps) {
   // Use the new getClaimInfo function from the contract
   const { data: contractClaimInfo, refetch } = useReadContract({
     address: CONTRACT_ADDRESSES.POOL_CORE,
-    abi: BitredictPoolCoreABI,
+    abi: PrixedictPoolCoreABI,
     functionName: 'getClaimInfo',
     args: [BigInt(pool.id), address || '0x0'],
     query: { enabled: !!address && !!pool }
@@ -91,7 +91,7 @@ export default function ClaimRewards({ pool }: ClaimRewardsProps) {
     try {
       await writeContract({
         address: CONTRACT_ADDRESSES.POOL_CORE,
-        abi: BitredictPoolCoreABI,
+        abi: PrixedictPoolCoreABI,
         functionName: 'claim',
         args: [BigInt(pool.id)],
       });

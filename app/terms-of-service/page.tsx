@@ -23,14 +23,14 @@ export default function TermsOfServicePage() {
               <section>
                 <h2 className="text-2xl font-bold text-text-primary mb-4">1. Agreement to Terms</h2>
                 <p className="text-text-secondary leading-relaxed">
-                  By accessing and using BitRedict (&quot;the Platform&quot;, &quot;we&quot;, &quot;us&quot;, or &quot;our&quot;), you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.
+                  By accessing and using Predinex (&quot;the Platform&quot;, &quot;we&quot;, &quot;us&quot;, or &quot;our&quot;), you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.
                 </p>
               </section>
 
               <section>
                 <h2 className="text-2xl font-bold text-text-primary mb-4">2. Description of Service</h2>
                 <p className="text-text-secondary leading-relaxed mb-4">
-                  BitRedict is a decentralized prediction market platform built on the Somnia Network that allows users to:
+                  Predinex is a decentralized prediction market platform built on BSC Testnet that allows users to:
                 </p>
                 <ul className="list-disc list-inside text-text-secondary space-y-2 ml-4">
                   <li>Create prediction markets on real-world events</li>
@@ -46,13 +46,13 @@ export default function TermsOfServicePage() {
                   <div>
                     <h3 className="text-lg font-semibold text-text-primary mb-2">Age Requirements</h3>
                     <p className="text-text-secondary leading-relaxed">
-                      You must be at least 18 years old to use this platform. By using BitRedict, you represent and warrant that you meet this age requirement.
+                      You must be at least 18 years old to use this platform. By using Predinex, you represent and warrant that you meet this age requirement.
                     </p>
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-text-primary mb-2">Account Security</h3>
                     <p className="text-text-secondary leading-relaxed">
-                      You are responsible for maintaining the security of your wallet and private keys. BitRedict cannot recover lost funds due to compromised wallet security.
+                      You are responsible for maintaining the security of your wallet and private keys. Predinex cannot recover lost funds due to compromised wallet security.
                     </p>
                   </div>
                   <div>
@@ -87,42 +87,42 @@ export default function TermsOfServicePage() {
                   </p>
                 </div>
                 <p className="text-text-secondary leading-relaxed">
-                  BitRedict does not provide financial advice. All trading decisions are your own responsibility.
+                  Predinex does not provide financial advice. All trading decisions are your own responsibility.
                 </p>
               </section>
 
               <section>
                 <h2 className="text-2xl font-bold text-text-primary mb-4">6. Smart Contract Risks</h2>
                 <p className="text-text-secondary leading-relaxed">
-                  BitRedict operates through smart contracts on the Somnia Network. While audited, smart contracts may contain bugs or vulnerabilities. We are not liable for losses due to smart contract failures or blockchain network issues.
+                  Predinex operates through smart contracts on BSC Testnet. While audited, smart contracts may contain bugs or vulnerabilities. We are not liable for losses due to smart contract failures or blockchain network issues.
                 </p>
               </section>
 
               <section>
                 <h2 className="text-2xl font-bold text-text-primary mb-4">7. Intellectual Property</h2>
                 <p className="text-text-secondary leading-relaxed">
-                  The BitRedict platform, including its design, code, and content, is protected by intellectual property rights. Users may not copy, modify, or distribute our proprietary materials without explicit permission.
+                  The Predinex platform, including its design, code, and content, is protected by intellectual property rights. Users may not copy, modify, or distribute our proprietary materials without explicit permission.
                 </p>
               </section>
 
               <section>
                 <h2 className="text-2xl font-bold text-text-primary mb-4">8. Privacy and Data</h2>
                 <p className="text-text-secondary leading-relaxed">
-                  Your privacy is important to us. Please review our Privacy Policy to understand how we collect, use, and protect your information. By using BitRedict, you consent to our data practices as outlined in the Privacy Policy.
+                  Your privacy is important to us. Please review our Privacy Policy to understand how we collect, use, and protect your information. By using Predinex, you consent to our data practices as outlined in the Privacy Policy.
                 </p>
               </section>
 
               <section>
                 <h2 className="text-2xl font-bold text-text-primary mb-4">9. Limitation of Liability</h2>
                 <p className="text-text-secondary leading-relaxed">
-                  TO THE MAXIMUM EXTENT PERMITTED BY LAW, BITREDICT SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING WITHOUT LIMITATION, LOSS OF PROFITS, DATA, USE, GOODWILL, OR OTHER INTANGIBLE LOSSES.
+                  TO THE MAXIMUM EXTENT PERMITTED BY LAW, PRIXEDICT SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING WITHOUT LIMITATION, LOSS OF PROFITS, DATA, USE, GOODWILL, OR OTHER INTANGIBLE LOSSES.
                 </p>
               </section>
 
               <section>
                 <h2 className="text-2xl font-bold text-text-primary mb-4">10. Dispute Resolution</h2>
                 <p className="text-text-secondary leading-relaxed">
-                  Any disputes arising from the use of BitRedict shall be resolved through binding arbitration in accordance with the rules of the jurisdiction where BitRedict is legally established.
+                  Any disputes arising from the use of Predinex shall be resolved through binding arprixation in accordance with the rules of the jurisdiction where Predinex is legally established.
                 </p>
               </section>
 
@@ -149,7 +149,7 @@ export default function TermsOfServicePage() {
 
               <div className="border-t border-border-card pt-8 mt-12">
                 <p className="text-sm text-text-muted text-center">
-                  By using BitRedict, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service.
+                  By using Predinex, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service.
                 </p>
               </div>
             </div>

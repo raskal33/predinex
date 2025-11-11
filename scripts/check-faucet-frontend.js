@@ -13,7 +13,7 @@ console.log('📋 Environment Variables Check:');
 const envVars = {
   'NEXT_PUBLIC_RPC_URL': process.env.NEXT_PUBLIC_RPC_URL,
   'NEXT_PUBLIC_FAUCET_ADDRESS': process.env.NEXT_PUBLIC_FAUCET_ADDRESS,
-  'NEXT_PUBLIC_BITR_TOKEN_ADDRESS': process.env.NEXT_PUBLIC_BITR_TOKEN_ADDRESS,
+  'NEXT_PUBLIC_PRIX_TOKEN_ADDRESS': process.env.NEXT_PUBLIC_PRIX_TOKEN_ADDRESS,
   'NEXT_PUBLIC_CHAIN_ID': process.env.NEXT_PUBLIC_CHAIN_ID,
 };
 
@@ -31,7 +31,7 @@ console.log('\n📝 Frontend Integration Checklist:');
 const backendAddresses = {
   rpc: 'https://dream-rpc.somnia.network/',
   faucet: '0x1656712131BB07dDE6EeC7D88757Db24782cab71',
-  bitr: '0x4b10fBFFDEE97C42E29899F47A2ECD30a38dBf2C',
+  prix: '0x4b10fBFFDEE97C42E29899F47A2ECD30a38dBf2C',
   chainId: '50312'
 };
 
@@ -49,10 +49,10 @@ const checks = [
     match: process.env.NEXT_PUBLIC_FAUCET_ADDRESS?.toLowerCase() === backendAddresses.faucet.toLowerCase()
   },
   {
-    name: 'BITR address matches',
-    frontend: process.env.NEXT_PUBLIC_BITR_TOKEN_ADDRESS,
-    backend: backendAddresses.bitr,
-    match: process.env.NEXT_PUBLIC_BITR_TOKEN_ADDRESS?.toLowerCase() === backendAddresses.bitr.toLowerCase()
+    name: 'PRIX address matches',
+    frontend: process.env.NEXT_PUBLIC_PRIX_TOKEN_ADDRESS,
+    backend: backendAddresses.prix,
+    match: process.env.NEXT_PUBLIC_PRIX_TOKEN_ADDRESS?.toLowerCase() === backendAddresses.prix.toLowerCase()
   },
   {
     name: 'Chain ID matches',
@@ -77,7 +77,7 @@ console.log('If any environment variables are missing, add them to your .env.loc
 console.log(`
 NEXT_PUBLIC_RPC_URL=${backendAddresses.rpc}
 NEXT_PUBLIC_FAUCET_ADDRESS=${backendAddresses.faucet}
-NEXT_PUBLIC_BITR_TOKEN_ADDRESS=${backendAddresses.bitr}
+NEXT_PUBLIC_PRIX_TOKEN_ADDRESS=${backendAddresses.prix}
 NEXT_PUBLIC_CHAIN_ID=${backendAddresses.chainId}
 `);
 
@@ -85,7 +85,7 @@ console.log('\n📄 Vercel Environment Variables:');
 console.log('Make sure these are set in your Vercel dashboard:');
 console.log('- NEXT_PUBLIC_RPC_URL');
 console.log('- NEXT_PUBLIC_FAUCET_ADDRESS'); 
-console.log('- NEXT_PUBLIC_BITR_TOKEN_ADDRESS');
+console.log('- NEXT_PUBLIC_PRIX_TOKEN_ADDRESS');
 console.log('- NEXT_PUBLIC_CHAIN_ID');
 
 console.log('\n✅ Frontend diagnostic complete!');

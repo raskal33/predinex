@@ -35,7 +35,7 @@ export interface CreateFootballMarketParams {
   predictedOutcome: string;
   odds: number;
   creatorStake: number;
-  useBitr?: boolean;
+  usePrix?: boolean;
   description?: string;
   isPrivate?: boolean;
   maxBetPerUser?: number;
@@ -93,15 +93,15 @@ export class GuidedMarketWalletService {
       });
       console.log('🔧 Using optimized contract address:', CONTRACT_ADDRESSES.POOL_CORE);
       
-      // Step 2: Handle BITR approval if needed
-      if (marketData.useBitr) {
-        console.log('🪙 Step 2: Handling BITR token approval...');
+      // Step 2: Handle PRIX approval if needed
+      if (marketData.usePrix) {
+        console.log('🪙 Step 2: Handling PRIX token approval...');
         
-        // Use totalRequiredWei which includes the 50 BITR creation fee
+        // Use totalRequiredWei which includes the 50 PRIX creation fee
         const totalRequiredWei = transactionData.totalRequiredWei || transactionData.parameters[2];
         
-        const approvalResult = await this.handleBitrApproval(
-          totalRequiredWei, // totalRequiredWei (creatorStake + 50 BITR fee)
+        const approvalResult = await this.handlePrixApproval(
+          totalRequiredWei, // totalRequiredWei (creatorStake + 50 PRIX fee)
           walletClient,
           publicClient,
           address
@@ -110,11 +110,11 @@ export class GuidedMarketWalletService {
         if (!approvalResult.success) {
           return {
             success: false,
-            error: `BITR approval failed: ${approvalResult.error}`
+            error: `PRIX approval failed: ${approvalResult.error}`
           };
         }
         
-        console.log('✅ BITR approval completed');
+        console.log('✅ PRIX approval completed');
       }
       
       // Step 3: Execute the main transaction via wallet
@@ -168,21 +168,21 @@ export class GuidedMarketWalletService {
   }
   
   /**
-   * Handle BITR token approval for guided markets
+   * Handle PRIX token approval for guided markets
    */
-  private static async handleBitrApproval(
+  private static async handlePrixApproval(
     stakeAmount: string,
     walletClient: any,
     publicClient: any,
     address: Address
   ): Promise<{ success: boolean; error?: string; hash?: string }> {
     try {
-      console.log('🔍 Checking BITR allowance...');
+      console.log('🔍 Checking PRIX allowance...');
       
       // Check current allowance using publicClient (correct wagmi v2 API)
       const currentAllowance = await publicClient.readContract({
-        address: CONTRACT_ADDRESSES.BITR_TOKEN,
-        abi: CONTRACTS.BITR_TOKEN.abi,
+        address: CONTRACT_ADDRESSES.PRIX_TOKEN,
+        abi: CONTRACTS.PRIX_TOKEN.abi,
         functionName: 'allowance',
         args: [address, CONTRACT_ADDRESSES.POOL_CORE]
       });
@@ -190,18 +190,18 @@ export class GuidedMarketWalletService {
       const requiredAmount = BigInt(stakeAmount);
       
       if (currentAllowance >= requiredAmount) {
-        console.log('✅ Sufficient BITR allowance already exists');
+        console.log('✅ Sufficient PRIX allowance already exists');
         return { success: true };
       }
       
-      console.log('📝 Requesting BITR approval...');
+      console.log('📝 Requesting PRIX approval...');
       console.log(`   Required: ${requiredAmount.toString()}`);
       console.log(`   Current: ${currentAllowance.toString()}`);
       
       // Request approval using walletClient (correct wagmi v2 API)
       const approvalHash = await walletClient.writeContract({
-        address: CONTRACT_ADDRESSES.BITR_TOKEN,
-        abi: CONTRACTS.BITR_TOKEN.abi,
+        address: CONTRACT_ADDRESSES.PRIX_TOKEN,
+        abi: CONTRACTS.PRIX_TOKEN.abi,
         functionName: 'approve',
         args: [CONTRACT_ADDRESSES.POOL_CORE, requiredAmount],
         account: address
@@ -215,26 +215,26 @@ export class GuidedMarketWalletService {
       });
       
       if (approvalReceipt.status !== 'success') {
-        throw new Error('BITR approval transaction failed');
+        throw new Error('PRIX approval transaction failed');
       }
       
-      console.log('✅ BITR approval confirmed:', approvalHash);
+      console.log('✅ PRIX approval confirmed:', approvalHash);
       return { success: true, hash: approvalHash };
       
     } catch (error) {
-      console.error('❌ BITR approval error:', error);
+      console.error('❌ PRIX approval error:', error);
       
       if (error instanceof Error) {
         if (error.message.includes('user rejected')) {
-          return { success: false, error: 'User rejected BITR approval' };
+          return { success: false, error: 'User rejected PRIX approval' };
         } else if (error.message.includes('insufficient funds')) {
-          return { success: false, error: 'Insufficient BITR balance for approval' };
+          return { success: false, error: 'Insufficient PRIX balance for approval' };
         }
       }
       
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'BITR approval failed'
+        error: error instanceof Error ? error.message : 'PRIX approval failed'
       };
     }
   }
@@ -246,8 +246,8 @@ export class GuidedMarketWalletService {
     // The createPool function expects these parameters in order:
     // [predictedOutcome, odds, creatorStake, eventStartTime, eventEndTime, 
     //  leagueHash, categoryHash, homeTeamHash, awayTeamHash, titleHash,
-    //  isPrivate, maxBetPerUser, useBitr, oracleType, marketType, marketId]
-    // Note: Contract signature is: createPool(..., bytes32 _league, bytes32 _category, bytes32 _homeTeam, bytes32 _awayTeam, bytes32 _title, bool _isPrivate, uint256 _maxBetPerUser, bool _useBitr, OracleType _oracleType, MarketType _marketType, string memory _marketId)
+    //  isPrivate, maxBetPerUser, usePrix, oracleType, marketType, marketId]
+    // Note: Contract signature is: createPool(..., bytes32 _league, bytes32 _category, bytes32 _homeTeam, bytes32 _awayTeam, bytes32 _title, bool _isPrivate, uint256 _maxBetPerUser, bool _usePrix, OracleType _oracleType, MarketType _marketType, string memory _marketId)
     
     if (parameters.length < 17) {
       console.warn('⚠️ Expected 17 parameters for createPool, got:', parameters.length);

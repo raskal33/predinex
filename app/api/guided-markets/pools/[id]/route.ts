@@ -16,7 +16,7 @@ interface PoolData {
   total_bettor_stake: string;
   potential_win_amount: string;
   pool_fill_progress: number;
-  uses_bitr: boolean;
+  uses_prix: boolean;
   bet_market_type: string;
   created_at: string;
 }
@@ -55,7 +55,7 @@ export async function GET(
             ) / creator_stake) * 100
           ELSE 0 
         END as pool_fill_progress,
-        uses_bitr,
+        uses_prix,
         bet_market_type,
         created_at
       FROM pools 
@@ -89,7 +89,7 @@ export async function GET(
           totalBettorStake: pool.total_bettor_stake,
           potentialWinAmount: pool.potential_win_amount,
           poolFillProgress: pool.pool_fill_progress,
-          usesBitr: pool.uses_bitr,
+          usesPrix: pool.uses_prix,
           betMarketType: pool.bet_market_type,
           createdAt: pool.created_at
         }

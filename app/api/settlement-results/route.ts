@@ -4,7 +4,7 @@ export async function GET() {
   try {
     console.log('🎯 Fetching all settlement results');
 
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://bitredict-backend.fly.dev';
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://prixedict-backend.fly.dev';
     const response = await fetch(`${backendUrl}/api/settlement-results`, {
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate',

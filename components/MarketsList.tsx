@@ -74,13 +74,13 @@ export default function MarketsList({
               eventEndTime: BigInt(Math.floor(new Date(String(apiPool.eventEndTime || new Date())).getTime() / 1000)),
               bettingEndTime: BigInt(Math.floor(new Date(String(apiPool.bettingEndTime || new Date())).getTime() / 1000)),
               resultTimestamp: BigInt(0),
-              arbitrationDeadline: BigInt(0),
+              arprixationDeadline: BigInt(0),
               league: String(apiPool.league || ''),
               category: String(apiPool.category || ''),
               region: String(apiPool.region || ''),
               isPrivate: Boolean(apiPool.isPrivate || false),
               maxBetPerUser: BigInt(String(apiPool.maxBetPerUser || '0')),
-              usesBitr: Boolean(apiPool.usesBitr || false),
+              usesPrix: Boolean(apiPool.usesPrix || false),
               filledAbove60: Boolean((apiPool.indexedData as Record<string, unknown>)?.fillPercentage as number >= 60 || false),
               oracleType: String(apiPool.oracleType) === 'GUIDED' ? 0 : 1
             }));
@@ -382,7 +382,7 @@ export default function MarketsList({
                   <div className="flex items-center gap-4">
                     <div className="flex items-center gap-1 text-gray-400">
                       <FaUsers className="h-3 w-3" />
-                      <span>{isRegular ? Number((pool as Pool).totalCreatorSideStake) + Number((pool as Pool).totalBettorStake) : Number((pool as ComboPool).totalCreatorSideStake) + Number((pool as ComboPool).totalBettorStake)} BITR</span>
+                      <span>{isRegular ? Number((pool as Pool).totalCreatorSideStake) + Number((pool as Pool).totalBettorStake) : Number((pool as ComboPool).totalCreatorSideStake) + Number((pool as ComboPool).totalBettorStake)} PRIX</span>
                     </div>
                     <div className="flex items-center gap-1 text-gray-400">
                       <FaClock className="h-3 w-3" />

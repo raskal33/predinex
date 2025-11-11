@@ -1,14 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAccount, useDisconnect, useChainId } from 'wagmi';
 import { useAppKit, useAppKitState } from '@reown/appkit/react';
-import { somniaNetwork } from '@/config/wagmi';
+import { bscTestnetNetwork } from '@/config/wagmi';
 import { toast } from 'react-hot-toast';
 
 export interface WalletConnectionState {
   isConnected: boolean;
   address: string | undefined;
   chainId: number | undefined;
-  isOnSomnia: boolean;
+  isOnBSC: boolean;
   isConnecting: boolean;
   error: string | null;
 }
@@ -30,11 +30,11 @@ export function useWalletConnection() {
   const checkConnectionIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const cleanupTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Check if user is on Somnia network
-  const isOnSomnia = chainId === somniaNetwork.id;
+  // Check if user is on BSC Testnet network
+  const isOnBSC = chainId === bscTestnetNetwork.id;
 
-  // Switch to Somnia network
-  const switchToSomnia = useCallback(async () => {
+  // Switch to BSC Testnet network
+  const switchToBSC = useCallback(async () => {
     try {
       if (!window.ethereum) {
         throw new Error('MetaMask not detected');
@@ -42,7 +42,7 @@ export function useWalletConnection() {
 
       await window.ethereum.request({
         method: 'wallet_switchEthereumChain',
-        params: [{ chainId: `0x${somniaNetwork.id.toString(16)}` }],
+        params: [{ chainId: `0x${bscTestnetNetwork.id.toString(16)}` }],
       });
     } catch (error: unknown) {
       // If network doesn't exist, add it
@@ -51,23 +51,27 @@ export function useWalletConnection() {
           await window.ethereum?.request({
             method: 'wallet_addEthereumChain',
             params: [{
-              chainId: `0x${somniaNetwork.id.toString(16)}`,
-                              chainName: somniaNetwork.name,
-                nativeCurrency: somniaNetwork.nativeCurrency,
-                              rpcUrls: somniaNetwork.rpcUrls.default.http,
-                blockExplorerUrls: somniaNetwork.blockExplorers ? [somniaNetwork.blockExplorers.default.url] : [],
+              chainId: `0x${bscTestnetNetwork.id.toString(16)}`,
+              chainName: bscTestnetNetwork.name,
+              nativeCurrency: bscTestnetNetwork.nativeCurrency,
+              rpcUrls: bscTestnetNetwork.rpcUrls.default.http,
+              blockExplorerUrls: bscTestnetNetwork.blockExplorers ? [bscTestnetNetwork.blockExplorers.default.url] : [],
             }],
           });
         } catch (addError) {
-          console.error('Failed to add Somnia network:', addError);
-          throw new Error('Failed to add Somnia network to MetaMask');
+          console.error('Failed to add BSC Testnet network:', addError);
+          throw new Error('Failed to add BSC Testnet network to MetaMask');
         }
       } else {
-        console.error('Failed to switch to Somnia network:', error);
-        throw new Error('Failed to switch to Somnia network');
+        console.error('Failed to switch to BSC Testnet network:', error);
+        throw new Error('Failed to switch to BSC Testnet network');
       }
     }
   }, []);
+
+  // Legacy export for backward compatibility
+  const switchToSomnia = switchToBSC;
+  const isOnSomnia = isOnBSC;
 
   // Clear all timeouts and intervals
   const clearAllTimers = useCallback(() => {
@@ -181,11 +185,11 @@ export function useWalletConnection() {
     }
   }, [isModalOpen, isConnecting, isConnected, clearAllTimers]);
 
-  // Auto-switch to Somnia network when connected to wrong network
+  // Auto-switch to BSC Testnet network when connected to wrong network
   useEffect(() => {
-          if (isConnected && !isOnSomnia && chainId) {
-              console.log(`⚠️ Connected to wrong network (${chainId}), switching to Somnia...`);
-        toast('Switching to Somnia network...', {
+    if (isConnected && !isOnBSC && chainId) {
+      console.log(`⚠️ Connected to wrong network (${chainId}), switching to BSC Testnet...`);
+      toast('Switching to BSC Testnet...', {
         duration: 3000,
         icon: '🔄',
         style: {
@@ -194,15 +198,15 @@ export function useWalletConnection() {
         },
       });
       
-      switchToSomnia().catch(error => {
+      switchToBSC().catch(error => {
         console.error('Failed to switch network:', error);
-        setError('Please switch to Somnia network in your wallet');
-        toast.error('Please switch to Somnia network in your wallet', {
+        setError('Please switch to BSC Testnet in your wallet');
+        toast.error('Please switch to BSC Testnet in your wallet', {
           duration: 5000,
         });
       });
     }
-  }, [isConnected, isOnSomnia, chainId, switchToSomnia]);
+  }, [isConnected, isOnBSC, chainId, switchToBSC]);
 
   // Reset error when connection succeeds
   useEffect(() => {
@@ -236,13 +240,17 @@ export function useWalletConnection() {
     isConnected,
     address,
     chainId,
-    isOnSomnia,
+    isOnBSC,
     isConnecting,
     error,
     
     // Actions
     connectWallet,
     disconnectWallet,
+    switchToBSC,
+    
+    // Legacy exports for backward compatibility
+    isOnSomnia,
     switchToSomnia,
     
     // Utils

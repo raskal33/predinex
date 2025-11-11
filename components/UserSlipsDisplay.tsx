@@ -199,7 +199,7 @@ export default function UserSlipsDisplay({ userAddress, className = "" }: UserSl
 
     const connectWebSocket = () => {
       try {
-        ws = new WebSocket('wss://bitredict-backend.fly.dev/ws');
+        ws = new WebSocket('wss://prixedict-backend.fly.dev/ws');
 
         ws.onopen = () => {
           console.log('✅ WebSocket connected for slip updates');
@@ -479,7 +479,7 @@ export default function UserSlipsDisplay({ userAddress, className = "" }: UserSl
       const result = await OddysseyContractService.claimPrize(cycleId, slipId);
       
       if (result.success) {
-        toast.success(`Prize claimed successfully! ${result.prizeAmount} BITR`, { duration: 5000 });
+        toast.success(`Prize claimed successfully! ${result.prizeAmount} PRIX`, { duration: 5000 });
         
         // Update slip status
         setSlips(prevSlips =>
@@ -774,7 +774,7 @@ export default function UserSlipsDisplay({ userAddress, className = "" }: UserSl
                         <div>
                           <div className="text-xs sm:text-sm text-gray-400">Prize Amount</div>
                           <div className="text-base sm:text-lg font-bold text-yellow-400">
-                            {slip.prizeAmount.toFixed(4)} BITR
+                            {slip.prizeAmount.toFixed(4)} PRIX
                           </div>
                         </div>
                       )}

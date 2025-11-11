@@ -101,13 +101,13 @@ export default function PnLChart({ bets, timeframe = '1M', className = '' }: PnL
           <p className="text-xs text-gray-400 mb-2">{data.date}</p>
           <div className="space-y-1">
             <p className={`text-sm font-bold ${data.profitLoss >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-              P&L: {data.profitLoss >= 0 ? '+' : ''}{data.profitLoss.toFixed(2)} STT
+              P&L: {data.profitLoss >= 0 ? '+' : ''}{data.profitLoss.toFixed(2)} BNB
             </p>
             <p className={`text-base font-bold ${data.cumulativePnL >= 0 ? 'text-cyan-400' : 'text-orange-400'}`}>
-              Total: {data.cumulativePnL >= 0 ? '+' : ''}{data.cumulativePnL.toFixed(2)} STT
+              Total: {data.cumulativePnL >= 0 ? '+' : ''}{data.cumulativePnL.toFixed(2)} BNB
             </p>
             <p className="text-xs text-gray-300">
-              Bet: {data.betAmount.toFixed(2)} STT
+              Bet: {data.betAmount.toFixed(2)} BNB
             </p>
             <p className={`text-xs capitalize ${data.result === 'won' ? 'text-green-400' : 'text-red-400'}`}>
               {data.result}
@@ -138,18 +138,18 @@ export default function PnLChart({ bets, timeframe = '1M', className = '' }: PnL
           <h3 className="text-lg font-bold text-white">Profit & Loss Flow</h3>
           <div className={`px-3 py-1 rounded-lg ${currentPnL >= 0 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
             <span className="text-xl font-bold">
-              {currentPnL >= 0 ? '+' : ''}{currentPnL.toFixed(2)} STT
+              {currentPnL >= 0 ? '+' : ''}{currentPnL.toFixed(2)} BNB
             </span>
           </div>
         </div>
         <div className="flex items-center gap-4 text-xs text-gray-400">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full"></div>
-            <span>Peak: +{maxPnL.toFixed(2)} STT</span>
+            <span>Peak: +{maxPnL.toFixed(2)} BNB</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-gradient-to-r from-red-500 to-orange-500 rounded-full"></div>
-            <span>Trough: {minPnL.toFixed(2)} STT</span>
+            <span>Trough: {minPnL.toFixed(2)} BNB</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full"></div>
@@ -242,7 +242,7 @@ export default function PnLChart({ bets, timeframe = '1M', className = '' }: PnL
           <p className="text-lg font-bold text-blue-400">
             {chartData.length > 0
               ? (chartData.reduce((sum, d) => sum + d.betAmount, 0) / chartData.length).toFixed(2)
-              : 0} STT
+              : 0} BNB
           </p>
         </div>
         <div className="text-center">
@@ -250,7 +250,7 @@ export default function PnLChart({ bets, timeframe = '1M', className = '' }: PnL
           <p className={`text-lg font-bold ${currentPnL >= 0 ? 'text-green-400' : 'text-red-400'}`}>
             {chartData.length > 0
               ? ((currentPnL / chartData.length).toFixed(2))
-              : 0} STT
+              : 0} BNB
           </p>
         </div>
       </div>

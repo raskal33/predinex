@@ -24,7 +24,7 @@ interface ComboPool {
   creator: string;
   creatorStake: string;
   maxBetPerUser: string;
-  useBitr: boolean;
+  usePrix: boolean;
   isPrivate: boolean;
   conditions: Array<{
     id: string;
@@ -181,13 +181,13 @@ export default function EnhancedComboPoolCard({
           <div>
             <label className="text-text-muted text-xs">Creator Stake</label>
             <p className="text-text-primary font-semibold">
-              {parseFloat(formatEther(BigInt(pool.creatorStake))).toFixed(2)} {pool.useBitr ? 'BITR' : 'STT'}
+              {parseFloat(formatEther(BigInt(pool.creatorStake))).toFixed(2)} {pool.usePrix ? 'PRIX' : 'BNB'}
             </p>
           </div>
           <div>
             <label className="text-text-muted text-xs">Potential Win</label>
             <p className="text-success font-bold text-lg">
-              {potentialWinnings.toFixed(2)} {pool.useBitr ? 'BITR' : 'STT'}
+              {potentialWinnings.toFixed(2)} {pool.usePrix ? 'PRIX' : 'BNB'}
             </p>
           </div>
         </div>
@@ -300,7 +300,7 @@ export default function EnhancedComboPoolCard({
             </div>
             <div className="flex items-center gap-1">
               <CurrencyDollarIcon className="h-4 w-4" />
-              <span>{parseFloat(formatEther(BigInt(pool.totalVolume))).toFixed(2)} {pool.useBitr ? 'BITR' : 'STT'}</span>
+              <span>{parseFloat(formatEther(BigInt(pool.totalVolume))).toFixed(2)} {pool.usePrix ? 'PRIX' : 'BNB'}</span>
             </div>
           </div>
 

@@ -26,7 +26,7 @@ export interface OptimizedPool {
   eventEndTime: number;
   bettingEndTime: number;
   status: "active" | "closed" | "settled";
-  currency: "BITR" | "STT";
+  currency: "PRIX" | "BNB";
   boostTier: "NONE" | "BRONZE" | "SILVER" | "GOLD";
   trending: boolean;
   socialStats: {
@@ -62,6 +62,10 @@ export interface OptimizedPool {
   marketType?: number; // Market type enum from contract
   fixtureId?: string;  // SportMonks fixture ID (use this instead of marketId for match center)
   oracleType?: string;
+  // Team logos from backend
+  homeTeamLogo?: string;
+  awayTeamLogo?: string;
+  leagueLogo?: string;
   // Settlement information
   isSettled?: boolean;  // Whether the pool has been settled
   creatorSideWon?: boolean;  // Whether creator side won (true) or bettor side won (false)
@@ -102,8 +106,8 @@ export interface PoolAnalytics {
   activePools: number;
   settledPools: number;
   totalVolume: string;
-  bitrVolume: string;
-  sttVolume: string;
+  prixVolume: string;
+  bnbVolume: string;
   participants: number;
   boostedPools: number;
   trendingPools: number;
@@ -121,8 +125,8 @@ export interface PoolsResponse {
 
 class OptimizedPoolService {
   private baseUrl = typeof window !== 'undefined' 
-    ? 'https://bitredict-backend.fly.dev/api/optimized-pools'
-    : process.env.NEXT_PUBLIC_API_URL + '/api/optimized-pools' || 'https://bitredict-backend.fly.dev/api/optimized-pools';
+    ? 'https://prixedict-backend.fly.dev/api/optimized-pools'
+    : process.env.NEXT_PUBLIC_API_URL + '/api/optimized-pools' || 'https://prixedict-backend.fly.dev/api/optimized-pools';
 
   /**
    * Get all pools with comprehensive data for the markets page
@@ -251,8 +255,8 @@ class OptimizedPoolService {
       activePools: 0,
       settledPools: 0,
       totalVolume: '0',
-      bitrVolume: '0',
-      sttVolume: '0',
+      prixVolume: '0',
+      bnbVolume: '0',
       participants: 0,
       boostedPools: 0,
       trendingPools: 0

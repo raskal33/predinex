@@ -34,13 +34,13 @@ async function generateThumbnail() {
         // Take screenshot
         console.log('📸 Capturing screenshot...');
         await page.screenshot({
-            path: 'bitredict-thumbnail.png',
+            path: 'prixedict-thumbnail.png',
             type: 'png',
             fullPage: false,
             omitBackground: false
         });
         
-        console.log('✅ Thumbnail generated successfully: bitredict-thumbnail.png');
+        console.log('✅ Thumbnail generated successfully: prixedict-thumbnail.png');
         
     } catch (error) {
         console.error('❌ Error generating thumbnail:', error);

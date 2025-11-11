@@ -93,23 +93,23 @@ export async function getAirdropLeaderboard(limit: number = 100) {
   }
 }
 
-// Format BITR amounts for display
-export function formatBITRAmount(amount: string | number, decimals: number = 18): string {
+// Format PRIX amounts for display
+export function formatPRIXAmount(amount: string | number, decimals: number = 18): string {
   const value = typeof amount === 'string' ? parseFloat(amount) : amount;
   
   if (value === 0) return "0";
   
-  // Convert from wei to BITR (assuming 18 decimals)
-  const bitrValue = value / Math.pow(10, decimals);
+  // Convert from wei to PRIX (assuming 18 decimals)
+  const prixValue = value / Math.pow(10, decimals);
   
-  if (bitrValue >= 1000000) {
-    return `${(bitrValue / 1000000).toFixed(1)}M`;
-  } else if (bitrValue >= 1000) {
-    return `${(bitrValue / 1000).toFixed(1)}K`;
-  } else if (bitrValue >= 1) {
-    return bitrValue.toFixed(2);
+  if (prixValue >= 1000000) {
+    return `${(prixValue / 1000000).toFixed(1)}M`;
+  } else if (prixValue >= 1000) {
+    return `${(prixValue / 1000).toFixed(1)}K`;
+  } else if (prixValue >= 1) {
+    return prixValue.toFixed(2);
   } else {
-    return bitrValue.toFixed(6);
+    return prixValue.toFixed(6);
   }
 }
 
@@ -130,8 +130,8 @@ export function calculateRequirementProgress(requirements: UserEligibility['requ
   let total = 5; // Total number of requirements
   
   if (requirements.faucetClaim) completed++;
-  if (requirements.sttActivityBeforeFaucet) completed++;
-  if (requirements.bitrActions.met) completed++;
+  if (requirements.bnbActivityBeforeFaucet) completed++;
+  if (requirements.prixActions.met) completed++;
   if (requirements.stakingActivity) completed++;
   if (requirements.oddysseySlips.met) completed++;
   

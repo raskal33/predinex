@@ -118,7 +118,7 @@ interface Stats {
   avgPrizePool: number;
   winRate: number;
   avgCorrect: number;
-  totalVolume: number; // Total volume in STT
+  totalVolume: number; // Total volume in BNB
   highestOdd: number; // Highest odd achieved
   totalSlips: number; // Added missing field
   correctPredictions: number; // Added missing field
@@ -499,7 +499,7 @@ export default function OddysseyPage() {
       );
       
       // Show notification
-      toast.success(`🏆 Prize Claimed! ${event.prizeAmount} STT won!`, {
+      toast.success(`🏆 Prize Claimed! ${event.prizeAmount} BNB won!`, {
         position: 'top-right',
         duration: 5000,
         style: {
@@ -509,7 +509,7 @@ export default function OddysseyPage() {
         }
       });
       
-      console.log('📡 Prize claimed:', event.prizeAmount, 'STT');
+      console.log('📡 Prize claimed:', event.prizeAmount, 'BNB');
     });
 
     // Listen to custom events dispatched by the service
@@ -753,7 +753,7 @@ export default function OddysseyPage() {
     console.log('🔗 Chain ID changed:', chainId);
     
     // Clear any network errors if we're on the correct network
-    if (isConnected && chainId === 50312) {
+    if (isConnected && chainId === 97) {
       console.log('✅ On correct network, clearing any network errors');
       // The error will be cleared automatically by the transaction feedback system
     }
@@ -807,7 +807,7 @@ export default function OddysseyPage() {
         setCurrentPrizePool({
           cycleId: Number(cycleInfo.cycleId),
           prizePool: formatEther(cycleInfo.prizePool),
-          formattedPrizePool: `${parseFloat(formatEther(cycleInfo.prizePool)).toFixed(2)} STT`,
+          formattedPrizePool: `${parseFloat(formatEther(cycleInfo.prizePool)).toFixed(2)} BNB`,
           matchesCount: 10,
           isActive: cycleInfo.state === 1
         });
@@ -851,7 +851,7 @@ export default function OddysseyPage() {
         
         setStats({
           totalPlayers: globalStatsResult.data.totalPlayers || 0,
-          prizePool: `${formattedAvgPrizePool} STT`,
+          prizePool: `${formattedAvgPrizePool} BNB`,
           completedSlips: globalStatsResult.data.totalSlips?.toLocaleString() || "0",
           averageOdds: `${(globalStatsResult.data.avgCorrect || 0).toFixed(2)}x`,
           totalCycles: globalStatsResult.data.totalCycles || 0,
@@ -870,7 +870,7 @@ export default function OddysseyPage() {
         console.warn('⚠️ No global stats received from contract, using defaults');
         setStats({
           totalPlayers: 0,
-          prizePool: "0 STT",
+          prizePool: "0 BNB",
           completedSlips: "0",
           averageOdds: "0x",
           totalCycles: 0,
@@ -911,7 +911,7 @@ export default function OddysseyPage() {
       // Set default stats on error
       setStats({
         totalPlayers: 0,
-        prizePool: "0 STT",
+        prizePool: "0 BNB",
         completedSlips: "0",
         averageOdds: "0x",
         totalCycles: 0,
@@ -1285,8 +1285,8 @@ export default function OddysseyPage() {
       }
 
       // Check network
-      if (chainId !== 50312) {
-        showError("Wrong Network", "Please switch to Somnia Network to use Oddyssey.");
+      if (chainId !== 97) {
+        showError("Wrong Network", "Please switch to BSC Testnet to use Oddyssey.");
         return;
       }
 
@@ -1389,7 +1389,7 @@ export default function OddysseyPage() {
           if (transactionError.message.includes('cancelled by user') || transactionError.message.includes('rejected')) {
             showError("Transaction Cancelled", "You cancelled the transaction. Please try again if you want to place the slip.");
           } else if (transactionError.message.includes('Insufficient funds')) {
-            showError("Insufficient Funds", "You don't have enough STT tokens to pay the entry fee. Please get more STT tokens and try again.");
+            showError("Insufficient Funds", "You don't have enough BNB tokens to pay the entry fee. Please get more BNB tokens and try again.");
           } else if (transactionError.message.includes('Gas estimation failed')) {
             showError("Gas Estimation Failed", "Failed to estimate gas. Please check your network connection and try again.");
           } else if (transactionError.message.includes('Network error')) {
@@ -1483,13 +1483,13 @@ export default function OddysseyPage() {
     }
     
     // Use Wagmi chainId instead of window.ethereum.chainId
-    if (chainId !== 50312) { // Somnia Network chain ID in decimal
-      console.log(`❌ Wrong network detected: ${chainId}, expected: 50312`);
-      showError("Wrong Network", "Please switch to Somnia Network to use Oddyssey. Current network is not supported.");
+    if (chainId !== 97) { // BSC Testnet chain ID in decimal
+      console.log(`❌ Wrong network detected: ${chainId}, expected: 97`);
+      showError("Wrong Network", "Please switch to BSC Testnet to use Oddyssey. Current network is not supported.");
       return false;
     }
     
-    console.log('✅ Network check passed: Somnia Network detected');
+    console.log('✅ Network check passed: BSC Testnet detected');
     return true;
   }, [chainId, isConnected, showError]);
   */
@@ -1542,7 +1542,19 @@ export default function OddysseyPage() {
   const totalOdd = calculateTotalOdds(picks);
 
   return (
-    <div className="min-h-screen bg-gradient-main text-white">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      {/* Subtle grid pattern background */}
+      <div 
+        className="fixed inset-0 opacity-[0.02] pointer-events-none"
+        style={{
+          backgroundImage: `
+            linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
+          `,
+          backgroundSize: '40px 40px',
+        }}
+      />
+      
       {/* Enhanced Transaction Feedback */}
       <TransactionFeedback
         status={transactionStatus}
@@ -1559,91 +1571,62 @@ export default function OddysseyPage() {
         userAddress={address}
       />
       
-      <div className="container mx-auto px-4 py-8">
-        {/* Hero Section */}
+      <div className="relative max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
+        {/* Hero Section - Professional */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12 relative"
+          className="text-center mb-6 sm:mb-8"
         >
-          {/* Floating background elements */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <motion.div 
-              className="absolute top-[20%] left-[15%] w-6 h-6 bg-primary/20 rounded-full blur-sm"
-              animate={{ y: [-10, 10, -10], x: [-5, 5, -5], scale: [1, 1.2, 1] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-            />
-            <motion.div 
-              className="absolute top-[60%] right-[20%] w-4 h-4 bg-secondary/30 rounded-full blur-sm"
-              animate={{ y: [10, -10, 10], x: [5, -5, 5], scale: [1, 1.3, 1] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-            />
-            <motion.div 
-              className="absolute bottom-[30%] left-[70%] w-5 h-5 bg-accent/25 rounded-full blur-sm"
-              animate={{ y: [-8, 8, -8], x: [-3, 3, -3], scale: [1, 1.1, 1] }}
-              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-            />
-          </div>
-
-          <div className="relative z-10 mb-8">
-            <div className="flex items-center justify-center gap-6 mb-6">
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-              >
-                <FireIcon className="h-12 w-12 text-primary" />
-              </motion.div>
-              <h1 className="text-4xl md:text-5xl font-bold gradient-text">
-                ODDYSSEY
+          <div className="mb-4 sm:mb-6">
+            <div className="flex items-center justify-center gap-3 sm:gap-4 mb-4">
+              <FireIcon className="h-8 w-8 sm:h-10 sm:w-10 text-orange-500" />
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold">
+                <span className="bg-gradient-to-r from-orange-400 via-yellow-500 to-orange-600 bg-clip-text text-transparent">
+                  ODDYSSEY
+                </span>
               </h1>
-              <motion.div
-                animate={{ rotate: -360 }}
-                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-              >
-                <SparklesIcon className="h-12 w-12 text-secondary" />
-              </motion.div>
+              <SparklesIcon className="h-8 w-8 sm:h-10 sm:w-10 text-yellow-500" />
             </div>
             
-            <div className="mx-auto mb-6 h-1 w-64 bg-gradient-somnia rounded-full opacity-60"></div>
-            
-            <p className="text-xl text-text-secondary max-w-2xl mx-auto">
+            <p className="text-sm sm:text-base md:text-lg text-gray-300 max-w-2xl mx-auto px-4">
               The ultimate prediction challenge. Select outcomes for 10 matches, compete with the highest odds, and claim your share of the prize pool.
             </p>
           </div>
         </motion.div>
 
 
-        {/* Contract Initialization Status */}
+        {/* Contract Initialization Status - Compact */}
         {isConnected && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="mb-6"
+            className="mb-4 sm:mb-6"
           >
             {isInitializing && (
-              <div className="glass-card p-4 text-center">
-                <div className="flex items-center justify-center gap-3">
-                  <FaSpinner className="h-5 w-5 animate-spin text-primary" />
-                  <span className="text-lg font-semibold text-text-secondary">
+              <div className="bg-slate-800/30 backdrop-blur-xl border border-slate-700/50 rounded-xl p-3 sm:p-4 text-center">
+                <div className="flex items-center justify-center gap-2 sm:gap-3">
+                  <FaSpinner className="h-4 w-4 sm:h-5 sm:w-5 animate-spin text-cyan-400" />
+                  <span className="text-sm sm:text-base font-semibold text-gray-300">
                     Initializing contract connection...
                   </span>
                 </div>
-                <p className="text-sm text-text-muted mt-2">
+                <p className="text-xs sm:text-sm text-gray-400 mt-1 sm:mt-2">
                   Please wait while we connect to the blockchain
                 </p>
               </div>
             )}
             
             {!isInitialized && !isInitializing && (
-              <div className="glass-card p-4 text-center border border-red-500/30">
-                <div className="flex items-center justify-center gap-3">
-                  <ShieldCheckIcon className="h-5 w-5 text-red-400" />
-                  <span className="text-lg font-semibold text-red-400">
+              <div className="bg-slate-800/30 backdrop-blur-xl border border-red-500/30 rounded-xl p-3 sm:p-4 text-center">
+                <div className="flex items-center justify-center gap-2 sm:gap-3">
+                  <ShieldCheckIcon className="h-4 w-4 sm:h-5 sm:w-5 text-red-400" />
+                  <span className="text-sm sm:text-base font-semibold text-red-400">
                     Contract connection failed
                   </span>
                 </div>
-                <p className="text-sm text-text-muted mt-2">
+                <p className="text-xs sm:text-sm text-gray-400 mt-1 sm:mt-2">
                   Please refresh the page or check your wallet connection
                 </p>
               </div>
@@ -1651,108 +1634,106 @@ export default function OddysseyPage() {
           </motion.div>
         )}
 
-        {/* Stats Cards */}
-        {/* Current Prize Pool - Prominent Display */}
+        {/* Current Prize Pool - Professional Display */}
         {currentPrizePool && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="mb-8"
+            className="mb-4 sm:mb-6"
           >
-            <div className="glass-card text-center p-8 border-2 border-primary/30">
-              <div className="flex items-center justify-center mb-4">
-                <GiftIcon className="h-16 w-16 text-primary mr-4" />
+            <div className="bg-gradient-to-br from-orange-500/10 to-yellow-500/10 backdrop-blur-xl border border-orange-500/30 rounded-xl p-4 sm:p-6 text-center">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-3 sm:mb-4">
+                <GiftIcon className="h-10 w-10 sm:h-12 sm:w-12 text-orange-400" />
                 <div>
-                  <h2 className="text-4xl font-bold text-white mb-2">
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-1 sm:mb-2">
                     {currentPrizePool.formattedPrizePool}
                   </h2>
-                  <p className="text-xl font-semibold text-primary">Current Prize Pool</p>
-                  <p className="text-sm text-text-muted">
+                  <p className="text-base sm:text-lg font-semibold text-orange-400">Current Prize Pool</p>
+                  <p className="text-xs sm:text-sm text-gray-400">
                     Cycle {currentPrizePool.cycleId} • {currentPrizePool.matchesCount} Matches
                   </p>
                 </div>
               </div>
               {currentPrizePool.isActive && (
-                <div className="flex items-center justify-center text-green-400">
-                  <BoltIcon className="h-5 w-5 mr-2" />
-                  <span className="font-semibold">Active Cycle - Place Your Slips Now!</span>
+                <div className="flex items-center justify-center text-emerald-400 gap-2">
+                  <BoltIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <span className="text-sm sm:text-base font-semibold">Active Cycle - Place Your Slips Now!</span>
                 </div>
               )}
             </div>
           </motion.div>
         )}
 
-        {/* Daily Stats - Removed mock data, using real contract data */}
-
+        {/* Stats Cards - Compact & Professional */}
         {stats && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-            className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8"
-        >
-              <motion.div
-                whileHover={{ scale: 1.02, y: -2 }}
-                className="glass-card text-center p-4"
-              >
-              <CurrencyDollarIcon className="h-12 w-12 mx-auto mb-4 text-primary" />
-              <h3 className="text-2xl font-bold text-white mb-1">{parseFloat(stats.prizePool || '0').toFixed(2)} STT</h3>
-              <p className="text-lg font-semibold text-text-secondary mb-1">Average Prize Pool</p>
-              <p className="text-sm text-text-muted">Current cycle</p>
-              </motion.div>
-
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6"
+          >
             <motion.div
               whileHover={{ scale: 1.02, y: -2 }}
-              className="glass-card text-center p-4"
+              className="bg-slate-800/30 backdrop-blur-xl border border-slate-700/50 rounded-xl text-center p-3 sm:p-4 hover:border-orange-500/30 transition-all duration-300"
             >
-              <UsersIcon className="h-12 w-12 mx-auto mb-4 text-secondary" />
-              <h3 className="text-2xl font-bold text-white mb-1">{(cycleStats?.participants || stats?.totalPlayers || 0).toLocaleString()}</h3>
-              <p className="text-lg font-semibold text-text-secondary mb-1">Total Players</p>
-              <p className="text-sm text-text-muted">Current cycle</p>
-        </motion.div>
-
-            <motion.div
-              whileHover={{ scale: 1.02, y: -2 }}
-              className="glass-card text-center p-4"
-            >
-              <TrophyIcon className="h-12 w-12 mx-auto mb-4 text-accent" />
-                              <h3 className="text-2xl font-bold text-white mb-1">{(stats.winRate || 0).toFixed(2)}%</h3>
-              <p className="text-lg font-semibold text-text-secondary mb-1">Win Rate</p>
-              <p className="text-sm text-text-muted">Current cycle</p>
+              <CurrencyDollarIcon className="h-8 w-8 sm:h-10 sm:w-10 mx-auto mb-2 sm:mb-3 text-orange-400" />
+              <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-1">{parseFloat(stats.prizePool || '0').toFixed(2)} BNB</h3>
+              <p className="text-xs sm:text-sm font-semibold text-gray-400 mb-0.5">Average Prize Pool</p>
+              <p className="text-xs text-gray-500">Current cycle</p>
             </motion.div>
 
             <motion.div
               whileHover={{ scale: 1.02, y: -2 }}
-              className="glass-card text-center p-4"
+              className="bg-slate-800/30 backdrop-blur-xl border border-slate-700/50 rounded-xl text-center p-3 sm:p-4 hover:border-cyan-500/30 transition-all duration-300"
             >
-              <EyeIcon className="h-12 w-12 mx-auto mb-4 text-green-400" />
-              <h3 className="text-2xl font-bold text-white mb-1">{(typeof stats.avgCorrect === 'number' ? stats.avgCorrect : parseFloat(stats.avgCorrect || '0')).toFixed(2)}x</h3>
-              <p className="text-lg font-semibold text-text-secondary mb-1">Average Odds</p>
-              <p className="text-sm text-text-muted">Current cycle</p>
+              <UsersIcon className="h-8 w-8 sm:h-10 sm:w-10 mx-auto mb-2 sm:mb-3 text-cyan-400" />
+              <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-1">{(cycleStats?.participants || stats?.totalPlayers || 0).toLocaleString()}</h3>
+              <p className="text-xs sm:text-sm font-semibold text-gray-400 mb-0.5">Total Players</p>
+              <p className="text-xs text-gray-500">Current cycle</p>
+            </motion.div>
+
+            <motion.div
+              whileHover={{ scale: 1.02, y: -2 }}
+              className="bg-slate-800/30 backdrop-blur-xl border border-slate-700/50 rounded-xl text-center p-3 sm:p-4 hover:border-emerald-500/30 transition-all duration-300"
+            >
+              <TrophyIcon className="h-8 w-8 sm:h-10 sm:w-10 mx-auto mb-2 sm:mb-3 text-emerald-400" />
+              <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-1">{(stats.winRate || 0).toFixed(2)}%</h3>
+              <p className="text-xs sm:text-sm font-semibold text-gray-400 mb-0.5">Win Rate</p>
+              <p className="text-xs text-gray-500">Current cycle</p>
+            </motion.div>
+
+            <motion.div
+              whileHover={{ scale: 1.02, y: -2 }}
+              className="bg-slate-800/30 backdrop-blur-xl border border-slate-700/50 rounded-xl text-center p-3 sm:p-4 hover:border-yellow-500/30 transition-all duration-300"
+            >
+              <EyeIcon className="h-8 w-8 sm:h-10 sm:w-10 mx-auto mb-2 sm:mb-3 text-yellow-400" />
+              <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-1">{(typeof stats.avgCorrect === 'number' ? stats.avgCorrect : parseFloat(stats.avgCorrect || '0')).toFixed(2)}x</h3>
+              <p className="text-xs sm:text-sm font-semibold text-gray-400 mb-0.5">Average Odds</p>
+              <p className="text-xs text-gray-500">Current cycle</p>
             </motion.div>
           </motion.div>
         )}
 
-        {/* Countdown Timer */}
+        {/* Countdown Timer - Compact & Professional */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.3 }}
-          className="glass-card text-center p-6 mb-8"
+          className="bg-slate-800/30 backdrop-blur-xl border border-slate-700/50 rounded-xl p-4 sm:p-6 mb-4 sm:mb-6"
         >
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-bold text-primary flex items-center gap-2">
-              <ClockIcon className="h-6 w-6" />
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-base sm:text-lg md:text-xl font-bold text-white flex items-center gap-2">
+              <ClockIcon className="h-4 w-4 sm:h-5 sm:w-5 text-orange-400" />
               {currentMatches && currentMatches.length > 0 ? (
                 <>
-              Betting Closes In
-                  <span className="text-sm font-normal text-text-secondary ml-2">
-                    (First match: {currentMatches[0]?.homeTeam} vs {currentMatches[0]?.awayTeam})
+                  <span>Betting Closes In</span>
+                  <span className="text-xs sm:text-sm font-normal text-gray-400 ml-1 sm:ml-2 hidden sm:inline">
+                    ({currentMatches[0]?.homeTeam} vs {currentMatches[0]?.awayTeam})
                   </span>
                 </>
               ) : (
-                "Betting Closes In"
+                "No Active Cycle"
               )}
             </h3>
             
@@ -1760,82 +1741,82 @@ export default function OddysseyPage() {
             <button
               onClick={handleManualRefresh}
               disabled={apiCallInProgress}
-              className="flex items-center gap-2 px-3 py-2 bg-primary/20 hover:bg-primary/30 text-primary rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm"
             >
               {apiCallInProgress ? (
-                <FaSpinner className="h-4 w-4 animate-spin" />
+                <FaSpinner className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
               ) : (
-                <ArrowPathIcon className="h-4 w-4" />
+                <ArrowPathIcon className="h-3 w-3 sm:h-4 sm:w-4" />
               )}
-              <span className="text-sm font-medium">Refresh</span>
+              <span className="font-medium hidden sm:inline">Refresh</span>
             </button>
           </div>
           {isExpired ? (
-            <div className="text-red-400 font-bold text-2xl">
+            <div className="text-red-400 font-bold text-lg sm:text-xl md:text-2xl text-center py-2">
               Betting is closed - first match has started
             </div>
           ) : (
-            <div className="flex justify-center gap-4 mb-4">
+            <div className="flex justify-center gap-2 sm:gap-3 md:gap-4">
               <motion.div 
-                className="glass-card p-4 min-w-[80px]"
-                animate={{ scale: [1, 1.05, 1] }}
+                className="bg-slate-700/30 backdrop-blur-sm border border-slate-600/50 rounded-lg p-3 sm:p-4 min-w-[60px] sm:min-w-[80px] text-center"
+                animate={{ scale: [1, 1.03, 1] }}
                 transition={{ duration: 2, repeat: Infinity }}
               >
-                <div className="text-2xl font-bold text-primary">{timeLeft.hours.toString().padStart(2, '0')}</div>
-                <div className="text-xs text-text-muted uppercase tracking-wider">Hours</div>
+                <div className="text-xl sm:text-2xl font-bold text-orange-400">{timeLeft.hours.toString().padStart(2, '0')}</div>
+                <div className="text-xs text-gray-400 uppercase tracking-wider mt-1">Hours</div>
               </motion.div>
               <motion.div 
-                className="glass-card p-4 min-w-[80px]"
-                animate={{ scale: [1, 1.05, 1] }}
+                className="bg-slate-700/30 backdrop-blur-sm border border-slate-600/50 rounded-lg p-3 sm:p-4 min-w-[60px] sm:min-w-[80px] text-center"
+                animate={{ scale: [1, 1.03, 1] }}
                 transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
               >
-                <div className="text-2xl font-bold text-primary">{timeLeft.minutes.toString().padStart(2, '0')}</div>
-                <div className="text-xs text-text-muted uppercase tracking-wider">Minutes</div>
+                <div className="text-xl sm:text-2xl font-bold text-orange-400">{timeLeft.minutes.toString().padStart(2, '0')}</div>
+                <div className="text-xs text-gray-400 uppercase tracking-wider mt-1">Minutes</div>
               </motion.div>
               <motion.div 
-                className="glass-card p-4 min-w-[80px]"
-                animate={{ scale: [1, 1.05, 1] }}
+                className="bg-slate-700/30 backdrop-blur-sm border border-slate-600/50 rounded-lg p-3 sm:p-4 min-w-[60px] sm:min-w-[80px] text-center"
+                animate={{ scale: [1, 1.03, 1] }}
                 transition={{ duration: 2, repeat: Infinity, delay: 1 }}
               >
-                <div className="text-2xl font-bold text-primary">{timeLeft.seconds.toString().padStart(2, '0')}</div>
-                <div className="text-xs text-text-muted uppercase tracking-wider">Seconds</div>
+                <div className="text-xl sm:text-2xl font-bold text-orange-400">{timeLeft.seconds.toString().padStart(2, '0')}</div>
+                <div className="text-xs text-gray-400 uppercase tracking-wider mt-1">Seconds</div>
               </motion.div>
             </div>
           )}
         </motion.div>
 
-        {/* Tab Navigation */}
-        <div className="glass-card p-4 md:p-6 mb-8">
-          <div className="flex items-center justify-center gap-2 md:gap-4 flex-wrap">
+        {/* Tab Navigation - Professional & Compact */}
+        <div className="bg-slate-800/30 backdrop-blur-xl border border-slate-700/50 rounded-xl p-3 sm:p-4 mb-4 sm:mb-6">
+          <div className="flex items-center justify-center gap-1.5 sm:gap-2 md:gap-3 flex-wrap">
             <button
               onClick={() => setActiveTab("today")}
-              className={`px-4 md:px-8 py-2 md:py-3 rounded-button font-semibold transition-all duration-300 flex items-center gap-1 md:gap-2 text-sm md:text-base ${
+              className={`px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-2.5 rounded-lg font-semibold transition-all duration-300 flex items-center gap-1 sm:gap-1.5 md:gap-2 text-xs sm:text-sm md:text-base ${
                 activeTab === "today"
-                  ? "bg-gradient-primary text-black shadow-lg scale-105"
-                  : "text-text-secondary hover:text-text-primary hover:bg-bg-card/50"
+                  ? "bg-gradient-to-r from-orange-500 to-yellow-500 text-white shadow-md shadow-orange-500/25 scale-105"
+                  : "text-gray-400 hover:text-white hover:bg-slate-700/50"
               }`}
             >
-              <TableCellsIcon className="h-4 w-4 md:h-5 md:w-5" />
+              <TableCellsIcon className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5" />
               <span className="hidden sm:inline">Matches & Betting</span>
               <span className="sm:hidden">Matches</span>
             </button>
             <button
               onClick={() => setActiveTab("slips")}
-              className={`px-4 md:px-8 py-2 md:py-3 rounded-button font-semibold transition-all duration-300 flex items-center gap-1 md:gap-2 text-sm md:text-base relative overflow-hidden ${
+              className={`px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-2.5 rounded-lg font-semibold transition-all duration-300 flex items-center gap-1 sm:gap-1.5 md:gap-2 text-xs sm:text-sm md:text-base relative overflow-hidden ${
                 activeTab === "slips"
-                  ? "bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-300 shadow-lg shadow-cyan-500/25 scale-105 border border border-cyan-500/30"
-                  : "text-text-secondary hover:text-cyan-300 hover:bg-gradient-to-r hover:from-cyan-500/10 hover:to-blue-500/10 hover:border hover:border-cyan-500/20"
+                  ? "bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-300 shadow-md shadow-cyan-500/25 scale-105 border border-cyan-500/30"
+                  : "text-gray-400 hover:text-cyan-300 hover:bg-gradient-to-r hover:from-cyan-500/10 hover:to-blue-500/10 hover:border hover:border-cyan-500/20"
               }`}
             >
               <div className="relative">
-                <TrophyIcon className="h-4 w-4 md:h-5 md:w-5" />
+                <TrophyIcon className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5" />
                 {(() => {
                   const unclaimedPrizes = allSlips.filter(slip => {
                     return slip.isEvaluated && slip.correctCount >= 8 && slip.status === 'won';
                   }).length;
                   
                   return unclaimedPrizes > 0 ? (
-                    <span className="absolute -top-2 -right-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-black text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold animate-pulse-glow">
+                    <span className="absolute -top-1.5 -right-1.5 bg-gradient-to-r from-yellow-500 to-orange-500 text-black text-[10px] rounded-full h-4 w-4 flex items-center justify-center font-bold animate-pulse">
                       {unclaimedPrizes}
                     </span>
                   ) : null;
@@ -1846,69 +1827,69 @@ export default function OddysseyPage() {
             </button>
             <button
               onClick={() => setActiveTab("results")}
-              className={`px-4 md:px-8 py-2 md:py-3 rounded-button font-semibold transition-all duration-300 flex items-center gap-1 md:gap-2 text-sm md:text-base relative overflow-hidden ${
+              className={`px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-2.5 rounded-lg font-semibold transition-all duration-300 flex items-center gap-1 sm:gap-1.5 md:gap-2 text-xs sm:text-sm md:text-base ${
                 activeTab === "results"
-                  ? "bg-gradient-to-r from-magenta-500/20 to-violet-500/20 text-magenta-300 shadow-lg shadow-magenta-500/25 scale-105 border border-magenta-500/30"
-                  : "text-text-secondary hover:text-magenta-300 hover:bg-gradient-to-r hover:from-magenta-500/10 hover:to-violet-500/10 hover:border hover:border-magenta-500/20"
+                  ? "bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-300 shadow-md shadow-purple-500/25 scale-105 border border-purple-500/30"
+                  : "text-gray-400 hover:text-purple-300 hover:bg-gradient-to-r hover:from-purple-500/10 hover:to-pink-500/10 hover:border hover:border-purple-500/20"
               }`}
             >
-              <DocumentTextIcon className="h-4 w-4 md:h-5 md:w-5" />
+              <DocumentTextIcon className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5" />
               <span className="hidden sm:inline">Match Results</span>
               <span className="sm:hidden">Results</span>
             </button>
             <button
               onClick={() => setActiveTab("leaderboard")}
-              className={`px-4 md:px-8 py-2 md:py-3 rounded-button font-semibold transition-all duration-300 flex items-center gap-1 md:gap-2 text-sm md:text-base ${
+              className={`px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-2.5 rounded-lg font-semibold transition-all duration-300 flex items-center gap-1 sm:gap-1.5 md:gap-2 text-xs sm:text-sm md:text-base ${
                 activeTab === "leaderboard"
-                  ? "bg-gradient-to-r from-yellow-500/20 to-orange-500/20 text-yellow-300 shadow-lg shadow-yellow-500/25 scale-105 border border-yellow-500/30"
-                  : "text-text-secondary hover:text-yellow-300 hover:bg-gradient-to-r hover:from-yellow-500/10 hover:to-orange-500/10 hover:border hover:border-yellow-500/20"
+                  ? "bg-gradient-to-r from-yellow-500/20 to-orange-500/20 text-yellow-300 shadow-md shadow-yellow-500/25 scale-105 border border-yellow-500/30"
+                  : "text-gray-400 hover:text-yellow-300 hover:bg-gradient-to-r hover:from-yellow-500/10 hover:to-orange-500/10 hover:border hover:border-yellow-500/20"
               }`}
             >
-              <TrophyIcon className="h-4 w-4 md:h-5 md:w-5" />
+              <TrophyIcon className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5" />
               <span className="hidden sm:inline">Leaderboard</span>
               <span className="sm:hidden">Leaders</span>
             </button>
             <button
               onClick={() => setActiveTab("analytics")}
-              className={`px-4 md:px-8 py-2 md:py-3 rounded-button font-semibold transition-all duration-300 flex items-center gap-1 md:gap-2 text-sm md:text-base ${
+              className={`px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-2.5 rounded-lg font-semibold transition-all duration-300 flex items-center gap-1 sm:gap-1.5 md:gap-2 text-xs sm:text-sm md:text-base ${
                 activeTab === "analytics"
-                  ? "bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-300 shadow-lg shadow-purple-500/25 scale-105 border border-purple-500/30"
-                  : "text-text-secondary hover:text-purple-300 hover:bg-gradient-to-r hover:from-purple-500/10 hover:to-pink-500/10 hover:border hover:border-purple-500/20"
+                  ? "bg-gradient-to-r from-indigo-500/20 to-purple-500/20 text-indigo-300 shadow-md shadow-indigo-500/25 scale-105 border border-indigo-500/30"
+                  : "text-gray-400 hover:text-indigo-300 hover:bg-gradient-to-r hover:from-indigo-500/10 hover:to-purple-500/10 hover:border hover:border-indigo-500/20"
               }`}
             >
-              <SparklesIcon className="h-4 w-4 md:h-5 md:w-5" />
+              <SparklesIcon className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5" />
               <span className="hidden sm:inline">Analytics</span>
               <span className="sm:hidden">Analytics</span>
             </button>
             <button
               onClick={() => setActiveTab("claim")}
-              className={`px-4 md:px-8 py-2 md:py-3 rounded-button font-semibold transition-all duration-300 flex items-center gap-1 md:gap-2 text-sm md:text-base ${
+              className={`px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-2.5 rounded-lg font-semibold transition-all duration-300 flex items-center gap-1 sm:gap-1.5 md:gap-2 text-xs sm:text-sm md:text-base ${
                 activeTab === "claim"
-                  ? "bg-gradient-to-r from-yellow-500/20 to-orange-500/20 text-yellow-300 shadow-lg shadow-yellow-500/25 scale-105 border border-yellow-500/30"
-                  : "text-text-secondary hover:text-yellow-300 hover:bg-gradient-to-r hover:from-yellow-500/10 hover:to-orange-500/10 hover:border hover:border-yellow-500/20"
+                  ? "bg-gradient-to-r from-yellow-500/20 to-orange-500/20 text-yellow-300 shadow-md shadow-yellow-500/25 scale-105 border border-yellow-500/30"
+                  : "text-gray-400 hover:text-yellow-300 hover:bg-gradient-to-r hover:from-yellow-500/10 hover:to-orange-500/10 hover:border hover:border-yellow-500/20"
               }`}
             >
-              <GiftIcon className="h-4 w-4 md:h-5 md:w-5" />
+              <GiftIcon className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5" />
               <span className="hidden sm:inline">Claim Prizes</span>
               <span className="sm:hidden">Claim</span>
             </button>
             <button
               onClick={() => setActiveTab("stats")}
-              className={`px-4 md:px-8 py-2 md:py-3 rounded-button font-semibold transition-all duration-300 flex items-center gap-1 md:gap-2 text-sm md:text-base ${
+              className={`px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-2.5 rounded-lg font-semibold transition-all duration-300 flex items-center gap-1 sm:gap-1.5 md:gap-2 text-xs sm:text-sm md:text-base ${
                 activeTab === "stats"
-                  ? "bg-gradient-secondary text-black shadow-lg scale-105"
-                  : "text-text-secondary hover:text-text-primary hover:bg-bg-card/50"
+                  ? "bg-gradient-to-r from-emerald-500/20 to-green-500/20 text-emerald-300 shadow-md shadow-emerald-500/25 scale-105 border border-emerald-500/30"
+                  : "text-gray-400 hover:text-emerald-300 hover:bg-gradient-to-r hover:from-emerald-500/10 hover:to-green-500/10 hover:border hover:border-emerald-500/20"
               }`}
             >
-              <ArrowTrendingUpIcon className="h-4 w-4 md:h-5 md:w-5" />
+              <ArrowTrendingUpIcon className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5" />
               <span className="hidden sm:inline">Statistics</span>
               <span className="sm:hidden">Stats</span>
             </button>
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8">
+        {/* Main Content - Responsive Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
           <AnimatePresence mode="wait">
             {/* Matches Tab */}
             {activeTab === "today" && (
@@ -1921,11 +1902,11 @@ export default function OddysseyPage() {
                   exit={{ opacity: 0, x: 20 }}
                   className="lg:col-span-2"
                 >
-                  <div className="glass-card p-4 md:p-6">
+                  <div className="bg-slate-800/30 backdrop-blur-xl border border-slate-700/50 rounded-xl p-3 sm:p-4 md:p-6">
                     {/* Date Tabs */}
                     <div className="flex items-center justify-center gap-1 md:gap-2 mb-4 md:mb-6 flex-wrap">
                       <button
-                        className="px-2 md:px-4 py-2 md:py-3 rounded-button font-semibold transition-all duration-300 flex flex-col items-center gap-1 min-w-[80px] md:min-w-[100px] text-xs md:text-sm bg-gradient-primary text-black shadow-lg scale-105"
+                        className="px-2 md:px-4 py-2 md:py-3 rounded-lg font-semibold transition-all duration-300 flex flex-col items-center gap-1 min-w-[80px] md:min-w-[100px] text-xs md:text-sm bg-gradient-to-r from-orange-500 to-yellow-500 text-white shadow-lg scale-105"
                       >
                         <CalendarDaysIcon className="h-3 w-3 md:h-4 md:w-4" />
                         <span className="font-bold">Today</span>
@@ -1941,8 +1922,8 @@ export default function OddysseyPage() {
                             <TableCellsIcon className="h-5 w-5 md:h-6 md:w-6" />
                             <span>Matches - Today Live Odds</span>
                           </h2>
-                          <div className="flex items-center gap-2 text-xs md:text-sm text-text-muted">
-                            <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                          <div className="flex items-center gap-2 text-xs md:text-sm text-gray-400">
+                            <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></div>
                             <span>Live Odds</span>
                           </div>
                         </div>
@@ -1962,7 +1943,7 @@ export default function OddysseyPage() {
                                   LIVE
                                 </div>
                               </div>
-                              <div className="text-sm text-text-secondary leading-relaxed">
+                              <div className="text-sm text-gray-300 leading-relaxed">
                                 The first match has started. Betting is now closed for this cycle. 
                                 You can still view your existing slips and track results.
                               </div>
@@ -1975,14 +1956,14 @@ export default function OddysseyPage() {
                     {/* Responsive Matches Table */}
                     {isLoading ? (
                       <div className="text-center py-8">
-                        <FaSpinner className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
-                        <p className="text-text-secondary">Loading matches...</p>
+                        <FaSpinner className="h-8 w-8 animate-spin text-orange-400 mx-auto mb-4" />
+                        <p className="text-gray-300">Loading matches...</p>
                       </div>
                     ) : currentMatches.length === 0 ? (
                       <div className="text-center py-12">
-                        <ClockIcon className="h-16 w-16 text-text-muted mx-auto mb-4" />
+                        <ClockIcon className="h-16 w-16 text-gray-500 mx-auto mb-4" />
                         <h4 className="text-xl font-semibold text-white mb-2">No Matches Available</h4>
-                        <p className="text-text-secondary">
+                        <p className="text-gray-400">
                           New matches will be available soon. Check back later!
                         </p>
                       </div>
@@ -2002,16 +1983,16 @@ export default function OddysseyPage() {
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ delay: index * 0.1 }}
-                              className="glass-card p-4 md:p-6 border border-border-card/50 hover:border-primary/30 transition-all duration-300"
+                              className="bg-slate-800/30 backdrop-blur-xl border border-slate-700/50 rounded-xl p-3 sm:p-4 md:p-6 hover:border-orange-500/30 transition-all duration-300"
                             >
                               {/* Mobile Layout */}
                               <div className="md:hidden space-y-4">
                                 <div className="flex items-center justify-between mb-3">
-                                  <div className="text-sm text-text-muted">Match {index + 1}</div>
+                                  <div className="text-sm text-gray-400">Match {index + 1}</div>
                                   <div className={`text-xs font-mono px-2 py-1 rounded ${
                                     isMatchStarted(safeStartTimeToISOString(match.startTime))
                                       ? "text-red-400 bg-red-500/10 border border-red-500/20"
-                                      : "text-text-secondary bg-primary/10"
+                                      : "text-gray-400 bg-orange-500/10"
                                   }`}>
                                     <div className="font-bold">
                                       {new Date(safeStartTimeToISOString(match.startTime)).toLocaleTimeString('en-US', { 
@@ -2130,7 +2111,7 @@ export default function OddysseyPage() {
                                   <div className={`text-xs font-mono px-2 py-1 rounded ${
                                     isMatchStarted(safeStartTimeToISOString(match.startTime))
                                       ? "text-red-400 bg-red-500/10 border border-red-500/20"
-                                      : "text-text-secondary bg-primary/10"
+                                      : "text-gray-400 bg-orange-500/10"
                                   }`}>
                                     <div className="font-bold">
                                       {new Date(safeStartTimeToISOString(match.startTime)).toLocaleTimeString('en-US', { 
@@ -2262,7 +2243,7 @@ export default function OddysseyPage() {
                   exit={{ opacity: 0, x: -20 }}
                   className="lg:col-span-1"
                 >
-                  <div className="glass-card sticky top-8 p-4 md:p-6">
+                  <div className="bg-slate-800/30 backdrop-blur-xl border border-slate-700/50 rounded-xl sticky top-4 sm:top-8 p-3 sm:p-4 md:p-6">
                     <h3 className="text-lg md:text-xl font-bold text-white mb-4 md:mb-6 text-center flex items-center justify-center gap-2">
                       <ShieldCheckIcon className="h-5 w-5 md:h-6 md:w-6" />
                       <span className="hidden sm:inline">Slip Builder</span>
@@ -2398,12 +2379,12 @@ export default function OddysseyPage() {
                             <div className="flex justify-between items-center text-sm">
                               <span className="text-text-muted">Entry Fee:</span>
                               <span className="text-white font-bold">
-                                {entryFee} STT
+                                {entryFee} BNB
                               </span>
                             </div>
                             <div className="flex justify-between items-center text-sm">
                               <span className="text-text-muted">Potential Win:</span>
-                              <span className="text-secondary font-bold">{(parseFloat(totalOdd) * parseFloat(entryFee)).toFixed(2)} STT</span>
+                              <span className="text-secondary font-bold">{(parseFloat(totalOdd) * parseFloat(entryFee)).toFixed(2)} BNB</span>
                             </div>
                           </div>
 
@@ -2425,13 +2406,13 @@ export default function OddysseyPage() {
                               <div className="flex justify-between items-center text-sm mt-1">
                                 <span className="text-text-muted">Entry Fee:</span>
                                 <span className="text-white font-bold">
-                                  {entryFee} STT
+                                  {entryFee} BNB
                                 </span>
                               </div>
                               <div className="flex justify-between items-center text-sm mt-1">
                                 <span className="text-text-muted">Potential Payout:</span>
                                 <span className="text-primary font-bold">
-                                  {(parseFloat(totalOdd) * parseFloat(entryFee)).toFixed(2)} STT
+                                  {(parseFloat(totalOdd) * parseFloat(entryFee)).toFixed(2)} BNB
                                 </span>
                               </div>
                             </motion.div>
@@ -2627,7 +2608,7 @@ export default function OddysseyPage() {
                             <CurrencyDollarIcon className="w-5 h-5 text-accent" />
                             <span className="text-sm font-medium text-gray-400">Total Volume</span>
                           </div>
-                          <div className="text-3xl font-bold text-accent mb-1">{(stats.totalVolume / 1e18).toFixed(2)} STT</div>
+                          <div className="text-3xl font-bold text-accent mb-1">{(stats.totalVolume / 1e18).toFixed(2)} BNB</div>
                           <div className="text-xs text-gray-500">prize pool value</div>
                         </motion.div>
 
@@ -2717,7 +2698,7 @@ export default function OddysseyPage() {
                           className="text-center p-3 bg-gray-800/30 rounded-lg border border-gray-700/50 hover:border-gray-600 transition-all"
                         >
                           <div className="text-sm text-gray-400 mb-2">Avg Prize Pool</div>
-                          <div className="text-xl font-bold text-green-400">{(stats.avgPrizePool / 1e18).toFixed(2)} STT</div>
+                          <div className="text-xl font-bold text-green-400">{(stats.avgPrizePool / 1e18).toFixed(2)} BNB</div>
                         </motion.div>
 
                         {/* Total Cycles */}

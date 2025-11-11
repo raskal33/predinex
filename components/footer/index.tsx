@@ -24,15 +24,15 @@ export default function Footer() {
 
   const resourceLinks = [
     { name: "Documentation", href: "https://drive.google.com/file/d/1YeC8u3tkSA-VOI96Ut2WEfrQhps1OIjG/view" },
-    { name: "API", href: "https://bitredict.com/api" },
+    { name: "API", href: "https://prixedict.com/api" },
     { name: "Help Center", href: "/contact" },
     { name: "Blog", href: "/community" },
   ];
 
   const legalLinks = [
     { name: "Terms of Service", href: "/terms-of-service" },
-    { name: "Privacy Policy", href: "https://bitredict.com/privacy-policy" },
-    { name: "Cookie Policy", href: "https://bitredict.com/cookie-policy" },
+    { name: "Privacy Policy", href: "https://prixedict.com/privacy-policy" },
+    { name: "Cookie Policy", href: "https://prixedict.com/cookie-policy" },
     { name: "Disclaimer", href: "/disclaimer" },
   ];
 
@@ -56,7 +56,7 @@ export default function Footer() {
                 <Link href="/" className="inline-block">
                   <Image 
                     src="/logo.png" 
-                    alt="BitRedict" 
+                    alt="Predinex" 
                     width={220} 
                     height={55}
                     className="h-auto"
@@ -198,7 +198,7 @@ export default function Footer() {
           >
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
               <div className="flex items-center gap-4 text-sm text-text-muted">
-                <span>© {currentYear} BitRedict.</span>
+                <span>© {currentYear} Predinex.</span>
                 <span>All rights reserved.</span>
               </div>
               

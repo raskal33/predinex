@@ -4,7 +4,7 @@
 interface PoolTitleRowProps {
   title: string;
   currencyBadge: {
-    type: 'BITR' | 'STT';
+    type: 'PRIX' | 'BNB';
     color: string;
     bgColor: string;
   };

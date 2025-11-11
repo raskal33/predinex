@@ -93,9 +93,9 @@ export default function PlaceBetModal({ pool, isOpen, onClose }: PlaceBetModalPr
   }, [isPlacing, betSuccess, pool.id, initialStake, betAmount, onClose]);
   
   // Currency-sensitive quick amounts
-  const quickAmounts = pool.usesBitr 
-    ? [100, 500, 1000, 2500, 5000, 10000] // BITR amounts
-    : [1, 5, 10, 25, 50, 100]; // STT amounts
+  const quickAmounts = pool.usesPrix 
+    ? [100, 500, 1000, 2500, 5000, 10000] // PRIX amounts
+    : [1, 5, 10, 25, 50, 100]; // BNB amounts
   
   // Calculate potential win
   const calculatePotentialWin = (amount: number): number => {
@@ -154,18 +154,18 @@ export default function PlaceBetModal({ pool, isOpen, onClose }: PlaceBetModalPr
       
       // Call placeBet - it expects human-readable amount string (e.g., "50"), NOT wei
       // The placeBet function in usePools will convert to wei internally using parseUnits
-      // For BITR pools, this may return early if approval is needed
+      // For PRIX pools, this may return early if approval is needed
       // The usePools hook handles approval flow and transaction feedback automatically
-      await placeBet(pool.id, betAmountNum.toString(), pool.usesBitr);
+      await placeBet(pool.id, betAmountNum.toString(), pool.usesPrix);
       
-      // ✅ FIX: For both BITR and STT pools, poll for transaction success
+      // ✅ FIX: For both PRIX and BNB pools, poll for transaction success
       // The useEffect above will detect when the bet is placed by checking pool progress
-      if (pool.usesBitr) {
-        // For BITR pools, might need approval - wait for approval confirmation
+      if (pool.usesPrix) {
+        // For PRIX pools, might need approval - wait for approval confirmation
         setWaitingForApproval(true);
         toast.loading("Approval may be required. Please confirm in your wallet...", { id: 'bet-tx' });
       } else {
-        // For STT pools, transaction should be immediate
+        // For BNB pools, transaction should be immediate
         // Poll for success via useEffect above
         toast.loading("Waiting for transaction confirmation...", { id: 'bet-tx' });
       }
@@ -323,7 +323,7 @@ export default function PlaceBetModal({ pool, isOpen, onClose }: PlaceBetModalPr
                       transition={{ delay: 0.4 }}
                       className="text-gray-300 text-sm mt-2"
                     >
-                      Potential win: {potentialWin.toFixed(2)} {pool.usesBitr ? 'BITR' : 'STT'}
+                      Potential win: {potentialWin.toFixed(2)} {pool.usesPrix ? 'PRIX' : 'BNB'}
                     </motion.p>
                   </motion.div>
                 </motion.div>
@@ -361,7 +361,7 @@ export default function PlaceBetModal({ pool, isOpen, onClose }: PlaceBetModalPr
                   <div>
                     <p className="text-[10px] text-gray-400 mb-0.5">Potential Win</p>
                     <p className="text-base font-bold text-green-400">
-                      {potentialWin.toFixed(2)} {pool.usesBitr ? 'BITR' : 'STT'}
+                      {potentialWin.toFixed(2)} {pool.usesPrix ? 'PRIX' : 'BNB'}
                     </p>
                   </div>
                 </div>
@@ -370,7 +370,7 @@ export default function PlaceBetModal({ pool, isOpen, onClose }: PlaceBetModalPr
               {/* Bet Amount Input */}
               <div className="mb-3">
                 <label className="block text-xs font-medium text-gray-300 mb-1.5">
-                  Bet Amount ({pool.usesBitr ? 'BITR' : 'STT'})
+                  Bet Amount ({pool.usesPrix ? 'PRIX' : 'BNB'})
                 </label>
                 <div className="relative">
                   <input
@@ -384,7 +384,7 @@ export default function PlaceBetModal({ pool, isOpen, onClose }: PlaceBetModalPr
                     className="w-full px-3 py-2.5 text-lg font-bold text-white bg-gray-800/50 border-2 border-gray-700 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
-                    {pool.usesBitr ? 'BITR' : 'STT'}
+                    {pool.usesPrix ? 'PRIX' : 'BNB'}
                   </div>
                 </div>
                 
@@ -399,7 +399,7 @@ export default function PlaceBetModal({ pool, isOpen, onClose }: PlaceBetModalPr
                       }}
                       disabled={isPlacing || !isBettingOpen || amount > remainingCapacity || betSuccess}
                       className="px-1.5 py-1.5 text-[10px] font-medium bg-gray-800/50 hover:bg-gray-700/50 border border-gray-700 rounded-md text-gray-300 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                      title={`${amount} ${pool.usesBitr ? 'BITR' : 'STT'}`}
+                      title={`${amount} ${pool.usesPrix ? 'PRIX' : 'BNB'}`}
                     >
                       {formatQuickAmount(amount)}
                     </button>
@@ -410,7 +410,7 @@ export default function PlaceBetModal({ pool, isOpen, onClose }: PlaceBetModalPr
                 <div className="mt-1.5 flex items-center justify-between text-[10px]">
                   <span className="text-gray-400">Remaining</span>
                   <span className="text-gray-300 font-medium">
-                    {remainingCapacity.toFixed(2)} {pool.usesBitr ? 'BITR' : 'STT'}
+                    {remainingCapacity.toFixed(2)} {pool.usesPrix ? 'PRIX' : 'BNB'}
                   </span>
                 </div>
               </div>
@@ -459,7 +459,7 @@ export default function PlaceBetModal({ pool, isOpen, onClose }: PlaceBetModalPr
                 <div className="flex items-center gap-1.5 p-2 bg-orange-500/10 border border-orange-500/30 rounded-lg mb-2">
                   <ExclamationCircleIcon className="w-4 h-4 text-orange-400 flex-shrink-0" />
                   <p className="text-xs text-orange-400">
-                    Max: {remainingCapacity.toFixed(2)} {pool.usesBitr ? 'BITR' : 'STT'}
+                    Max: {remainingCapacity.toFixed(2)} {pool.usesPrix ? 'PRIX' : 'BNB'}
                   </p>
                 </div>
               )}

@@ -9,8 +9,8 @@ import { useReadContract } from 'wagmi';
 import { CONTRACT_ADDRESSES } from '@/config/wagmi';
 import ReputationSystemArtifact from '@/contracts/abis/ReputationSystem.json';
 
-// Extract ABI array from artifact
-const ReputationSystemABI = ReputationSystemArtifact.abi;
+// Extract ABI array from artifact (ABI files are arrays directly)
+const ReputationSystemABI = ReputationSystemArtifact as any;
 
 export interface ReputationData {
   score: number;

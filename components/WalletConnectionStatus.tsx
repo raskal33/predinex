@@ -26,7 +26,7 @@ export default function WalletConnectionStatus({ className = "" }: WalletConnect
       {isConnected && isOnSomnia && (
         <>
           <CheckCircleIcon className="h-3 w-3 text-green-400" />
-          <span className="text-green-400">Connected to Somnia</span>
+          <span className="text-green-400">Connected to BSC Testnet</span>
         </>
       )}
       

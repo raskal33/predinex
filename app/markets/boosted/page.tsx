@@ -171,7 +171,7 @@ export default function BoostedMarketsPage() {
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
                   <p className="text-text-muted text-xs">Total Volume</p>
-                  <p className="text-text-primary font-semibold">{parseFloat(pool.creatorStake).toFixed(2)} {pool.usesBitr ? 'BITR' : 'STT'}</p>
+                  <p className="text-text-primary font-semibold">{parseFloat(pool.creatorStake).toFixed(2)} {pool.usesPrix ? 'PRIX' : 'BNB'}</p>
                 </div>
                 <div>
                   <p className="text-text-muted text-xs">Participants</p>

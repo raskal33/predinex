@@ -23,7 +23,7 @@ export interface PoolWithMetadata {
   homeTeam: string;
   awayTeam: string;
   isPrivate: boolean;
-  usesBitr: boolean;
+  usesPrix: boolean;
   settled: boolean;
   creatorSideWon: boolean | null;
   boostTier?: "NONE" | "BRONZE" | "SILVER" | "GOLD";
@@ -35,7 +35,7 @@ export interface PoolWithMetadata {
   maxBettorStake?: string;
   result?: string | null;
   resultTimestamp?: string | null;
-  arbitrationDeadline?: string | null;
+  arprixationDeadline?: string | null;
   txHash?: string;
   blockNumber?: number;
   createdAt?: string;
@@ -53,7 +53,7 @@ export interface PoolFilters {
   category?: string;
   status?: 'active' | 'settled' | 'all';
   isPrivate?: boolean;
-  usesBitr?: boolean;
+  usesPrix?: boolean;
   sortBy?: 'created_at' | 'ending_soon' | 'odds' | 'stake';
   sortOrder?: 'asc' | 'desc';
   page?: number;
@@ -99,8 +99,8 @@ export class MarketsService {
         filteredPools = filteredPools.filter(pool => pool.isPrivate === filters.isPrivate);
       }
       
-      if (filters.usesBitr !== undefined) {
-        filteredPools = filteredPools.filter(pool => pool.usesBitr === filters.usesBitr);
+      if (filters.usesPrix !== undefined) {
+        filteredPools = filteredPools.filter(pool => pool.usesPrix === filters.usesPrix);
       }
       
       // Apply sorting

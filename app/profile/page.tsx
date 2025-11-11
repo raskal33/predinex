@@ -43,7 +43,7 @@ export default function ProfilePage() {
       winRate: profile.computedStats.winRateFormatted,
       profitLoss: profile.computedStats.profitLossFormatted,
       averageBetSize: profile.computedStats.averageBetSizeFormatted,
-      biggestWin: profile.stats.biggestWin.toFixed(2) + " STT",
+      biggestWin: profile.stats.biggestWin.toFixed(2) + " BNB",
       totalVolume: profile.computedStats.totalVolumeFormatted,
       creatorVolume: "N/A", // Could be calculated from category data
       bettorVolume: profile.computedStats.totalVolumeFormatted,
@@ -52,12 +52,12 @@ export default function ProfilePage() {
       totalBets: 0,
       wonBets: 0,
       winRate: "0%",
-      profitLoss: "0 STT",
-      averageBetSize: "0 STT",
-      biggestWin: "0 STT",
-      totalVolume: "0 STT",
-      creatorVolume: "0 STT",
-      bettorVolume: "0 STT",
+      profitLoss: "0 BNB",
+      averageBetSize: "0 BNB",
+      biggestWin: "0 BNB",
+      totalVolume: "0 BNB",
+      creatorVolume: "0 BNB",
+      bettorVolume: "0 BNB",
       lastBetDate: "N/A"
     },
     achievements: badgeData?.active ? badgeData.active.map(badge => ({
@@ -72,7 +72,7 @@ export default function ProfilePage() {
       { 
         id: 1, 
         name: "Getting Started", 
-        description: "Welcome to BitRedict!", 
+        description: "Welcome to Predinex!", 
         icon: "FaBolt", 
         date: "Now",
         rarity: "common",
@@ -89,7 +89,7 @@ export default function ProfilePage() {
       {
         id: 1,
         type: "bet_placed",
-        description: "Welcome to BitRedict! Start predicting to see your activity here.",
+        description: "Welcome to Predinex! Start predicting to see your activity here.",
         amount: null,
         date: "Now"
       }
@@ -336,7 +336,7 @@ export default function ProfilePage() {
                   />
                 </div>
                 <div className="mt-2 text-sm text-text-muted">
-                  Volume: {category.volume} STT
+                  Volume: {category.volume} BNB
                 </div>
               </div>
             ))}

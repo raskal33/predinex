@@ -34,7 +34,7 @@ export interface EnhancedPool {
   settled: boolean;
   creatorSideWon: boolean;
   isPrivate: boolean;
-  usesBitr: boolean;
+  usesPrix: boolean;
   filledAbove60: boolean;
   oracleType: 'GUIDED' | 'OPEN';
   status?: 'active' | 'closed' | 'settled' | 'cancelled';
@@ -51,7 +51,7 @@ export interface EnhancedPool {
   eventEndTime: number;
   bettingEndTime: number;
   resultTimestamp: number;
-  arbitrationDeadline: number;
+  arprixationDeadline: number;
   
   league: string;
   category: string;
@@ -61,6 +61,11 @@ export interface EnhancedPool {
   awayTeam?: string;
   maxBetPerUser: string;
   marketType?: string; // Market type for title generation
+  fixtureId?: string; // SportMonks fixture ID
+  // Team logos from backend
+  homeTeamLogo?: string;
+  awayTeamLogo?: string;
+  leagueLogo?: string;
   
   // Optional fields for enhanced display
   boostTier: 'NONE' | 'BRONZE' | 'SILVER' | 'GOLD';
@@ -697,7 +702,7 @@ export default function EnhancedPoolCard({
               
               // Show precise number to avoid confusion
               return totalFilled.toFixed(2);
-            })()} {pool.usesBitr ? 'BITR' : 'STT'} Filled
+            })()} {pool.usesPrix ? 'PRIX' : 'BNB'} Filled
           </span>
           <span>
             {(() => {
@@ -727,7 +732,7 @@ export default function EnhancedPoolCard({
               
               // Show precise number to avoid confusion and reverted transactions
               return totalCapacity.toFixed(2);
-            })()} {pool.usesBitr ? 'BITR' : 'STT'} Capacity
+            })()} {pool.usesPrix ? 'PRIX' : 'BNB'} Capacity
           </span>
         </div>
       </div>
@@ -850,7 +855,7 @@ export default function EnhancedPoolCard({
             <CurrencyDollarIcon className="w-3 h-3" />
             Creator Stake
           </div>
-          <div className="text-sm font-bold text-white">{formatStake(pool.creatorStake)} {pool.usesBitr ? 'BITR' : 'STT'}</div>
+          <div className="text-sm font-bold text-white">{formatStake(pool.creatorStake)} {pool.usesPrix ? 'PRIX' : 'BNB'}</div>
         </div>
         <div>
           <div className="text-xs text-gray-400 flex items-center justify-center gap-1">
@@ -864,7 +869,7 @@ export default function EnhancedPoolCard({
                 return indexedData.participantCount.toString();
               }
               
-              // Fallback: use participants from API (total YES bet amount in BITR)
+              // Fallback: use participants from API (total YES bet amount in PRIX)
               const participantAmount = parseFloat(pool.participants || "0");
               if (participantAmount > 0) {
                 // Show formatted amount with abbreviation
@@ -953,7 +958,7 @@ export default function EnhancedPoolCard({
               if (avgBet >= 1000000) return `${(avgBet / 1000000).toFixed(1)}M`;
               if (avgBet >= 1000) return `${(avgBet / 1000).toFixed(1)}K`;
               return avgBet > 0 ? avgBet.toFixed(2) : '0.00';
-            })()} {pool.usesBitr ? 'BITR' : 'STT'}
+            })()} {pool.usesPrix ? 'PRIX' : 'BNB'}
           </div>
         </div>
       </div>
@@ -1054,7 +1059,7 @@ export default function EnhancedPoolCard({
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="font-bold text-white">{boostCosts[tier]} STT</div>
+                      <div className="font-bold text-white">{boostCosts[tier]} BNB</div>
                       <div className="text-xs text-gray-400">24h duration</div>
                     </div>
                   </div>

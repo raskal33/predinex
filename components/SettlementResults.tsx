@@ -293,7 +293,7 @@ export default function SettlementResults({ poolId, className = "" }: Settlement
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-1">
                   <BanknotesIcon className="w-3 h-3" />
-                  <span>{formatCurrency(result.totalPoolSize)} STT</span>
+                  <span>{formatCurrency(result.totalPoolSize)} BNB</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <ChartBarIcon className="w-3 h-3" />
@@ -391,19 +391,19 @@ export default function SettlementResults({ poolId, className = "" }: Settlement
                     </div>
                     <div>
                       <span className="text-gray-400">Total Volume:</span>
-                      <div className="text-white font-medium">{formatCurrency(selectedResult.transparencyData.totalVolume)} STT</div>
+                      <div className="text-white font-medium">{formatCurrency(selectedResult.transparencyData.totalVolume)} BNB</div>
                     </div>
                     <div>
                       <span className="text-gray-400">Creator Stake:</span>
-                      <div className="text-white font-medium">{formatCurrency(selectedResult.transparencyData.creatorStake)} STT</div>
+                      <div className="text-white font-medium">{formatCurrency(selectedResult.transparencyData.creatorStake)} BNB</div>
                     </div>
                     <div>
                       <span className="text-gray-400">Bettor Stake:</span>
-                      <div className="text-white font-medium">{formatCurrency(selectedResult.transparencyData.bettorStake)} STT</div>
+                      <div className="text-white font-medium">{formatCurrency(selectedResult.transparencyData.bettorStake)} BNB</div>
                     </div>
                     <div>
                       <span className="text-gray-400">Fees Collected:</span>
-                      <div className="text-white font-medium">{formatCurrency(selectedResult.transparencyData.feesCollected)} STT</div>
+                      <div className="text-white font-medium">{formatCurrency(selectedResult.transparencyData.feesCollected)} BNB</div>
                     </div>
                     <div>
                       <span className="text-gray-400">Winners:</span>

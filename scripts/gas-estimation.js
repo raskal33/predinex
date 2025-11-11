@@ -1,15 +1,15 @@
-// Gas estimation script for BitredictPoolCore contracts
+// Gas estimation script for PrixedictPoolCore contracts
 const { ethers } = require("hardhat");
 
 async function estimateGasUsage() {
-    console.log("🔍 Gas Usage Analysis for BitredictPoolCore Contracts\n");
+    console.log("🔍 Gas Usage Analysis for PrixedictPoolCore Contracts\n");
     
     // Deploy both contracts for comparison
-    const BitredictPoolCore = await ethers.getContractFactory("BitredictPoolCore");
-    const BitredictPoolCoreOptimized = await ethers.getContractFactory("BitredictPoolCoreOptimized");
+    const PrixedictPoolCore = await ethers.getContractFactory("PrixedictPoolCore");
+    const PrixedictPoolCoreOptimized = await ethers.getContractFactory("PrixedictPoolCoreOptimized");
     
     // Mock addresses for testing
-    const mockBitrToken = "0x1234567890123456789012345678901234567890";
+    const mockPrixToken = "0x1234567890123456789012345678901234567890";
     const mockFeeCollector = "0x2345678901234567890123456789012345678901";
     const mockGuidedOracle = "0x3456789012345678901234567890123456789012";
     const mockOptimisticOracle = "0x4567890123456789012345678901234567890123";
@@ -17,8 +17,8 @@ async function estimateGasUsage() {
     console.log("📊 Deploying contracts for gas estimation...\n");
     
     // Deploy original contract
-    const originalContract = await BitredictPoolCore.deploy(
-        mockBitrToken,
+    const originalContract = await PrixedictPoolCore.deploy(
+        mockPrixToken,
         mockFeeCollector,
         mockGuidedOracle,
         mockOptimisticOracle
@@ -27,8 +27,8 @@ async function estimateGasUsage() {
     console.log("✅ Original contract deployed");
     
     // Deploy optimized contract
-    const optimizedContract = await BitredictPoolCoreOptimized.deploy(
-        mockBitrToken,
+    const optimizedContract = await PrixedictPoolCoreOptimized.deploy(
+        mockPrixToken,
         mockFeeCollector,
         mockGuidedOracle,
         mockOptimisticOracle
@@ -40,7 +40,7 @@ async function estimateGasUsage() {
     const testData = {
         predictedOutcome: ethers.keccak256(ethers.toUtf8Bytes("Team A wins")),
         odds: 200, // 2.00 odds
-        creatorStake: ethers.parseEther("1000"), // 1000 BITR
+        creatorStake: ethers.parseEther("1000"), // 1000 PRIX
         eventStartTime: Math.floor(Date.now() / 1000) + 3600, // 1 hour from now
         eventEndTime: Math.floor(Date.now() / 1000) + 7200, // 2 hours from now
         league: ethers.keccak256(ethers.toUtf8Bytes("Premier League")),
@@ -51,7 +51,7 @@ async function estimateGasUsage() {
         title: ethers.keccak256(ethers.toUtf8Bytes("Manchester United vs Liverpool")),
         isPrivate: false,
         maxBetPerUser: ethers.parseEther("100"),
-        useBitr: true,
+        usePrix: true,
         oracleType: 0, // GUIDED
         marketId: ethers.keccak256(ethers.toUtf8Bytes("market_123")),
         marketType: 0 // MONEYLINE
@@ -75,7 +75,7 @@ async function estimateGasUsage() {
             "Manchester United vs Liverpool",
             testData.isPrivate,
             testData.maxBetPerUser,
-            testData.useBitr,
+            testData.usePrix,
             testData.oracleType,
             testData.marketId,
             testData.marketType,
@@ -105,7 +105,7 @@ async function estimateGasUsage() {
             testData.title,
             testData.isPrivate,
             testData.maxBetPerUser,
-            testData.useBitr,
+            testData.usePrix,
             testData.oracleType,
             testData.marketId,
             testData.marketType,

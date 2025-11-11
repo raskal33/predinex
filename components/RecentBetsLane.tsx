@@ -32,7 +32,7 @@ interface RecentBet {
     homeTeam: string;
     awayTeam: string;
     title: string;
-    useBitr: boolean;
+    usePrix: boolean;
     odds: number;
     creatorAddress: string;
   };
@@ -58,7 +58,7 @@ export default function RecentBetsLane({ className = "" }: RecentBetsLaneProps) 
       action: 'Placed bet',
       icon: '🎯',
       odds: 175,
-      currency: 'STT',
+      currency: 'BNB',
       createdAt: new Date(Date.now() - 30000).toISOString(),
       timeAgo: "5m ago",
       pool: {
@@ -68,7 +68,7 @@ export default function RecentBetsLane({ className = "" }: RecentBetsLaneProps) 
         homeTeam: "Manchester United",
         awayTeam: "Liverpool",
         title: "Manchester United vs Liverpool",
-        useBitr: true,
+        usePrix: true,
         odds: 175,
         creatorAddress: "0x9876543210987654321098765432109876543210"
       }
@@ -90,7 +90,7 @@ export default function RecentBetsLane({ className = "" }: RecentBetsLaneProps) 
         homeTeam: "Barcelona",
         awayTeam: "Real Madrid",
         title: "Barcelona vs Real Madrid",
-        useBitr: true,
+        usePrix: true,
         odds: 210,
         creatorAddress: "0x8765432109876543210987654321098765432109"
       }
@@ -106,7 +106,7 @@ export default function RecentBetsLane({ className = "" }: RecentBetsLaneProps) 
       action: 'Created pool',
       icon: '🏗️',
       odds: 125,
-      currency: 'STT',
+      currency: 'BNB',
       createdAt: new Date(Date.now() - 60000).toISOString(),
       timeAgo: "12m ago",
       pool: {
@@ -116,7 +116,7 @@ export default function RecentBetsLane({ className = "" }: RecentBetsLaneProps) 
         homeTeam: "Juventus",
         awayTeam: "AC Milan",
         title: "Juventus vs AC Milan",
-        useBitr: true,
+        usePrix: true,
         odds: 125,
         creatorAddress: "0x7654321098765432109876543210987654321098"
       }
@@ -132,7 +132,7 @@ export default function RecentBetsLane({ className = "" }: RecentBetsLaneProps) 
       action: 'Added liquidity',
       icon: '💧',
       odds: 125,
-      currency: 'STT',
+      currency: 'BNB',
       createdAt: new Date(Date.now() - 75000).toISOString(),
       timeAgo: "10m ago",
       pool: {
@@ -142,7 +142,7 @@ export default function RecentBetsLane({ className = "" }: RecentBetsLaneProps) 
         homeTeam: "Juventus",
         awayTeam: "AC Milan",
         title: "Juventus vs AC Milan",
-        useBitr: true,
+        usePrix: true,
         odds: 125,
         creatorAddress: "0x7654321098765432109876543210987654321098"
       }
@@ -164,7 +164,7 @@ export default function RecentBetsLane({ className = "" }: RecentBetsLaneProps) 
         homeTeam: "BTC",
         awayTeam: "USD",
         title: "BTC Price Prediction",
-        useBitr: true,
+        usePrix: true,
         odds: 190,
         creatorAddress: "0x6543210987654321098765432109876543210987"
       }
@@ -193,7 +193,7 @@ export default function RecentBetsLane({ className = "" }: RecentBetsLaneProps) 
           action: bet.action || (bet.eventType === 'liquidity_added' ? 'Added liquidity' : 'Placed bet'),
           icon: bet.icon || (bet.eventType === 'liquidity_added' ? '💧' : '🎯'),
           odds: bet.odds,
-          currency: bet.currency || 'STT',
+          currency: bet.currency || 'BNB',
           createdAt: new Date(bet.timestamp * 1000).toISOString(),
           timeAgo: `${Math.floor((Date.now() - bet.timestamp * 1000) / 60000)}m ago`,
           pool: {
@@ -203,7 +203,7 @@ export default function RecentBetsLane({ className = "" }: RecentBetsLaneProps) 
             homeTeam: '',
             awayTeam: '',
             title: bet.poolTitle,
-            useBitr: false,
+            usePrix: false,
             odds: bet.odds || 0,
             creatorAddress: ''
           }
@@ -262,31 +262,30 @@ export default function RecentBetsLane({ className = "" }: RecentBetsLaneProps) 
   }
 
   return (
-    <div className={`bg-gradient-to-r from-gray-800/20 to-gray-900/20 backdrop-blur-lg border border-gray-700/30 rounded-2xl p-4 sm:p-6 ${className}`}>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4 sm:mb-6">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-lg">
-            <TrophyIcon className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+    <div className={`bg-slate-800/30 backdrop-blur-xl border border-slate-700/50 rounded-xl p-3 ${className}`}>
+      {/* Compact Header */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <div className="p-1.5 bg-gradient-to-r from-cyan-500/80 to-blue-500/80 rounded-lg">
+            <TrophyIcon className="h-3 w-3 text-white" />
           </div>
           <div>
-            <h3 className="text-base sm:text-lg font-bold text-white">Recent Bets</h3>
-            <p className="text-xs sm:text-sm text-gray-400">Live betting activity</p>
+            <h3 className="text-sm font-bold text-white">Recent Bets</h3>
           </div>
         </div>
         
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-          <span className="text-xs sm:text-sm text-gray-400">Live</span>
+        <div className="flex items-center gap-1.5">
+          <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div>
+          <span className="text-xs text-gray-400">Live</span>
         </div>
       </div>
 
-      {/* Moving Lane */}
+      {/* Moving Lane - Compact */}
       <div className="relative overflow-hidden">
         <motion.div
-          className="flex gap-3 sm:gap-4"
+          className="flex gap-2"
           animate={{
-            x: -currentIndex * 288 // Responsive width (72 * 4 = 288 for mobile, 80 * 4 = 320 for desktop)
+            x: -currentIndex * 240
           }}
           transition={{
             duration: 0.5,
@@ -298,84 +297,66 @@ export default function RecentBetsLane({ className = "" }: RecentBetsLaneProps) 
               key={bet.id}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="flex-shrink-0 w-72 sm:w-80"
+              className="flex-shrink-0 w-60"
             >
-              <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-xl p-4 hover:border-cyan-500/30 transition-all duration-300 group">
-                {/* User Info */}
-                <div className="flex items-center gap-2 sm:gap-3 mb-3">
-                  <div className="relative">
-                    <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full flex items-center justify-center">
-                      <UserIcon className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
-                    </div>
+              <div className="bg-slate-700/50 backdrop-blur-sm border border-slate-600/50 rounded-lg p-2.5 hover:border-cyan-500/30 transition-all duration-300">
+                {/* User Info - Compact */}
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-5 h-5 bg-gradient-to-r from-cyan-500/80 to-blue-500/80 rounded-full flex items-center justify-center flex-shrink-0">
+                    <UserIcon className="h-2.5 w-2.5 text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs sm:text-sm font-semibold text-white truncate">
+                    <p className="text-xs font-semibold text-white truncate">
                       {bet.bettorAddress.slice(0, 6)}...{bet.bettorAddress.slice(-4)}
                     </p>
-                    <p className="text-xs text-gray-400 truncate hidden sm:block">
-                      {bet.bettorAddress}
-                    </p>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <ClockIcon className="h-3 w-3 text-gray-400" />
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <ClockIcon className="h-2.5 w-2.5 text-gray-400" />
                     <span className="text-xs text-gray-400">
                       {formatTimeAgo(bet.timeAgo)}
                     </span>
                   </div>
                 </div>
 
-                {/* Bet Details */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm sm:text-lg">{getCategoryIcon(bet.pool.category, bet.pool.homeTeam)}</span>
-                    <span className="text-xs sm:text-sm font-medium text-white truncate">
+                {/* Bet Details - Compact */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs">{getCategoryIcon(bet.pool.category, bet.pool.homeTeam)}</span>
+                    <span className="text-xs font-medium text-white truncate flex-1">
                       {bet.pool.title}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1 sm:gap-2">
-                      {/* Event Type Badge */}
-                      <div className="flex items-center gap-1">
-                        <span className="text-sm">{bet.icon}</span>
-                        <span className={`text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full ${
-                          bet.eventType === 'pool_created' 
-                            ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                            : bet.eventType === 'liquidity_added'
-                            ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
-                            : bet.isForOutcome 
-                            ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' 
-                            : 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
-                        }`}>
-                          {bet.eventType === 'pool_created' ? 'Created' : 
-                           bet.eventType === 'liquidity_added' ? 'LP Added' :
-                           bet.isForOutcome ? 'YES' : 'NO'}
-                        </span>
-                      </div>
-                      
-                      {/* Action Badge */}
-                      {bet.action && (
-                        <span className="text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full bg-gray-500/20 text-gray-400">
-                          {bet.action}
-                        </span>
-                      )}
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs">{bet.icon}</span>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                        bet.eventType === 'pool_created' 
+                          ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                          : bet.eventType === 'liquidity_added'
+                          ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
+                          : bet.isForOutcome 
+                          ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' 
+                          : 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
+                      }`}>
+                        {bet.eventType === 'pool_created' ? 'Created' : 
+                         bet.eventType === 'liquidity_added' ? 'LP' :
+                         bet.isForOutcome ? 'YES' : 'NO'}
+                      </span>
                     </div>
                     
                     <div className="text-right">
-                      <p className="text-xs sm:text-sm font-bold text-white">
-                        {bet.amountFormatted} {bet.currency || (bet.pool.useBitr ? 'BITR' : 'STT')}
+                      <p className="text-xs font-bold text-white">
+                        {bet.amountFormatted} {bet.currency || (bet.pool.usePrix ? 'PRIX' : 'BNB')}
                       </p>
                       {bet.odds && (
-                        <p className="text-xs text-gray-400">
-                          @{(bet.odds / 100).toFixed(2)}x odds
+                        <p className="text-[10px] text-gray-400">
+                          @{(bet.odds / 100).toFixed(2)}x
                         </p>
                       )}
                     </div>
                   </div>
                 </div>
-
-                {/* Hover Effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 to-blue-500/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
               </div>
             </motion.div>
           ))}

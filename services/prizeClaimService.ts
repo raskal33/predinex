@@ -7,9 +7,9 @@ import { CONTRACTS } from '@/contracts';
  * Prize Claim Service for Guided and Open Prediction Markets
  * 
  * This service handles prize claiming for both guided and open markets:
- * - Guided markets: BitredictPool contract claim() function
- * - Open markets: BitredictPool contract claim() function  
- * - Combo markets: BitredictPool contract claimCombo() function
+ * - Guided markets: PrixedictPool contract claim() function
+ * - Open markets: PrixedictPool contract claim() function  
+ * - Combo markets: PrixedictPool contract claimCombo() function
  */
 
 export interface ClaimablePosition {
@@ -19,7 +19,7 @@ export interface ClaimablePosition {
   potentialPayout: string;
   isWinner: boolean;
   claimed: boolean;
-  usesBitr: boolean;
+  usesPrix: boolean;
   marketTitle: string;
   category: string;
   league: string;

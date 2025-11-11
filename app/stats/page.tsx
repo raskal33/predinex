@@ -178,7 +178,7 @@ export default function StatsPage() {
           >
             <AnalyticsCard
               title="Total Volume"
-              value={globalStats?.globalMetrics.totalVolume?.toFixed(2) || '0 STT'}
+              value={globalStats?.globalMetrics.totalVolume?.toFixed(2) || '0 BNB'}
               icon={CurrencyDollarIcon}
               color="primary"
               trend={{ value: 8.3, label: 'vs last week' }}

@@ -13,11 +13,11 @@ const FAUCET_ABI = [
   "function hasSufficientBalance() external view returns (bool)",
   "function maxPossibleClaims() external view returns (uint256)",
   "function owner() external view returns (address)",
-  "function bitrToken() external view returns (address)"
+  "function prixToken() external view returns (address)"
 ];
 
-// BITR Token ABI
-const BITR_ABI = [
+// PRIX Token ABI
+const PRIX_ABI = [
   "function balanceOf(address) external view returns (uint256)",
   "function totalSupply() external view returns (uint256)",
   "function name() external view returns (string)",
@@ -32,20 +32,20 @@ async function diagnoseFaucet() {
     // Environment variables
     const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL || 'https://dream-rpc.somnia.network/';
     const FAUCET_ADDRESS = process.env.NEXT_PUBLIC_FAUCET_ADDRESS;
-    const BITR_ADDRESS = process.env.NEXT_PUBLIC_BITR_TOKEN_ADDRESS;
+    const PRIX_ADDRESS = process.env.NEXT_PUBLIC_PRIX_TOKEN_ADDRESS;
 
     console.log('📋 Configuration:');
     console.log(`RPC URL: ${RPC_URL}`);
     console.log(`Faucet Address: ${FAUCET_ADDRESS}`);
-    console.log(`BITR Address: ${BITR_ADDRESS}\n`);
+    console.log(`PRIX Address: ${PRIX_ADDRESS}\n`);
 
     if (!FAUCET_ADDRESS) {
       console.error('❌ NEXT_PUBLIC_FAUCET_ADDRESS not set!');
       return;
     }
 
-    if (!BITR_ADDRESS) {
-      console.error('❌ NEXT_PUBLIC_BITR_TOKEN_ADDRESS not set!');
+    if (!PRIX_ADDRESS) {
+      console.error('❌ NEXT_PUBLIC_PRIX_TOKEN_ADDRESS not set!');
       return;
     }
 
@@ -59,13 +59,13 @@ async function diagnoseFaucet() {
 
     // Initialize contracts
     const faucetContract = new ethers.Contract(FAUCET_ADDRESS, FAUCET_ABI, provider);
-    const bitrContract = new ethers.Contract(BITR_ADDRESS, BITR_ABI, provider);
+    const prixContract = new ethers.Contract(PRIX_ADDRESS, PRIX_ABI, provider);
 
     console.log('📊 Contract Information:');
 
     // Check if contracts exist
     const faucetCode = await provider.getCode(FAUCET_ADDRESS);
-    const bitrCode = await provider.getCode(BITR_ADDRESS);
+    const prixCode = await provider.getCode(PRIX_ADDRESS);
 
     if (faucetCode === '0x') {
       console.error('❌ Faucet contract not deployed at this address!');
@@ -74,45 +74,45 @@ async function diagnoseFaucet() {
       console.log('✅ Faucet contract found');
     }
 
-    if (bitrCode === '0x') {
-      console.error('❌ BITR token contract not deployed at this address!');
+    if (prixCode === '0x') {
+      console.error('❌ PRIX token contract not deployed at this address!');
       return;
     } else {
-      console.log('✅ BITR token contract found');
+      console.log('✅ PRIX token contract found');
     }
 
-    // Get BITR token info
+    // Get PRIX token info
     try {
-      const bitrName = await bitrContract.name();
-      const bitrSymbol = await bitrContract.symbol();
-      const bitrDecimals = await bitrContract.decimals();
-      const bitrTotalSupply = await bitrContract.totalSupply();
+      const prixName = await prixContract.name();
+      const prixSymbol = await prixContract.symbol();
+      const prixDecimals = await prixContract.decimals();
+      const prixTotalSupply = await prixContract.totalSupply();
 
-      console.log(`\n💰 BITR Token Info:`);
-      console.log(`Name: ${bitrName}`);
-      console.log(`Symbol: ${bitrSymbol}`);
-      console.log(`Decimals: ${bitrDecimals}`);
-      console.log(`Total Supply: ${ethers.formatEther(bitrTotalSupply)} BITR`);
+      console.log(`\n💰 PRIX Token Info:`);
+      console.log(`Name: ${prixName}`);
+      console.log(`Symbol: ${prixSymbol}`);
+      console.log(`Decimals: ${prixDecimals}`);
+      console.log(`Total Supply: ${ethers.formatEther(prixTotalSupply)} PRIX`);
     } catch (error) {
-      console.error('❌ Error reading BITR token info:', error.message);
+      console.error('❌ Error reading PRIX token info:', error.message);
     }
 
     // Get faucet basic info
     try {
       const faucetAmount = await faucetContract.FAUCET_AMOUNT();
       const owner = await faucetContract.owner();
-      const linkedBitrAddress = await faucetContract.bitrToken();
+      const linkedPrixAddress = await faucetContract.prixToken();
 
       console.log(`\n🚰 Faucet Basic Info:`);
-      console.log(`Faucet Amount: ${ethers.formatEther(faucetAmount)} BITR`);
+      console.log(`Faucet Amount: ${ethers.formatEther(faucetAmount)} PRIX`);
       console.log(`Owner: ${owner}`);
-      console.log(`Linked BITR Address: ${linkedBitrAddress}`);
-      console.log(`Expected BITR Address: ${BITR_ADDRESS}`);
+      console.log(`Linked PRIX Address: ${linkedPrixAddress}`);
+      console.log(`Expected PRIX Address: ${PRIX_ADDRESS}`);
       
-      if (linkedBitrAddress.toLowerCase() !== BITR_ADDRESS.toLowerCase()) {
-        console.error('⚠️  WARNING: Faucet is linked to different BITR token address!');
+      if (linkedPrixAddress.toLowerCase() !== PRIX_ADDRESS.toLowerCase()) {
+        console.error('⚠️  WARNING: Faucet is linked to different PRIX token address!');
       } else {
-        console.log('✅ BITR address matches');
+        console.log('✅ PRIX address matches');
       }
     } catch (error) {
       console.error('❌ Error reading faucet basic info:', error.message);
@@ -126,15 +126,15 @@ async function diagnoseFaucet() {
 
       console.log(`\n📈 Faucet Statistics:`);
       console.log(`Active: ${active ? '✅ YES' : '❌ NO'}`);
-      console.log(`Balance: ${ethers.formatEther(balance)} BITR`);
-      console.log(`Total Distributed: ${ethers.formatEther(totalDistributed)} BITR`);
+      console.log(`Balance: ${ethers.formatEther(balance)} PRIX`);
+      console.log(`Total Distributed: ${ethers.formatEther(totalDistributed)} PRIX`);
       console.log(`Total Users: ${userCount.toString()}`);
       console.log(`Has Sufficient Balance: ${hasSufficientBalance ? '✅ YES' : '❌ NO'}`);
       console.log(`Max Possible Claims: ${maxClaims.toString()}`);
 
-      // Check faucet balance directly from BITR contract
-      const actualFaucetBalance = await bitrContract.balanceOf(FAUCET_ADDRESS);
-      console.log(`Actual BITR Balance: ${ethers.formatEther(actualFaucetBalance)} BITR`);
+      // Check faucet balance directly from PRIX contract
+      const actualFaucetBalance = await prixContract.balanceOf(FAUCET_ADDRESS);
+      console.log(`Actual PRIX Balance: ${ethers.formatEther(actualFaucetBalance)} PRIX`);
 
       if (actualFaucetBalance.toString() !== balance.toString()) {
         console.error('⚠️  WARNING: Contract balance mismatch!');
@@ -152,13 +152,13 @@ async function diagnoseFaucet() {
 
       if (!hasSufficientBalance) {
         console.error('🚨 ISSUE: Faucet has insufficient balance');
-        console.log(`   → Current balance: ${ethers.formatEther(balance)} BITR`);
-        console.log(`   → Required per claim: ${ethers.formatEther(await faucetContract.FAUCET_AMOUNT())} BITR`);
+        console.log(`   → Current balance: ${ethers.formatEther(balance)} PRIX`);
+        console.log(`   → Required per claim: ${ethers.formatEther(await faucetContract.FAUCET_AMOUNT())} PRIX`);
       }
 
       if (balance === 0n) {
         console.error('🚨 ISSUE: Faucet balance is ZERO');
-        console.log('   → Faucet needs to be funded with BITR tokens');
+        console.log('   → Faucet needs to be funded with PRIX tokens');
       }
 
     } catch (error) {

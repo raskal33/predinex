@@ -1,6 +1,6 @@
-# Bitredict - Decentralized Prediction Markets
+# Prixedict - Decentralized Prediction Markets
 
-This is the frontend for **Bitredict**, a comprehensive decentralized prediction market platform built on **Somnia blockchain** with smart contracts deployed on **Somnia testnet**.
+This is the frontend for **Prixedict**, a comprehensive decentralized prediction market platform built on **Somnia blockchain** with smart contracts deployed on **Somnia testnet**.
 
 ## 🚀 Features
 
@@ -12,10 +12,10 @@ This is the frontend for **Bitredict**, a comprehensive decentralized prediction
 - **Custom Markets**: User-defined prediction scenarios
 
 ### Token System
-- **BITR Token**: Primary utility token for high-value predictions
-- **STT Token**: Native blockchain token for standard predictions
-- **Creation Fees**: 50 BITR or 1 STT for pool creation
-- **Platform Fees**: Dynamic fee structure based on BITR holdings
+- **PRIX Token**: Primary utility token for high-value predictions
+- **BNB Token**: Native blockchain token for standard predictions
+- **Creation Fees**: 50 PRIX or 1 BNB for pool creation
+- **Platform Fees**: Dynamic fee structure based on PRIX holdings
 
 ### Advanced Features
 - **Reputation System**: User reputation tracking and tier-based permissions
@@ -84,7 +84,7 @@ Open [http://localhost:8080](http://localhost:8080) to view the application.
 - **Markets**: Browse all available prediction markets
 - **Create Prediction**: Pool creation interface
 - **Oddyssey**: Daily prediction game
-- **Staking**: BITR token staking interface
+- **Staking**: PRIX token staking interface
 - **Profile**: User dashboard and statistics
 
 ### Key Components
@@ -96,7 +96,7 @@ Open [http://localhost:8080](http://localhost:8080) to view the application.
 ## 🔧 Smart Contracts
 
 ### Core Contracts
-- **BitredictPoolCore**: Main prediction pool logic
+- **PrixedictPoolCore**: Main prediction pool logic
 - **ReputationSystem**: User reputation and permissions
 - **BoostSystem**: Pool promotion mechanics
 - **Oddyssey**: Daily prediction game contract
@@ -110,12 +110,12 @@ Open [http://localhost:8080](http://localhost:8080) to view the application.
 ## 🌐 Deployment
 
 ### Frontend (Vercel)
-- **Production URL**: [bitredict.vercel.app](https://bitredict.vercel.app)
+- **Production URL**: [prixedict.vercel.app](https://prixedict.vercel.app)
 - **Automatic Deployments**: Connected to main branch
 - **Environment**: Production-optimized build
 
 ### Backend (Fly.io)
-- **API Endpoint**: [bitredict-backend.fly.dev](https://bitredict-backend.fly.dev)
+- **API Endpoint**: [prixedict-backend.fly.dev](https://prixedict-backend.fly.dev)
 - **Database**: Neon PostgreSQL
 - **Real-time Data**: Football fixtures and market data
 

@@ -26,11 +26,11 @@ This directory contains scripts to debug and verify the faucet functionality.
 
 📋 Faucet Contract Details:
    Address: 0x1656712131BB07dDE6EeC7D88757Db24782cab71
-   BITR Token: 0x4b10fBFFDEE97C42E29899F47A2ECD30a38dBf2C
+   PRIX Token: 0x4b10fBFFDEE97C42E29899F47A2ECD30a38dBf2C
 
 📊 Faucet Statistics:
-   Balance: 20000000.0 BITR
-   Total Distributed: 0.0 BITR
+   Balance: 20000000.0 PRIX
+   Total Distributed: 0.0 PRIX
    User Count: 0
    Active: ✅ YES
 
@@ -40,7 +40,7 @@ This directory contains scripts to debug and verify the faucet functionality.
    Max Possible Claims: 1000
 
 💰 Token Balance Check:
-   Faucet BITR Balance: 20000000.0 BITR
+   Faucet PRIX Balance: 20000000.0 PRIX
    Possible Claims: 1000
 
 🎯 Summary:
@@ -69,12 +69,12 @@ This directory contains scripts to debug and verify the faucet functionality.
 
 📋 Environment Variables:
    NEXT_PUBLIC_FAUCET_ADDRESS: 0x1656712131BB07dDE6EeC7D88757Db24782cab71
-   NEXT_PUBLIC_BITR_TOKEN_ADDRESS: 0x4b10fBFFDEE97C42E29899F47A2ECD30a38dBf2C
+   NEXT_PUBLIC_PRIX_TOKEN_ADDRESS: 0x4b10fBFFDEE97C42E29899F47A2ECD30a38dBf2C
    ✅ All contract addresses match deployment
 
 📁 Contract Files Check:
-   ✅ contracts/abis/BitrFaucet.json
-   ✅ contracts/abis/BitredictToken.json
+   ✅ contracts/abis/PrixFaucet.json
+   ✅ contracts/abis/PrixedictToken.json
    ✅ contracts/index.ts
    ✅ config/wagmi.ts
    ✅ hooks/useFaucet.ts
@@ -92,15 +92,15 @@ This directory contains scripts to debug and verify the faucet functionality.
 📞 Contract Call Tests:
 🔍 Testing getFaucetStats...
    ✅ getFaucetStats successful
-   📊 Balance: 20000000.0 BITR
-   📊 Total Distributed: 0.0 BITR
+   📊 Balance: 20000000.0 PRIX
+   📊 Total Distributed: 0.0 PRIX
    📊 User Count: 0
    📊 Active: ✅ YES
 
 🎭 Frontend Hook Simulation:
 📊 Simulated FaucetStats:
-   Balance: 20000000.0 BITR
-   Total Distributed: 0.0 BITR
+   Balance: 20000000.0 PRIX
+   Total Distributed: 0.0 PRIX
    User Count: 0
    Active: ✅ YES
 
@@ -168,8 +168,8 @@ npm run remove-faucet-debug
    - Use the deployer wallet: `0x483fc7FD690dCf2a01318282559C389F385d4428`
 
 3. **If faucet has insufficient balance:**
-   - Transfer more BITR tokens to faucet contract
-   - Required: 20,000 BITR per claim
+   - Transfer more PRIX tokens to faucet contract
+   - Required: 20,000 PRIX per claim
 
 4. **If RPC issues:**
    - Check network connectivity
@@ -199,13 +199,13 @@ npm run remove-faucet-debug
 
 ### ✅ Healthy Faucet:
 - Active: `true`
-- Balance: `20000000.0 BITR` (or more)
+- Balance: `20000000.0 PRIX` (or more)
 - Has Sufficient Balance: `true`
 - Max Possible Claims: `1000` (or more)
 
 ### ❌ Common Issues:
 - **Inactive faucet:** `Active: false` → Call `setFaucetActive(true)`
-- **Insufficient balance:** `Balance: 0.0 BITR` → Transfer tokens
+- **Insufficient balance:** `Balance: 0.0 PRIX` → Transfer tokens
 - **RPC issues:** Connection failures → Check network
 - **ABI issues:** Function not found → Update contract artifacts
 

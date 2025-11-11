@@ -1,6 +1,6 @@
 /**
  * Direct Pool Contract Service
- * Fetches pool data directly from the BitredictPoolCore contract
+ * Fetches pool data directly from the PrixedictPoolCore contract
  */
 
 import { 
@@ -12,33 +12,33 @@ import {
 import { CONTRACTS } from '@/contracts';
 import { processRawPoolData } from '@/utils/contractDataDecoder';
 
-// Somnia Testnet configuration
-const somniaChain = {
-  id: 50312,
-  name: 'Somnia Testnet',
+// BSC Testnet configuration
+const bscTestnetChain = {
+  id: 97,
+  name: 'BSC Testnet',
   nativeCurrency: {
     decimals: 18,
-    name: 'STT',
-    symbol: 'STT',
+    name: 'BNB',
+    symbol: 'BNB',
   },
   rpcUrls: {
     default: {
       http: [
         process.env.NODE_ENV === 'development' 
           ? 'http://localhost:8080/api/rpc-proxy'
-          : process.env.NEXT_PUBLIC_RPC_URL || 'https://dream-rpc.somnia.network/'
+          : process.env.NEXT_PUBLIC_RPC_URL || 'https://bsc-testnet-rpc.publicnode.com'
       ],
     },
   },
   blockExplorers: {
-    default: { name: 'Somnia Explorer', url: 'https://shannon-explorer.somnia.network' },
+    default: { name: 'BscScan', url: 'https://testnet.bscscan.com' },
   },
   testnet: true,
 };
 
 export class PoolContractService {
   private static publicClient = createPublicClient({
-    chain: somniaChain,
+    chain: bscTestnetChain,
     transport: http()
   });
 
@@ -112,7 +112,7 @@ export class PoolContractService {
         eventEndTime: Number(pool.eventEndTime),
         bettingEndTime: Number(pool.bettingEndTime),
         resultTimestamp: Number(pool.resultTimestamp),
-        arbitrationDeadline: Number(pool.arbitrationDeadline),
+        arprixationDeadline: Number(pool.arprixationDeadline),
         maxBetPerUser: Number(pool.maxBetPerUser),
         marketId: pool.marketId,
         league: pool.league,
@@ -141,7 +141,7 @@ export class PoolContractService {
         title: processedPool.title,
         homeTeam: processedPool.homeTeam,
         awayTeam: processedPool.awayTeam,
-        usesBitr: processedPool.usesBitr,
+        usesPrix: processedPool.usesPrix,
         isPrivate: processedPool.isPrivate,
         settled: processedPool.settled
       });
@@ -200,8 +200,8 @@ export class PoolContractService {
       const allPools = await this.getPools(totalPools, 0);
       
       let totalVolume = 0;
-      let bitrVolume = 0;
-      let sttVolume = 0;
+      let prixVolume = 0;
+      let bnbVolume = 0;
       let activeMarkets = 0;
       let participants = 0;
       
@@ -213,9 +213,9 @@ export class PoolContractService {
         totalVolume += poolVolume;
         
         if (creatorStake >= 1000) {
-          bitrVolume += poolVolume;
+          prixVolume += poolVolume;
         } else {
-          sttVolume += poolVolume;
+          bnbVolume += poolVolume;
         }
         
         if (!pool.settled) {
@@ -227,8 +227,8 @@ export class PoolContractService {
       
       return {
         totalVolume: totalVolume.toString(),
-        bitrVolume: bitrVolume.toString(),
-        sttVolume: sttVolume.toString(),
+        prixVolume: prixVolume.toString(),
+        bnbVolume: bnbVolume.toString(),
         activeMarkets,
         participants,
         totalPools,
@@ -240,8 +240,8 @@ export class PoolContractService {
       console.error('Error fetching pool stats:', error);
       return {
         totalVolume: "0",
-        bitrVolume: "0",
-        sttVolume: "0",
+        prixVolume: "0",
+        bnbVolume: "0",
         activeMarkets: 0,
         participants: 0,
         totalPools: 0,

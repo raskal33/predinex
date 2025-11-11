@@ -10,7 +10,7 @@ const { ethers } = require('ethers');
 // Configuration
 const RPC_URL = 'https://dream-rpc.somnia.network/';
 const POOL_CORE_ADDRESS = '0xA966a3fb0471D3A107eE834EA67E77f04177AD87';
-const BITR_TOKEN_ADDRESS = '0x67aa1549551ff4479B68F1eC19fD011571C7db10';
+const PRIX_TOKEN_ADDRESS = '0x67aa1549551ff4479B68F1eC19fD011571C7db10';
 
 // Test wallet (you'll need to replace with your test wallet)
 const TEST_PRIVATE_KEY = process.env.TEST_PRIVATE_KEY || '0x0000000000000000000000000000000000000000000000000000000000000000';
@@ -27,7 +27,7 @@ async function testPoolCreation() {
     
     // Check balance
     const balance = await provider.getBalance(wallet.address);
-    console.log('💰 Wallet balance:', ethers.formatEther(balance), 'STT');
+    console.log('💰 Wallet balance:', ethers.formatEther(balance), 'BNB');
     
     if (balance === 0n) {
       console.error('❌ Wallet has no balance for testing');
@@ -36,7 +36,7 @@ async function testPoolCreation() {
 
     // Load contract ABI (simplified for testing)
     const PoolCoreABI = [
-      "function createPool(bytes32 _predictedOutcome, uint256 _odds, uint256 _creatorStake, uint256 _eventStartTime, uint256 _eventEndTime, string memory _league, string memory _category, string memory _region, string memory _homeTeam, string memory _awayTeam, string memory _title, bool _isPrivate, uint256 _maxBetPerUser, bool _useBitr, uint8 _oracleType, bytes32 _marketId, uint8 _marketType) external payable returns (uint256)",
+      "function createPool(bytes32 _predictedOutcome, uint256 _odds, uint256 _creatorStake, uint256 _eventStartTime, uint256 _eventEndTime, string memory _league, string memory _category, string memory _region, string memory _homeTeam, string memory _awayTeam, string memory _title, bool _isPrivate, uint256 _maxBetPerUser, bool _usePrix, uint8 _oracleType, bytes32 _marketId, uint8 _marketType) external payable returns (uint256)",
       "function poolCount() external view returns (uint256)"
     ];
 
@@ -46,7 +46,7 @@ async function testPoolCreation() {
     const testPoolData = {
       predictedOutcome: ethers.keccak256(ethers.toUtf8Bytes("Test Outcome")),
       odds: 250, // 2.5x odds
-      creatorStake: ethers.parseEther("1"), // 1 STT
+      creatorStake: ethers.parseEther("1"), // 1 BNB
       eventStartTime: Math.floor(Date.now() / 1000) + 3600, // 1 hour from now
       eventEndTime: Math.floor(Date.now() / 1000) + 7200, // 2 hours from now
       league: "Test League",
@@ -57,7 +57,7 @@ async function testPoolCreation() {
       title: "Test Match",
       isPrivate: false,
       maxBetPerUser: 0,
-      useBitr: false, // Use STT for testing
+      usePrix: false, // Use BNB for testing
       oracleType: 0, // GUIDED
       marketId: ethers.keccak256(ethers.toUtf8Bytes("test-market-123")),
       marketType: 0 // MONEYLINE
@@ -81,7 +81,7 @@ async function testPoolCreation() {
         testPoolData.title,
         testPoolData.isPrivate,
         testPoolData.maxBetPerUser,
-        testPoolData.useBitr,
+        testPoolData.usePrix,
         testPoolData.oracleType,
         testPoolData.marketId,
         testPoolData.marketType,

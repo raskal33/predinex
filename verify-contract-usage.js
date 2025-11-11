@@ -3,8 +3,8 @@
 /**
  * CONTRACT USAGE VERIFICATION
  * 
- * Verifies that the frontend is using the correct BitredictPoolCore contract
- * instead of the old BitredictPool contract
+ * Verifies that the frontend is using the correct PrixedictPoolCore contract
+ * instead of the old PrixedictPool contract
  */
 
 const fs = require('fs');
@@ -51,11 +51,11 @@ class ContractUsageVerifier {
         this.issues.push('POOL_CORE contract not configured correctly');
       }
       
-      // Check if old BITREDICT_POOL is still being used
-      if (configContent.includes('BITREDICT_POOL:') && configContent.includes('0x3A6AFdC8C9c0eBe377B5413e87F1005675bbA413')) {
-        console.log('⚠️ BITREDICT_POOL points to old address (DEPRECATED - use POOL_CORE)');
-      } else if (configContent.includes('BITREDICT_POOL:') && configContent.includes('0xBc54c64800d37d4A85C0ab15A13110a75742f423')) {
-        console.log('⚠️ BITREDICT_POOL points to same address as POOL_CORE (DEPRECATED - use POOL_CORE)');
+      // Check if old PRIXEDICT_POOL is still being used
+      if (configContent.includes('PRIXEDICT_POOL:') && configContent.includes('0x3A6AFdC8C9c0eBe377B5413e87F1005675bbA413')) {
+        console.log('⚠️ PRIXEDICT_POOL points to old address (DEPRECATED - use POOL_CORE)');
+      } else if (configContent.includes('PRIXEDICT_POOL:') && configContent.includes('0xBc54c64800d37d4A85C0ab15A13110a75742f423')) {
+        console.log('⚠️ PRIXEDICT_POOL points to same address as POOL_CORE (DEPRECATED - use POOL_CORE)');
       }
       
     } catch (error) {
@@ -78,14 +78,14 @@ class ContractUsageVerifier {
       if (fs.existsSync(componentPath)) {
         const content = fs.readFileSync(componentPath, 'utf8');
         
-        if (content.includes('BitredictPoolABI')) {
-          this.issues.push(`${component} still uses old BitredictPoolABI`);
+        if (content.includes('PrixedictPoolABI')) {
+          this.issues.push(`${component} still uses old PrixedictPoolABI`);
         } else if (content.includes('CONTRACTS.POOL_CORE')) {
           console.log(`✅ ${component} uses POOL_CORE correctly`);
         }
         
-        if (content.includes('CONTRACTS.BITREDICT_POOL')) {
-          this.issues.push(`${component} still uses DEPRECATED BITREDICT_POOL (use POOL_CORE)`);
+        if (content.includes('CONTRACTS.PRIXEDICT_POOL')) {
+          this.issues.push(`${component} still uses DEPRECATED PRIXEDICT_POOL (use POOL_CORE)`);
         }
       }
     }
@@ -106,8 +106,8 @@ class ContractUsageVerifier {
       if (fs.existsSync(hookPath)) {
         const content = fs.readFileSync(hookPath, 'utf8');
         
-        if (content.includes('CONTRACTS.BITREDICT_POOL')) {
-          this.issues.push(`${hook} still uses DEPRECATED BITREDICT_POOL (use POOL_CORE)`);
+        if (content.includes('CONTRACTS.PRIXEDICT_POOL')) {
+          this.issues.push(`${hook} still uses DEPRECATED PRIXEDICT_POOL (use POOL_CORE)`);
         } else if (content.includes('CONTRACTS.POOL_CORE')) {
           console.log(`✅ ${hook} uses POOL_CORE correctly`);
         }
@@ -130,8 +130,8 @@ class ContractUsageVerifier {
       if (fs.existsSync(servicePath)) {
         const content = fs.readFileSync(servicePath, 'utf8');
         
-        if (content.includes('CONTRACTS.BITREDICT_POOL')) {
-          this.issues.push(`${service} still uses DEPRECATED BITREDICT_POOL (use POOL_CORE)`);
+        if (content.includes('CONTRACTS.PRIXEDICT_POOL')) {
+          this.issues.push(`${service} still uses DEPRECATED PRIXEDICT_POOL (use POOL_CORE)`);
         } else if (content.includes('CONTRACTS.POOL_CORE')) {
           console.log(`✅ ${service} uses POOL_CORE correctly`);
         }
@@ -145,8 +145,8 @@ class ContractUsageVerifier {
     
     if (this.issues.length === 0) {
       console.log('✅ All contract usage is correct!');
-      console.log('✅ Frontend is using BitredictPoolCore contract properly');
-      console.log('✅ No old BitredictPool references found');
+      console.log('✅ Frontend is using PrixedictPoolCore contract properly');
+      console.log('✅ No old PrixedictPool references found');
     } else {
       console.log('❌ Issues found:');
       this.issues.forEach(issue => {
@@ -156,16 +156,16 @@ class ContractUsageVerifier {
     
     console.log('\n📋 SUMMARY:');
     console.log(`Contract Address: 0x3A6AFdC8C9c0eBe377B5413e87F1005675bbA413`);
-    console.log(`Contract Type: BitredictPoolCore (New Modular Architecture)`);
-    console.log(`ABI File: contracts/abis/BitredictPoolCore.json`);
+    console.log(`Contract Type: PrixedictPoolCore (New Modular Architecture)`);
+    console.log(`ABI File: contracts/abis/PrixedictPoolCore.json`);
     console.log(`Configuration: CONTRACTS.POOL_CORE`);
     
     if (this.issues.length > 0) {
       console.log('\n🔧 RECOMMENDED FIXES:');
-      console.log('1. Replace all CONTRACTS.BITREDICT_POOL with CONTRACTS.POOL_CORE (DEPRECATED)');
-      console.log('2. Replace all BitredictPoolABI with CONTRACTS.POOL_CORE.abi (DEPRECATED)');
+      console.log('1. Replace all CONTRACTS.PRIXEDICT_POOL with CONTRACTS.POOL_CORE (DEPRECATED)');
+      console.log('2. Replace all PrixedictPoolABI with CONTRACTS.POOL_CORE.abi (DEPRECATED)');
       console.log('3. Update any hardcoded contract addresses to use POOL_CORE');
-      console.log('4. BITREDICT_POOL is now DEPRECATED - use POOL_CORE everywhere');
+      console.log('4. PRIXEDICT_POOL is now DEPRECATED - use POOL_CORE everywhere');
     }
   }
 }

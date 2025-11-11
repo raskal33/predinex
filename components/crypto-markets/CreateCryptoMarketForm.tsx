@@ -19,7 +19,7 @@ interface CryptoMarketFormData {
   eventEndTime: string;
   league: string;
   category: string;
-  useBitr: boolean;
+  usePrix: boolean;
   maxBetPerUser: string;
   isPrivate: boolean;
   creatorStake: string;
@@ -68,11 +68,11 @@ const TIME_FRAMES = [
 ];
 
 const BOOST_TIERS = [
-  { value: 0, label: 'No Boost', cost: '0 STT' },
-  { value: 1, label: 'Bronze Boost', cost: '100 STT' },
-  { value: 2, label: 'Silver Boost', cost: '500 STT' },
-  { value: 3, label: 'Gold Boost', cost: '1000 STT' },
-  { value: 4, label: 'Platinum Boost', cost: '2500 STT' },
+  { value: 0, label: 'No Boost', cost: '0 BNB' },
+  { value: 1, label: 'Bronze Boost', cost: '100 BNB' },
+  { value: 2, label: 'Silver Boost', cost: '500 BNB' },
+  { value: 3, label: 'Gold Boost', cost: '1000 BNB' },
+  { value: 4, label: 'Platinum Boost', cost: '2500 BNB' },
 ];
 
 export default function CreateCryptoMarketForm({ onSuccess, onClose }: CreateCryptoMarketFormProps) {
@@ -90,7 +90,7 @@ export default function CreateCryptoMarketForm({ onSuccess, onClose }: CreateCry
     eventEndTime: '',
     league: 'Crypto',
     category: 'bitcoin',
-    useBitr: true, // Default to BITR for crypto
+    usePrix: true, // Default to PRIX for crypto
     maxBetPerUser: '100',
     isPrivate: false,
     creatorStake: '1.0',
@@ -280,7 +280,7 @@ export default function CreateCryptoMarketForm({ onSuccess, onClose }: CreateCry
 
     try {
       // Check faucet eligibility if needed
-      if (!formData.useBitr) {
+      if (!formData.usePrix) {
         const isEligible = await checkEligibility();
         if (!isEligible) {
           toast.error('You need to claim from the faucet first to create pools');
@@ -326,7 +326,7 @@ export default function CreateCryptoMarketForm({ onSuccess, onClose }: CreateCry
         eventEndTime: BigInt(eventEndTimestamp),
         league: formData.league,
         category: formData.category,
-        useBitr: formData.useBitr,
+        usePrix: formData.usePrix,
         maxBetPerUser: formData.maxBetPerUser ? BigInt(parseFloat(formData.maxBetPerUser) * 1e18) : BigInt(0),
         isPrivate: formData.isPrivate,
         creatorStake: BigInt(parseFloat(formData.creatorStake) * 1e18),
@@ -707,7 +707,7 @@ export default function CreateCryptoMarketForm({ onSuccess, onClose }: CreateCry
           {/* Max Bet Per User */}
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Max Bet Per User (STT)
+              Max Bet Per User (BNB)
             </label>
             <input
               type="number"
@@ -723,17 +723,17 @@ export default function CreateCryptoMarketForm({ onSuccess, onClose }: CreateCry
             )}
           </div>
 
-          {/* Use BITR */}
+          {/* Use PRIX */}
           <div className="flex items-center space-x-2">
             <input
               type="checkbox"
-              id="useBitr"
-              checked={formData.useBitr}
-              onChange={(e) => handleInputChange('useBitr', e.target.checked)}
+              id="usePrix"
+              checked={formData.usePrix}
+              onChange={(e) => handleInputChange('usePrix', e.target.checked)}
               className="w-4 h-4 text-blue-600 bg-gray-800 border-gray-600 rounded focus:ring-blue-500"
             />
-            <label htmlFor="useBitr" className="text-sm font-medium text-gray-300">
-              Use BITR tokens for this pool
+            <label htmlFor="usePrix" className="text-sm font-medium text-gray-300">
+              Use PRIX tokens for this pool
             </label>
           </div>
 

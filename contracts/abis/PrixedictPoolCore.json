@@ -1,0 +1,2082 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_prixToken",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_feeCollector",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_guidedOracle",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_optimisticOracle",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      }
+    ],
+    "name": "OwnableInvalidOwner",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "OwnableUnauthorizedAccount",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ReentrancyGuardReentrantCall",
+    "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "poolId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "totalVolume",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "participantCount",
+        "type": "uint256"
+      }
+    ],
+    "name": "AnalyticsUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "poolId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "bettor",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "isForOutcome",
+        "type": "bool"
+      }
+    ],
+    "name": "BetPlaced",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "poolId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "creator",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "bnbAmount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "prixAmount",
+        "type": "uint256"
+      }
+    ],
+    "name": "CreatorFeeAccrued",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "creator",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "bnbAmount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "prixAmount",
+        "type": "uint256"
+      }
+    ],
+    "name": "CreatorFeeClaimed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "poolId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "provider",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "LiquidityAdded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "previousOwner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "OwnershipTransferred",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "poolId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "creator",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "eventStartTime",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "eventEndTime",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "enum OracleType",
+        "name": "oracleType",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "enum MarketType",
+        "name": "marketType",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "marketId",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes32",
+        "name": "league",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes32",
+        "name": "category",
+        "type": "bytes32"
+      }
+    ],
+    "name": "PoolCreated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "poolId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "reason",
+        "type": "string"
+      }
+    ],
+    "name": "PoolRefunded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "poolId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes32",
+        "name": "result",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "creatorSideWon",
+        "type": "bool"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      }
+    ],
+    "name": "PoolSettled",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "enum ReputationSystem.ReputationAction",
+        "name": "action",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "value",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "poolId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      }
+    ],
+    "name": "ReputationActionOccurred",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "poolId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "RewardClaimed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "poolId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      }
+    ],
+    "name": "UserWhitelisted",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "HIGH_ODDS_THRESHOLD",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "MAX_LP_PROVIDERS",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "MAX_PARTICIPANTS",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "REFUND_BATCH_SIZE",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "poolId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "addLiquidity",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "poolId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      }
+    ],
+    "name": "addToWhitelist",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      }
+    ],
+    "name": "adjustedFeeRate",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "arbitrationTimeout",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "poolId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "startIndex",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "batchSize",
+        "type": "uint256"
+      }
+    ],
+    "name": "batchRefund",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "bettingGracePeriod",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "bettorStakes",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "boostSystem",
+    "outputs": [
+      {
+        "internalType": "contract IPredinexBoostSystem",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "categoryPools",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "poolId",
+        "type": "uint256"
+      }
+    ],
+    "name": "checkAndRefundEmptyPool",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "poolId",
+        "type": "uint256"
+      }
+    ],
+    "name": "claim",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "claimCreatorFees",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "claimed",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_predictedOutcome",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_odds",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_creatorStake",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_eventStartTime",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_eventEndTime",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "_league",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "_category",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "_homeTeam",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "_awayTeam",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "_title",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bool",
+        "name": "_isPrivate",
+        "type": "bool"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_maxBetPerUser",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "_usePrix",
+        "type": "bool"
+      },
+      {
+        "internalType": "enum OracleType",
+        "name": "_oracleType",
+        "type": "uint8"
+      },
+      {
+        "internalType": "enum MarketType",
+        "name": "_marketType",
+        "type": "uint8"
+      },
+      {
+        "internalType": "string",
+        "name": "_marketId",
+        "type": "string"
+      }
+    ],
+    "name": "createPool",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "creationFeeBNB",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "creationFeePrix",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "creatorActivePools",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "creatorPendingFeesBNB",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "creatorPendingFeesPrix",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "creatorStats",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "totalPoolsCreated",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "successfulPools",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalVolumeGenerated",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "averagePoolSize",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "reputationScore",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "winRate",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalEarnings",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "activePoolsCount",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "stakingContract",
+        "type": "address"
+      }
+    ],
+    "name": "distributeFees",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "feeCollector",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "offset",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "limit",
+        "type": "uint256"
+      }
+    ],
+    "name": "getActivePoolsPaginated",
+    "outputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "poolIds",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalCount",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "poolId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      }
+    ],
+    "name": "getClaimInfo",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "canClaim",
+        "type": "bool"
+      },
+      {
+        "internalType": "uint256",
+        "name": "claimableAmount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "isWinner",
+        "type": "bool"
+      },
+      {
+        "internalType": "uint256",
+        "name": "userStake",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "alreadyClaimed",
+        "type": "bool"
+      },
+      {
+        "internalType": "string",
+        "name": "reason",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "creator",
+        "type": "address"
+      }
+    ],
+    "name": "getCreatorPendingFees",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "bnbAmount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "prixAmount",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "poolId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getPool",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "creator",
+            "type": "address"
+          },
+          {
+            "internalType": "uint16",
+            "name": "odds",
+            "type": "uint16"
+          },
+          {
+            "internalType": "uint8",
+            "name": "flags",
+            "type": "uint8"
+          },
+          {
+            "internalType": "enum OracleType",
+            "name": "oracleType",
+            "type": "uint8"
+          },
+          {
+            "internalType": "enum MarketType",
+            "name": "marketType",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint8",
+            "name": "reserved",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint256",
+            "name": "creatorStake",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "totalCreatorSideStake",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxBettorStake",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "totalBettorStake",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "predictedOutcome",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "result",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "uint256",
+            "name": "eventStartTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "eventEndTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "bettingEndTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "resultTimestamp",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "arbitrationDeadline",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxBetPerUser",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "league",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "category",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "homeTeam",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "awayTeam",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "title",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "string",
+            "name": "marketId",
+            "type": "string"
+          }
+        ],
+        "internalType": "struct PredinexPoolCore.Pool",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "poolId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getPoolStats",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "totalBettorStake",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalCreatorSideStake",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "bettorCount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "lpCount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "isSettled",
+        "type": "bool"
+      },
+      {
+        "internalType": "bool",
+        "name": "isRefunded",
+        "type": "bool"
+      },
+      {
+        "internalType": "bool",
+        "name": "eligibleForRefund",
+        "type": "bool"
+      },
+      {
+        "internalType": "uint256",
+        "name": "timeUntilEventStart",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "timeUntilBettingEnd",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "creator",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "limit",
+        "type": "uint256"
+      }
+    ],
+    "name": "getPoolsByCreator",
+    "outputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "globalStats",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "totalPools",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalVolume",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalUsers",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalBets",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "averagePoolSize",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "lastUpdated",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "guidedOracle",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "poolId",
+        "type": "uint256"
+      }
+    ],
+    "name": "isEligibleForRefund",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "poolId",
+        "type": "uint256"
+      }
+    ],
+    "name": "isPoolRefunded",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "longestStreak",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "lpStakes",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "minBetAmount",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "minPoolStakeBNB",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "minPoolStakePrix",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "optimisticOracle",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "owner",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "poolId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "placeBet",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "platformFee",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "poolAnalytics",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "totalVolume",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "participantCount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "averageBetSize",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "creatorReputation",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "liquidityRatio",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "timeToFill",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "isHotPool",
+        "type": "bool"
+      },
+      {
+        "internalType": "uint256",
+        "name": "fillPercentage",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "lastActivityTime",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "poolBettors",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "poolCollectedFeesBNB",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "poolCollectedFeesPrix",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "poolCount",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "poolDisplayData",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "poolId",
+        "type": "uint256"
+      }
+    ],
+    "name": "poolExists",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "poolIdToCreatorIndex",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "poolLPs",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "poolWhitelist",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "pools",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "creator",
+        "type": "address"
+      },
+      {
+        "internalType": "uint16",
+        "name": "odds",
+        "type": "uint16"
+      },
+      {
+        "internalType": "uint8",
+        "name": "flags",
+        "type": "uint8"
+      },
+      {
+        "internalType": "enum OracleType",
+        "name": "oracleType",
+        "type": "uint8"
+      },
+      {
+        "internalType": "enum MarketType",
+        "name": "marketType",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint8",
+        "name": "reserved",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint256",
+        "name": "creatorStake",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalCreatorSideStake",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "maxBettorStake",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalBettorStake",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "predictedOutcome",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "result",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint256",
+        "name": "eventStartTime",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "eventEndTime",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "bettingEndTime",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "resultTimestamp",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "arbitrationDeadline",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "maxBetPerUser",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "league",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "category",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "homeTeam",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "awayTeam",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "title",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "string",
+        "name": "marketId",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "predictionStreaks",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "prixToken",
+    "outputs": [
+      {
+        "internalType": "contract IERC20",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "poolId",
+        "type": "uint256"
+      }
+    ],
+    "name": "refundPool",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "poolId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      }
+    ],
+    "name": "removeFromWhitelist",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "renounceOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "reputationSystem",
+    "outputs": [
+      {
+        "internalType": "contract IReputationSystem",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_boostSystem",
+        "type": "address"
+      }
+    ],
+    "name": "setBoostSystem",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_reputationSystem",
+        "type": "address"
+      }
+    ],
+    "name": "setReputationSystem",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "poolId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "outcome",
+        "type": "bytes32"
+      }
+    ],
+    "name": "settlePool",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "poolId",
+        "type": "uint256"
+      }
+    ],
+    "name": "settlePoolAutomatically",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "streakMultiplier",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "totalCollectedBNB",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "totalCollectedPrix",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "transferOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "internalType": "bool",
+        "name": "won",
+        "type": "bool"
+      }
+    ],
+    "name": "updateStreak",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+]

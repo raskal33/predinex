@@ -80,10 +80,10 @@ export function useFaucet() {
   });
 
   // Write contract functions
-  const claimBitr = async () => {
+  const claimPrix = async () => {
     writeContract({
       ...CONTRACTS.FAUCET,
-      functionName: 'claimBitr',
+      functionName: 'claimPrix',
     });
   };
 
@@ -181,7 +181,7 @@ export function useFaucet() {
     hasEnoughSlips,
     
     // Actions
-    claimBitr,
+    claimPrix,
     refetchAll,
     
     // Transaction state

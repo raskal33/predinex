@@ -12,7 +12,7 @@ interface RecentBet {
     title: string;
     category: string;
     odds: number;
-    currency: 'BITR' | 'STT';
+    currency: 'PRIX' | 'BNB';
   };
   amount: string;
   side: 'creator' | 'bettor';
@@ -35,7 +35,7 @@ const mockRecentBets: RecentBet[] = [
       title: "Bitcoin will reach $100,000 by March 2025",
       category: "crypto",
       odds: 1.75,
-      currency: "BITR"
+      currency: "PRIX"
     },
     amount: "2,500",
     side: "bettor",
@@ -55,7 +55,7 @@ const mockRecentBets: RecentBet[] = [
       title: "Tesla stock will hit $300 by end of 2024",
       category: "stocks",
       odds: 2.1,
-      currency: "BITR"
+      currency: "PRIX"
     },
     amount: "1,800",
     side: "creator",
@@ -74,7 +74,7 @@ const mockRecentBets: RecentBet[] = [
       title: "US Federal Reserve will cut rates 3 times in 2024",
       category: "economics",
       odds: 1.25,
-      currency: "BITR"
+      currency: "PRIX"
     },
     amount: "5,200",
     side: "bettor",
@@ -94,7 +94,7 @@ const mockRecentBets: RecentBet[] = [
       title: "OpenAI will release GPT-5 by Q3 2024",
       category: "technology",
       odds: 1.8,
-      currency: "STT"
+      currency: "BNB"
     },
     amount: "3,100",
     side: "creator",
@@ -113,7 +113,7 @@ const mockRecentBets: RecentBet[] = [
       title: "SpaceX will successfully land on Mars by 2026",
       category: "space",
       odds: 2.5,
-      currency: "BITR"
+      currency: "PRIX"
     },
     amount: "950",
     side: "bettor",
@@ -132,7 +132,7 @@ const mockRecentBets: RecentBet[] = [
       title: "Ethereum will complete The Merge by September 2024",
       category: "crypto",
       odds: 2.1,
-      currency: "BITR"
+      currency: "PRIX"
     },
     amount: "4,200",
     side: "creator",
@@ -151,7 +151,7 @@ const mockRecentBets: RecentBet[] = [
       title: "Real Madrid will win Champions League 2024",
       category: "sports",
       odds: 3.2,
-      currency: "BITR"
+      currency: "PRIX"
     },
     amount: "1,200",
     side: "bettor",
@@ -170,7 +170,7 @@ const mockRecentBets: RecentBet[] = [
       title: "Global temperature will rise 1.5°C by 2030",
       category: "environment",
       odds: 1.4,
-      currency: "STT"
+      currency: "BNB"
     },
     amount: "2,800",
     side: "creator",

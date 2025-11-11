@@ -7,12 +7,12 @@ import "./ReputationSystem.sol";
 import "./libraries/ClaimCalculations.sol";
 import "./libraries/PoolValidations.sol";
 import "./libraries/PoolStats.sol";
-interface IBitredictBoostSystem {
+interface IPrixedictBoostSystem {
     function getPoolBoost(uint256 poolId) external view returns (uint8 tier, uint256 expiry);
     function isPoolBoosted(uint256 poolId) external view returns (bool);
 }
-interface IBitredictStaking {
-    function addRevenue(uint256 bitrAmount, uint256 sttAmount) external;
+interface IPrixedictStaking {
+    function addRevenue(uint256 prixAmount, uint256 bnbAmount) external;
 }
 interface IReputationSystem {
     function getUserReputation(address user) external view returns (uint256);
@@ -34,16 +34,16 @@ enum MarketType {
     OVER_UNDER,
     CUSTOM
 }
-contract BitredictPoolCore is Ownable, ReentrancyGuard {
-    IERC20 public bitrToken;
+contract PrixedictPoolCore is Ownable, ReentrancyGuard {
+    IERC20 public prixToken;
     uint256 public poolCount;
-    uint256 public constant creationFeeSTT = 1e18;
-    uint256 public constant creationFeeBITR = 50e18;
+    uint256 public constant creationFeeBNB = 1e18;
+    uint256 public constant creationFeePRIX = 50e18;
     uint256 public constant platformFee = 500;
     uint256 public constant bettingGracePeriod = 60;
-    uint256 public constant arbitrationTimeout = 24 hours;
-    uint256 public constant minPoolStakeSTT = 5e18;
-    uint256 public constant minPoolStakeBITR = 1000e18;
+    uint256 public constant arprixationTimeout = 24 hours;
+    uint256 public constant minPoolStakeBNB = 5e18;
+    uint256 public constant minPoolStakePRIX = 1000e18;
     uint256 public constant minBetAmount = 1e18;
     uint256 public constant HIGH_ODDS_THRESHOLD = 500;
     uint256 public constant MAX_PARTICIPANTS = 500;
@@ -53,9 +53,9 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
     address public immutable guidedOracle;
     address public immutable optimisticOracle;
     IReputationSystem public reputationSystem;
-    IBitredictBoostSystem public boostSystem;
-    uint256 public totalCollectedSTT;
-    uint256 public totalCollectedBITR;
+    IPrixedictBoostSystem public boostSystem;
+    uint256 public totalCollectedBNB;
+    uint256 public totalCollectedPRIX;
     struct PoolAnalytics {
         uint256 totalVolume;
         uint256 participantCount;
@@ -102,7 +102,7 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
         uint256 eventEndTime;
         uint256 bettingEndTime;
         uint256 resultTimestamp;
-        uint256 arbitrationDeadline;
+        uint256 arprixationDeadline;
         uint256 maxBetPerUser;
         bytes32 league;           
         bytes32 category;         
@@ -138,12 +138,12 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
     event ReputationActionOccurred(address indexed user, ReputationSystem.ReputationAction action, uint256 value, bytes32 indexed poolId, uint256 timestamp);
     event AnalyticsUpdated(uint256 indexed poolId, uint256 totalVolume, uint256 participantCount);
     constructor(
-        address _bitrToken,
+        address _prixToken,
         address _feeCollector,
         address _guidedOracle,
         address _optimisticOracle
     ) Ownable(msg.sender) {
-        bitrToken = IERC20(_bitrToken);
+        prixToken = IERC20(_prixToken);
         feeCollector = _feeCollector;
         guidedOracle = _guidedOracle;
         optimisticOracle = _optimisticOracle;
@@ -153,7 +153,7 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
         reputationSystem = IReputationSystem(_reputationSystem);
     }
     function setBoostSystem(address _boostSystem) external onlyOwner {
-        boostSystem = IBitredictBoostSystem(_boostSystem);
+        boostSystem = IPrixedictBoostSystem(_boostSystem);
     }
     modifier validPool(uint256 poolId) {
         require(poolId < poolCount);
@@ -177,7 +177,7 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
         bytes32 _title,
         bool _isPrivate,
         uint256 _maxBetPerUser,
-        bool _useBitr,
+        bool _usePrix,
         OracleType _oracleType,
         MarketType _marketType,
         string memory _marketId
@@ -196,29 +196,29 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
             } catch {
                 // If reputation system fails, allow creation with basic requirements
                 // This ensures functionality continues even if reputation system is down
-                require(_creatorStake >= (_useBitr ? minPoolStakeBITR * 2 : minPoolStakeSTT * 2), "Higher stake required when reputation system unavailable");
+                require(_creatorStake >= (_usePrix ? minPoolStakePRIX * 2 : minPoolStakeBNB * 2), "Higher stake required when reputation system unavailable");
             }
         }
-        if (_useBitr) {
-            require(_creatorStake >= minPoolStakeBITR);
+        if (_usePrix) {
+            require(_creatorStake >= minPoolStakePRIX);
         } else {
-            require(_creatorStake >= minPoolStakeSTT);
+            require(_creatorStake >= minPoolStakeBNB);
         }
         require(_creatorStake <= 1000000 * 1e18);
         require(_eventStartTime > block.timestamp);
         require(_eventEndTime > _eventStartTime);
         require(_eventStartTime > block.timestamp + bettingGracePeriod);
-        uint256 creationFee = _useBitr ? creationFeeBITR : creationFeeSTT;
+        uint256 creationFee = _usePrix ? creationFeePRIX : creationFeeBNB;
         uint256 totalRequired = creationFee + _creatorStake;
-        if (_useBitr) {
+        if (_usePrix) {
             require(msg.value == 0);
-            require(bitrToken.transferFrom(msg.sender, address(this), totalRequired));
+            require(prixToken.transferFrom(msg.sender, address(this), totalRequired));
         } else {
             require(msg.value == totalRequired);
         }
         uint8 flags = 0;
         if (_isPrivate) flags |= 4;      
-        if (_useBitr) flags |= 8;        
+        if (_usePrix) flags |= 8;        
         pools[poolCount] = Pool({
             creator: msg.sender,
             odds: uint16(_odds),
@@ -236,7 +236,7 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
             eventEndTime: _eventEndTime,
             bettingEndTime: _eventStartTime - bettingGracePeriod,
             resultTimestamp: 0,
-            arbitrationDeadline: _eventEndTime + arbitrationTimeout,
+            arprixationDeadline: _eventEndTime + arprixationTimeout,
             maxBetPerUser: _maxBetPerUser,
             league: _league,
             category: _category,
@@ -295,8 +295,8 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
             poolPtr.flags |= 16; 
             emit ReputationActionOccurred(pool.creator, ReputationSystem.ReputationAction.POOL_FILLED_ABOVE_60, poolPtr.totalBettorStake, bytes32(poolId), block.timestamp);
         }
-        if (_poolUsesBitr(poolId)) {
-            require(bitrToken.transferFrom(msg.sender, address(this), amount));
+        if (_poolUsesPrix(poolId)) {
+            require(prixToken.transferFrom(msg.sender, address(this), amount));
         } else {
             require(msg.value == amount);
         }
@@ -325,8 +325,8 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
             pool.totalCreatorSideStake : pool.creatorStake;
         uint256 denominator = uint256(pool.odds) - 100;
         pool.maxBettorStake = (effectiveCreatorSideStake * 100) / denominator;
-        if (_poolUsesBitr(poolId)) {
-            require(bitrToken.transferFrom(msg.sender, address(this), amount));
+        if (_poolUsesPrix(poolId)) {
+            require(prixToken.transferFrom(msg.sender, address(this), amount));
         } else {
             require(msg.value == amount);
         }
@@ -392,8 +392,8 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
         require(block.timestamp >= pool.eventStartTime);
         pool.flags |= 1; 
         pool.result = bytes32(0); 
-        if (_poolUsesBitr(poolId)) {
-            require(bitrToken.transfer(pool.creator, pool.creatorStake));
+        if (_poolUsesPrix(poolId)) {
+            require(prixToken.transfer(pool.creator, pool.creatorStake));
         } else {
             (bool success, ) = payable(pool.creator).call{value: pool.creatorStake}("");
             require(success);
@@ -534,16 +534,16 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
         );
         
         if (fee > 0) {
-            if (_poolUsesBitr(poolId)) {
-                totalCollectedBITR += fee;
+            if (_poolUsesPrix(poolId)) {
+                totalCollectedPRIX += fee;
             } else {
-                totalCollectedSTT += fee;
+                totalCollectedBNB += fee;
             }
         }
         
-        uint256 minValueSTT = 10 * 1e18;
-        uint256 minValueBITR = 2000 * 1e18;
-        bool qualifiesForReputation = _poolUsesBitr(poolId) ? (stake >= minValueBITR) : (stake >= minValueSTT);
+        uint256 minValueBNB = 10 * 1e18;
+        uint256 minValuePRIX = 2000 * 1e18;
+        bool qualifiesForReputation = _poolUsesPrix(poolId) ? (stake >= minValuePRIX) : (stake >= minValueBNB);
         
         if (qualifiesForReputation) {
             emit ReputationActionOccurred(user, ReputationSystem.ReputationAction.BET_WON_HIGH_VALUE, stake, bytes32(poolId), block.timestamp);
@@ -589,8 +589,8 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
         require(payout > 0);
         claimed[poolId][msg.sender] = true;
         
-        if (_poolUsesBitr(poolId)) {
-            require(bitrToken.transfer(msg.sender, payout));
+        if (_poolUsesPrix(poolId)) {
+            require(prixToken.transfer(msg.sender, payout));
         } else {
             (bool success, ) = payable(msg.sender).call{value: payout}("");
             require(success);
@@ -599,28 +599,28 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
         emit RewardClaimed(poolId, msg.sender, payout);
     }
     function adjustedFeeRate(address user) public view returns (uint256) {
-        return PoolStats.getAdjustedFeeRate(bitrToken.balanceOf(user), platformFee);
+        return PoolStats.getAdjustedFeeRate(prixToken.balanceOf(user), platformFee);
     }
     function distributeFees(address stakingContract) external {
         require(msg.sender == feeCollector);
-        uint256 _stt = totalCollectedSTT;
-        uint256 _bitr = totalCollectedBITR;
-        if (_stt > 0) {
-            uint256 sttStakers = (_stt * 30) / 100;
-            totalCollectedSTT = 0;
-            (bool success1, ) = payable(feeCollector).call{value: _stt - sttStakers}("");
+        uint256 _bnb = totalCollectedBNB;
+        uint256 _prix = totalCollectedPRIX;
+        if (_bnb > 0) {
+            uint256 bnbStakers = (_bnb * 30) / 100;
+            totalCollectedBNB = 0;
+            (bool success1, ) = payable(feeCollector).call{value: _bnb - bnbStakers}("");
             require(success1);
-            (bool success2, ) = payable(stakingContract).call{value: sttStakers}("");
+            (bool success2, ) = payable(stakingContract).call{value: bnbStakers}("");
             require(success2);
         }
-        if (_bitr > 0) {
-            uint256 bitrStakers = (_bitr * 30) / 100;
-            totalCollectedBITR = 0;
-            bitrToken.transfer(feeCollector, _bitr - bitrStakers);
-            bitrToken.transfer(stakingContract, bitrStakers);
+        if (_prix > 0) {
+            uint256 prixStakers = (_prix * 30) / 100;
+            totalCollectedPRIX = 0;
+            prixToken.transfer(feeCollector, _prix - prixStakers);
+            prixToken.transfer(stakingContract, prixStakers);
         }
-        if (_stt > 0 || _bitr > 0) {
-            IBitredictStaking(stakingContract).addRevenue((_bitr * 30) / 100, (_stt * 30) / 100);
+        if (_bnb > 0 || _prix > 0) {
+            IPrixedictStaking(stakingContract).addRevenue((_prix * 30) / 100, (_bnb * 30) / 100);
         }
     }
     function addToWhitelist(uint256 poolId, address user) external validPool(poolId) {
@@ -635,7 +635,7 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
     function refundPool(uint256 poolId) external validPool(poolId) {
         Pool storage pool = pools[poolId];
         require(!_isPoolSettled(poolId));
-        require(block.timestamp > pool.arbitrationDeadline);
+        require(block.timestamp > pool.arprixationDeadline);
         uint256 totalParticipants = poolLPs[poolId].length + poolBettors[poolId].length;
         if (totalParticipants > REFUND_BATCH_SIZE) {
             pool.flags |= 1; 
@@ -645,13 +645,13 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
         pool.flags |= 1; 
         address[] memory lps = poolLPs[poolId];
         uint256 lpCount = lps.length;
-        bool useBitr = _poolUsesBitr(poolId);
+        bool usePrix = _poolUsesPrix(poolId);
         for (uint256 i = 0; i < lpCount; ) {
             address lp = lps[i];
             uint256 stake = lpStakes[poolId][lp];
             if (stake > 0) {
-                if (useBitr) {
-                    require(bitrToken.transfer(lp, stake));
+                if (usePrix) {
+                    require(prixToken.transfer(lp, stake));
                 } else {
                     (bool success, ) = payable(lp).call{value: stake}("");
                     require(success);
@@ -665,8 +665,8 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
             address bettor = bettors[i];
             uint256 stake = bettorStakes[poolId][bettor];
             if (stake > 0) {
-                if (useBitr) {
-                    require(bitrToken.transfer(bettor, stake));
+                if (usePrix) {
+                    require(prixToken.transfer(bettor, stake));
                 } else {
                     (bool success, ) = payable(bettor).call{value: stake}("");
                     require(success);
@@ -675,7 +675,7 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
             unchecked { ++i; } 
         }
         _removePoolFromCreatorActiveList(poolId);
-        emit PoolRefunded(poolId, "Arbitration timeout");
+        emit PoolRefunded(poolId, "Arprixation timeout");
     }
     function batchRefund(
         uint256 poolId, 
@@ -684,9 +684,9 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
     ) external nonReentrant validPool(poolId) {
         require(_isPoolSettled(poolId));
         Pool storage pool = pools[poolId];
-        require(block.timestamp > pool.arbitrationDeadline);
+        require(block.timestamp > pool.arprixationDeadline);
         require(batchSize <= REFUND_BATCH_SIZE);
-        bool useBitr = _poolUsesBitr(poolId);
+        bool usePrix = _poolUsesPrix(poolId);
         uint256 processed = 0;
         uint256 lpCount = poolLPs[poolId].length;
         if (startIndex < lpCount) {
@@ -697,8 +697,8 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
                 uint256 stake = lpStakes[poolId][lp];
                 if (stake > 0 && !claimed[poolId][lp]) {
                     claimed[poolId][lp] = true; 
-                    if (useBitr) {
-                        require(bitrToken.transfer(lp, stake));
+                    if (usePrix) {
+                        require(prixToken.transfer(lp, stake));
                     } else {
                         (bool success, ) = payable(lp).call{value: stake}("");
                         require(success);
@@ -720,8 +720,8 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
             uint256 stake = bettorStakes[poolId][bettor];
             if (stake > 0 && !claimed[poolId][bettor]) {
                 claimed[poolId][bettor] = true; 
-                if (useBitr) {
-                    require(bitrToken.transfer(bettor, stake));
+                if (usePrix) {
+                    require(prixToken.transfer(bettor, stake));
                 } else {
                     (bool success, ) = payable(bettor).call{value: stake}("");
                     require(success);
@@ -814,7 +814,7 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
     function _isPoolPrivate(uint256 poolId) internal view returns (bool) {
         return (pools[poolId].flags & 4) != 0;
     }
-    function _poolUsesBitr(uint256 poolId) internal view returns (bool) {
+    function _poolUsesPrix(uint256 poolId) internal view returns (bool) {
         return (pools[poolId].flags & 8) != 0;
     }
     function _isPoolFilledAbove60(uint256 poolId) internal view returns (bool) {

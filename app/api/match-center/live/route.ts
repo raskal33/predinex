@@ -4,7 +4,8 @@ export async function GET() {
   try {
     console.log('🎯 Fetching live matches');
 
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://bitredict-backend.fly.dev';
+    // Use prixedict-backend for testing
+    const backendUrl = 'https://prixedict-backend.fly.dev';
     const response = await fetch(`${backendUrl}/api/match-center/live`, {
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate',

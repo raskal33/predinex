@@ -1,0 +1,991 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_poolCore",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_prixToken",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_revenueCollector",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      }
+    ],
+    "name": "OwnableInvalidOwner",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "OwnableUnauthorizedAccount",
+    "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "poolId",
+        "type": "uint256"
+      }
+    ],
+    "name": "BoostExpired",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "poolId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "fillRate",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "volume",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "participants",
+        "type": "uint256"
+      }
+    ],
+    "name": "BoostMetricsUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "collector",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "BoostRevenueClaimed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "previousOwner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "OwnershipTransferred",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "poolId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "fee",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "booster",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "eventStartTime",
+        "type": "uint256"
+      }
+    ],
+    "name": "PoolBoosted",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "BOOST_FEE",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "DISCOUNT_THRESHOLD",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "MAX_ACTIVE_BOOSTS",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "activeBoostCount",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "batchCleanupExpiredBoosts",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "boostAnalytics",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "totalBoostedPools",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalBoostRevenue",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalVolumeFromBoostedPools",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "averageFillRateIncrease",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "averageTimeToFill",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "poolsReachedMaxFill",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "lastUpdated",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "poolId",
+        "type": "uint256"
+      }
+    ],
+    "name": "boostPool",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "boostedPoolIds",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "poolId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      }
+    ],
+    "name": "canBoostPool",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "canBoost",
+        "type": "bool"
+      },
+      {
+        "internalType": "string",
+        "name": "reason",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "claimBoostRevenue",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "poolIds",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "cleanupExpiredBoosts",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "creatorBoostedPools",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "emergencyWithdraw",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getBoostAnalytics",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "totalBoostedPools",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalBoostRevenueValue",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalVolumeFromBoostedPools",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "averageFillRateIncrease",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "averageTimeToFill",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "poolsReachedMaxFill",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "lastUpdated",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getBoostComparison",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "totalBoostedPools",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalNonBoostedPools",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "avgFillRateBoosted",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "avgFillRateNonBoosted",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "avgVolumeBoosted",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "avgVolumeNonBoosted",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "avgTimeToFillBoosted",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "avgTimeToFillNonBoosted",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      }
+    ],
+    "name": "getBoostCost",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "cost",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "poolId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getBoostEffectiveness",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "isEffective",
+        "type": "bool"
+      },
+      {
+        "internalType": "uint256",
+        "name": "fillRateIncrease",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "volumeGrowth",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "participantGrowth",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "effectivenessScore",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "poolId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getBoostInfo",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "isBoosted",
+        "type": "bool"
+      },
+      {
+        "internalType": "address",
+        "name": "booster",
+        "type": "address"
+      },
+      {
+        "internalType": "bool",
+        "name": "isActive",
+        "type": "bool"
+      },
+      {
+        "internalType": "uint256",
+        "name": "eventStartTime",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "remainingTime",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getBoostStats",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "totalBoosted",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "activeBoosted",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalRevenue",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "averageFee",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getBoostedPools",
+    "outputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "creator",
+        "type": "address"
+      }
+    ],
+    "name": "getCreatorBoostROI",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "totalBoostedPools",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalBoostFees",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalVolumeIncrease",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "averageROI",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalROI",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "poolId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getPoolBoost",
+    "outputs": [
+      {
+        "internalType": "uint8",
+        "name": "tier",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint256",
+        "name": "expiry",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "poolId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getPoolBoostMetrics",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "boostStartTime",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "boostFee",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "fillRateAtBoost",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "volumeAtBoost",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "participantCountAtBoost",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "currentFillRate",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "currentVolume",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "maxFillRate",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "volumeIncrease",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "timeToFill",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "reachedMaxFill",
+        "type": "bool"
+      },
+      {
+        "internalType": "uint256",
+        "name": "roi",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "poolId",
+        "type": "uint256"
+      }
+    ],
+    "name": "isPoolBoosted",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "owner",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "poolBoostMetrics",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "boostStartTime",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "boostFee",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "fillRateAtBoost",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "volumeAtBoost",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "participantCountAtBoost",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "maxFillRate",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "volumeIncrease",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "timeToFill",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "reachedMaxFill",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "poolBooster",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "poolCore",
+    "outputs": [
+      {
+        "internalType": "contract IPredinexPoolCore",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "poolIsBoosted",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "prixToken",
+    "outputs": [
+      {
+        "internalType": "contract IERC20",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "renounceOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "revenueCollector",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_poolCore",
+        "type": "address"
+      }
+    ],
+    "name": "setPoolCore",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_prixToken",
+        "type": "address"
+      }
+    ],
+    "name": "setPrixToken",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_revenueCollector",
+        "type": "address"
+      }
+    ],
+    "name": "setRevenueCollector",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "totalBoostRevenue",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "transferOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "poolId",
+        "type": "uint256"
+      }
+    ],
+    "name": "updateBoostMetrics",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+]

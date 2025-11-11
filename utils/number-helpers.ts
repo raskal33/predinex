@@ -40,7 +40,7 @@ export const formatPercentage = (value: number, maxDecimals: number = 1): string
 /**
  * Formats currency amounts with appropriate decimal places
  */
-export const formatCurrency = (value: number, symbol: string = 'BITR', maxDecimals: number = 2): string => {
+export const formatCurrency = (value: number, symbol: string = 'PRIX', maxDecimals: number = 2): string => {
   return `${formatNumber(value, maxDecimals)} ${symbol}`;
 };
 

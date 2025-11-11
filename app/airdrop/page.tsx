@@ -6,14 +6,14 @@ import { useAccount } from "wagmi";
 import { toast } from "react-hot-toast";
 import AnimatedTitle from "@/components/AnimatedTitle";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import { useBITRToken } from "@/hooks/useBITRToken";
+import { usePRIXToken } from "@/hooks/usePRIXToken";
 import { useFaucet } from "@/hooks/useFaucet";
 import { useStaking } from "@/hooks/useStaking";
 import { 
   checkAirdropEligibility, 
   getAirdropStatistics,
   getAirdropLeaderboard,
-  formatBITRAmount,
+  formatPRIXAmount,
   formatAddress,
   calculateRequirementProgress 
 } from "@/services/airdropService";
@@ -52,7 +52,7 @@ export default function AirdropPage() {
   const [activeTab, setActiveTab] = useState("eligibility");
 
   // Smart contract hooks for real-time data
-  const token = useBITRToken();
+  const token = usePRIXToken();
   const faucet = useFaucet();
   const staking = useStaking();
 
@@ -101,8 +101,8 @@ export default function AirdropPage() {
 
   const requirements = eligibility ? [
     getRequirementStatus(eligibility.requirements.faucetClaim, "Claim Faucet Tokens"),
-    getRequirementStatus(eligibility.requirements.sttActivityBeforeFaucet, "STT Activity Before Faucet"),
-    getRequirementStatus(eligibility.requirements.bitrActions, "BITR Token Actions"),
+    getRequirementStatus(eligibility.requirements.bnbActivityBeforeFaucet, "BNB Activity Before Faucet"),
+    getRequirementStatus(eligibility.requirements.prixActions, "PRIX Token Actions"),
     getRequirementStatus(eligibility.requirements.stakingActivity, "Staking Activity"),
     getRequirementStatus(eligibility.requirements.oddysseySlips, "Oddyssey Game Participation")
   ] : [];
@@ -129,11 +129,11 @@ export default function AirdropPage() {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-pink-900 p-6">
       <div className="max-w-7xl mx-auto">
         <AnimatedTitle className="text-4xl md:text-6xl font-bold text-center mb-4 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-          BITR Airdrop
+          PRIX Airdrop
         </AnimatedTitle>
         
         <p className="text-center text-gray-300 mb-12 text-lg max-w-3xl mx-auto">
-          Check your eligibility for the BITR token airdrop. Complete various activities to qualify for rewards!
+          Check your eligibility for the PRIX token airdrop. Complete various activities to qualify for rewards!
         </p>
 
         {/* Tab Navigation */}
@@ -202,7 +202,7 @@ export default function AirdropPage() {
                         <div className="text-center">
                           <h3 className="text-2xl font-bold text-white mb-2">Your Allocation</h3>
                           <p className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                            {formatBITRAmount(eligibility.airdropInfo?.airdropAmount || '0')} BITR
+                            {formatPRIXAmount(eligibility.airdropInfo?.airdropAmount || '0')} PRIX
                           </p>
                           <p className="text-gray-300 mt-2">Based on your activity and tier</p>
                         </div>
@@ -275,7 +275,7 @@ export default function AirdropPage() {
                 
                 <div className="space-y-4">
                   <div className="flex justify-between">
-                    <span className="text-gray-300">BITR Balance</span>
+                    <span className="text-gray-300">PRIX Balance</span>
                     <span className="text-white font-medium">{token.balance}</span>
                   </div>
                   
@@ -300,7 +300,7 @@ export default function AirdropPage() {
                     <span className="text-white font-medium">
                       {faucet.userInfo && 'claimed' in faucet.userInfo
                         ? faucet.userInfo.claimed
-                        : 0} BITR
+                        : 0} PRIX
                     </span>
                   </div>
                 </div>
@@ -401,7 +401,7 @@ export default function AirdropPage() {
                       </div>
                       
                       <div className="text-right">
-                        <p className="text-white font-bold">{formatBITRAmount(user.allocation || '0')} BITR</p>
+                        <p className="text-white font-bold">{formatPRIXAmount(user.allocation || '0')} PRIX</p>
                         <p className="text-gray-400 text-sm">{user.tier || 'Bronze'} Tier</p>
                       </div>
                       
@@ -449,7 +449,7 @@ export default function AirdropPage() {
                   <div className="p-6 bg-black/20 rounded-xl text-center">
                     <FaGift className="h-8 w-8 text-purple-400 mx-auto mb-4" />
                     <p className="text-gray-400 text-sm">Total Allocation</p>
-                    <p className="text-2xl font-bold text-white">{formatBITRAmount(statistics.overview.totalAirdropAllocated)} BITR</p>
+                    <p className="text-2xl font-bold text-white">{formatPRIXAmount(statistics.overview.totalAirdropAllocated)} PRIX</p>
                   </div>
                   
                   <div className="p-6 bg-black/20 rounded-xl text-center">
@@ -467,7 +467,7 @@ export default function AirdropPage() {
                   <div className="p-6 bg-black/20 rounded-xl text-center">
                     <FaShieldAlt className="h-8 w-8 text-yellow-400 mx-auto mb-4" />
                                           <p className="text-gray-400 text-sm">Avg Actions</p>
-                    <p className="text-2xl font-bold text-white">{statistics.overview.averageBITRActions} Actions</p>
+                    <p className="text-2xl font-bold text-white">{statistics.overview.averagePRIXActions} Actions</p>
                   </div>
                   
                   <div className="p-6 bg-black/20 rounded-xl text-center">

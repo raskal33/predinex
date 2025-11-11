@@ -10,7 +10,7 @@ export enum MarketType {
   SPREAD = 2,           // Point spread (basketball, american football)
   PROPOSITION = 3,      // Prop bets (first scorer, BTTS, specific events)
   CORRECT_SCORE = 4,    // Exact score/result
-  CUSTOM = 5            // Arbitrary YES/NO predictions
+  CUSTOM = 5            // Arprixary YES/NO predictions
 }
 
 export enum BoostTier {
@@ -91,10 +91,10 @@ export const ORACLE_TYPE_LABELS = {
 
 // Boost tier labels and costs
 export const BOOST_TIER_CONFIG = {
-  [BoostTier.NONE]: { label: 'No Boost', cost: 0, costLabel: '0 STT' },
-  [BoostTier.BRONZE]: { label: 'Bronze Boost', cost: 2e18, costLabel: '2 STT' },
-  [BoostTier.SILVER]: { label: 'Silver Boost', cost: 3e18, costLabel: '3 STT' },
-  [BoostTier.GOLD]: { label: 'Gold Boost', cost: 5e18, costLabel: '5 STT' },
+  [BoostTier.NONE]: { label: 'No Boost', cost: 0, costLabel: '0 BNB' },
+  [BoostTier.BRONZE]: { label: 'Bronze Boost', cost: 2e18, costLabel: '2 BNB' },
+  [BoostTier.SILVER]: { label: 'Silver Boost', cost: 3e18, costLabel: '3 BNB' },
+  [BoostTier.GOLD]: { label: 'Gold Boost', cost: 5e18, costLabel: '5 BNB' },
 } as const;
 
 // Pool creation data interface
@@ -110,7 +110,7 @@ export interface PoolCreationData {
   region: string;
   isPrivate: boolean;
   maxBetPerUser: bigint;
-  useBitr: boolean;
+  usePrix: boolean;
   oracleType: OracleType;
   marketId: string;
   marketType: MarketType;
@@ -137,7 +137,7 @@ export interface PoolFormData {
   region: string;
   isPrivate: boolean;
   maxBetPerUser: string;
-  useBitr: boolean;
+  usePrix: boolean;
   oracleType: OracleType;
   marketId: string;
   marketType: MarketType;
@@ -204,9 +204,9 @@ export function validatePoolData(data: PoolFormData): string[] {
   }
   
   // Stake validation
-  const minStake = data.useBitr ? 1000 : 5;
+  const minStake = data.usePrix ? 1000 : 5;
   if (!data.creatorStake || parseFloat(data.creatorStake) < minStake) {
-    errors.push(`Minimum stake is ${minStake} ${data.useBitr ? 'BITR' : 'STT'}`);
+    errors.push(`Minimum stake is ${minStake} ${data.usePrix ? 'PRIX' : 'BNB'}`);
   }
   
   return errors;
@@ -225,7 +225,7 @@ export function convertFormToContractData(formData: PoolFormData): PoolCreationD
     region: formData.region,
     isPrivate: formData.isPrivate,
     maxBetPerUser: formData.maxBetPerUser ? BigInt(parseFloat(formData.maxBetPerUser) * 1e18) : BigInt(0),
-    useBitr: formData.useBitr,
+    usePrix: formData.usePrix,
     oracleType: formData.oracleType,
     marketId: formData.marketId,
     marketType: formData.marketType,

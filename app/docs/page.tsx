@@ -56,7 +56,7 @@ export default function DocsPage() {
   const documentation = [
     {
       title: "Introduction",
-      description: "Get started with Bitredict decentralized prediction markets",
+      description: "Get started with Prixedict decentralized prediction markets",
       href: "/docs/intro.html",
       category: "guides",
       icon: BookOpenIcon,
@@ -104,7 +104,7 @@ export default function DocsPage() {
     },
     {
       title: "Smart Contracts",
-      description: "BitredictPool and Oddyssey contract documentation",
+      description: "PrixedictPool and Oddyssey contract documentation",
       href: "/docs/contracts/prediction-pool.html",
       category: "technical",
       icon: BeakerIcon,
@@ -120,8 +120,8 @@ export default function DocsPage() {
     },
     {
       title: "Tokenomics",
-      description: "BITR token economics, staking, and airdrop mechanics",
-      href: "/docs/tokenomics/bitr-overview.html",
+      description: "PRIX token economics, staking, and airdrop mechanics",
+      href: "/docs/tokenomics/prix-overview.html",
       category: "technical",
       icon: CurrencyDollarIcon,
       featured: false
@@ -174,7 +174,7 @@ export default function DocsPage() {
       >
         <h1 className="text-4xl font-bold text-white">Documentation</h1>
         <p className="text-gray-400 text-lg max-w-3xl mx-auto">
-          Comprehensive technical documentation for the Bitredict platform, including user guides, API references, smart contract documentation, and system architecture details.
+          Comprehensive technical documentation for the Prixedict platform, including user guides, API references, smart contract documentation, and system architecture details.
         </p>
       </motion.div>
 
@@ -323,7 +323,7 @@ export default function DocsPage() {
           </div>
           <div className="p-4 bg-gray-800/30 rounded-xl">
             <h4 className="font-semibold text-white mb-2">💎 Token Economics</h4>
-            <p className="text-sm text-gray-400">BITR staking, governance, and airdrop mechanisms</p>
+            <p className="text-sm text-gray-400">PRIX staking, governance, and airdrop mechanisms</p>
           </div>
           <div className="p-4 bg-gray-800/30 rounded-xl">
             <h4 className="font-semibold text-white mb-2">🔗 Smart Contracts</h4>

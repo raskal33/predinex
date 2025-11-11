@@ -105,7 +105,7 @@ export default function SideMenu() {
                 <span className="text-xs text-text-muted">Total P&L</span>
               </div>
               <span className="text-sm font-semibold text-green-400">
-                {profile?.computedStats?.profitLossFormatted || "0 STT"}
+                {profile?.computedStats?.profitLossFormatted || "0 BNB"}
               </span>
             </div>
             <div className="flex items-center justify-between">

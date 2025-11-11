@@ -150,7 +150,7 @@ export const useProfileStore = create<ProfileState>()(
       },
     }),
     {
-      name: 'bitr-profiles',
+      name: 'prix-profiles',
       partialize: (state) => ({ 
         profiles: state.profiles 
       }),

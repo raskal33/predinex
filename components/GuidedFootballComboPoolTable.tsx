@@ -120,7 +120,7 @@ export default function GuidedFootballComboPoolTable({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedConditions, setSelectedConditions] = useState<SelectedCondition[]>([]);
   const [creatorStake, setCreatorStake] = useState<string>('100');
-  const [useBitr, setUseBitr] = useState(false);
+  const [usePrix, setUsePrix] = useState(false);
   const [maxBetPerUser, setMaxBetPerUser] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [txHash, setTxHash] = useState<`0x${string}` | null>(null);
@@ -295,7 +295,7 @@ export default function GuidedFootballComboPoolTable({
         latestEventEnd: BigInt(Math.floor(latestEventEnd / 1000)),
         category: 'football',
         maxBetPerUser: maxBetPerUser ? BigInt(Math.floor(parseFloat(maxBetPerUser) * 1e18)) : BigInt(0),
-        useBitr: useBitr,
+        usePrix: usePrix,
       };
 
       const hash = await createComboPool(comboPoolData);
@@ -325,7 +325,7 @@ export default function GuidedFootballComboPoolTable({
     earliestEventStart,
     latestEventEnd,
     maxBetPerUser,
-    useBitr,
+    usePrix,
     connectWallet,
     createComboPool,
     showPending,
@@ -674,22 +674,22 @@ export default function GuidedFootballComboPoolTable({
               
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Creator Stake ({useBitr ? 'BITR' : 'STT'})
+                  Creator Stake ({usePrix ? 'PRIX' : 'BNB'})
                 </label>
                 <AmountInput
                   value={creatorStake}
                   onChange={setCreatorStake}
                   placeholder="100"
-                  min={useBitr ? 1000 : 5}
+                  min={usePrix ? 1000 : 5}
                 />
                 <p className="text-xs text-gray-400 mt-1">
-                  Minimum: {useBitr ? '1000 BITR' : '5 STT'}
+                  Minimum: {usePrix ? '1000 PRIX' : '5 BNB'}
                 </p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Max Bet Per User ({useBitr ? 'BITR' : 'STT'}) (Optional)
+                  Max Bet Per User ({usePrix ? 'PRIX' : 'BNB'}) (Optional)
                 </label>
                 <AmountInput
                   value={maxBetPerUser}
@@ -701,13 +701,13 @@ export default function GuidedFootballComboPoolTable({
               <div className="flex items-center gap-3">
                 <input
                   type="checkbox"
-                  id="useBitr"
-                  checked={useBitr}
-                  onChange={(e) => setUseBitr(e.target.checked)}
+                  id="usePrix"
+                  checked={usePrix}
+                  onChange={(e) => setUsePrix(e.target.checked)}
                   className="w-4 h-4 rounded bg-gray-700 border-gray-600 text-blue-600 focus:ring-blue-500"
                 />
-                <label htmlFor="useBitr" className="text-sm text-gray-300">
-                  Use BITR Token (instead of STT)
+                <label htmlFor="usePrix" className="text-sm text-gray-300">
+                  Use PRIX Token (instead of BNB)
                 </label>
               </div>
 

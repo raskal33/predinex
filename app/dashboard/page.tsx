@@ -40,7 +40,7 @@ export default function Page() {
     {
       label: "Total Volume",
       value: "12.5M",
-      unit: "STT",
+      unit: "BNB",
       change: "+15.2%",
       positive: true,
       icon: "💰"
@@ -116,7 +116,7 @@ export default function Page() {
                 transition={{ delay: 0.2 }}
                 className="text-3xl lg:text-4xl font-bold text-white"
               >
-                Welcome to <span className="bg-gradient-to-r from-brand-cyan to-brand-blue bg-clip-text text-transparent">BitRedict</span>
+                Welcome to <span className="bg-gradient-to-r from-brand-cyan to-brand-blue bg-clip-text text-transparent">Predinex</span>
               </motion.h1>
               <motion.p 
                 initial={{ opacity: 0, x: -20 }}
@@ -239,7 +239,7 @@ export default function Page() {
                       <div className="text-xs">
                         <span className="text-text-secondary">Pool: </span>
                         <span className="text-white font-semibold">
-                          {parseFloat(pool.creatorStake).toFixed(2)} {pool.usesBitr ? 'BITR' : 'STT'}
+                          {parseFloat(pool.creatorStake).toFixed(2)} {pool.usesPrix ? 'PRIX' : 'BNB'}
                         </span>
                       </div>
                       <div className="flex gap-1">
@@ -332,7 +332,7 @@ export default function Page() {
                   <div className="space-y-1">
                     <div className="text-xs text-text-secondary">Total Pool</div>
                     <div className="text-base font-bold text-white">
-                      {parseFloat(pool.creatorStake).toFixed(2)} {pool.usesBitr ? 'BITR' : 'STT'}
+                      {parseFloat(pool.creatorStake).toFixed(2)} {pool.usesPrix ? 'PRIX' : 'BNB'}
                     </div>
                   </div>
                   <div className="space-y-1 text-right">

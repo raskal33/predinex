@@ -25,13 +25,13 @@ export interface Pool {
   eventEndTime: bigint;
   bettingEndTime: bigint;
   resultTimestamp: bigint;
-  arbitrationDeadline: bigint;
+  arprixationDeadline: bigint;
   league: string;
   category: string;
   region: string;
   isPrivate: boolean;
   maxBetPerUser: bigint;
-  usesBitr: boolean;
+  usesPrix: boolean;
   filledAbove60: boolean;
   oracleType: number;
 }
@@ -54,7 +54,7 @@ export interface ComboPool {
   combinedOdds: number;
   settled: boolean;
   creatorSideWon: boolean;
-  usesBitr: boolean;
+  usesPrix: boolean;
   eventStartTime: bigint;
   eventEndTime: bigint;
   latestEventEnd: bigint;
@@ -93,7 +93,7 @@ export function usePools() {
   const [pendingBetData, setPendingBetData] = useState<{
     poolId: number;
     amount: string;
-    useBitr: boolean;
+    usePrix: boolean;
     betType?: 'yes' | 'no';
   } | null>(null);
 
@@ -106,14 +106,14 @@ export function usePools() {
   useEffect(() => {
     if (isPending) {
       console.log('🔄 Token approval pending - showing feedback');
-      showPending('Approval Pending', 'Please confirm the BITR token approval in your wallet...');
+      showPending('Approval Pending', 'Please confirm the PRIX token approval in your wallet...');
     }
   }, [isPending, showPending]);
 
   useEffect(() => {
     if (isConfirming) {
       console.log('⏳ Token approval confirming - showing feedback');
-      showConfirming('Approval Confirming', 'Your BITR token approval is being processed on the blockchain...', hash);
+      showConfirming('Approval Confirming', 'Your PRIX token approval is being processed on the blockchain...', hash);
     }
   }, [isConfirming, showConfirming, hash]);
 
@@ -122,50 +122,50 @@ export function usePools() {
     if (isApprovalSuccess && !approvalConfirmed) {
       console.log('✅ Token approval successful - showing feedback with hash:', hash);
       setApprovalConfirmed(true);
-      showSuccess('Approval Confirmed!', 'BITR token approval confirmed! You can now place your bet.', hash);
+      showSuccess('Approval Confirmed!', 'PRIX token approval confirmed! You can now place your bet.', hash);
     }
   }, [isApprovalSuccess, approvalConfirmed, showSuccess, hash]);
 
-  // BITR token approval function
-  const approveBITR = (spender: `0x${string}`, amount: bigint) => {
+  // PRIX token approval function
+  const approvePRIX = (spender: `0x${string}`, amount: bigint) => {
     writeContract({
-      address: CONTRACT_ADDRESSES.BITR_TOKEN,
-      abi: CONTRACTS.BITR_TOKEN.abi,
+      address: CONTRACT_ADDRESSES.PRIX_TOKEN,
+      abi: CONTRACTS.PRIX_TOKEN.abi,
       functionName: 'approve',
       args: [spender, amount],
       ...getTransactionOptions(), // Use same gas settings as create pool
     });
   };
 
-  // Check BITR allowance
-  const getBITRAllowance = async (owner: `0x${string}`, spender: `0x${string}`) => {
+  // Check PRIX allowance
+  const getPRIXAllowance = async (owner: `0x${string}`, spender: `0x${string}`) => {
     try {
       if (!publicClient) {
         console.error('❌ Public client not available');
         return 0n;
       }
       const result = await publicClient.readContract({
-        address: CONTRACT_ADDRESSES.BITR_TOKEN,
-        abi: CONTRACTS.BITR_TOKEN.abi,
+        address: CONTRACT_ADDRESSES.PRIX_TOKEN,
+        abi: CONTRACTS.PRIX_TOKEN.abi,
         functionName: 'allowance',
         args: [owner, spender],
       });
       return result as bigint;
     } catch (error) {
-      console.error('❌ Error getting BITR allowance:', error);
+      console.error('❌ Error getting PRIX allowance:', error);
       return 0n;
     }
   };
 
   // Direct bet placement function
-  const placeBetDirect = async (poolId: number, betAmount: bigint, useBitr: boolean) => {
+  const placeBetDirect = async (poolId: number, betAmount: bigint, usePrix: boolean) => {
     showPending('Placing Bet', 'Please confirm the bet transaction in your wallet...');
     
     writeContract({
       ...CONTRACTS.POOL_CORE,
       functionName: 'placeBet',
       args: [BigInt(poolId), betAmount],
-      value: useBitr ? 0n : betAmount,
+      value: usePrix ? 0n : betAmount,
       ...getTransactionOptions(), // Use same gas settings as create pool
     });
   };
@@ -174,19 +174,19 @@ export function usePools() {
   useEffect(() => {
     if (hash && !isPending && !isConfirming && !isApprovalSuccess) {
       console.log('❌ Token approval failed - showing error feedback');
-      showError('Approval Failed', 'BITR token approval failed. Please try again.');
+      showError('Approval Failed', 'PRIX token approval failed. Please try again.');
     }
   }, [hash, isPending, isConfirming, isApprovalSuccess, showError]);
 
   // Direct liquidity addition function
-  const addLiquidityDirect = async (poolId: number, liquidityAmount: bigint, useBitr: boolean) => {
+  const addLiquidityDirect = async (poolId: number, liquidityAmount: bigint, usePrix: boolean) => {
     showPending('Adding Liquidity', 'Please confirm the liquidity transaction in your wallet...');
     
     writeContract({
       ...CONTRACTS.POOL_CORE,
       functionName: 'addLiquidity',
       args: [BigInt(poolId), liquidityAmount],
-      value: useBitr ? 0n : liquidityAmount,
+      value: usePrix ? 0n : liquidityAmount,
       ...getTransactionOptions(), // Use same gas settings as placeBet
     });
   };
@@ -199,19 +199,19 @@ export function usePools() {
           console.log('✅ Approval confirmed, proceeding with bet:', pendingBetData);
           
           // Verify allowance before proceeding
-          const finalAllowance = await getBITRAllowance(address, CONTRACT_ADDRESSES.POOL_CORE);
+          const finalAllowance = await getPRIXAllowance(address, CONTRACT_ADDRESSES.POOL_CORE);
           const betAmount = parseUnits(pendingBetData.amount, 18);
           
           if (finalAllowance < betAmount) {
-            showError('Insufficient Allowance', 'BITR token allowance is still insufficient after approval.');
+            showError('Insufficient Allowance', 'PRIX token allowance is still insufficient after approval.');
             return;
           }
 
           // Place the bet or add liquidity based on bet type
           if (pendingBetData.betType === 'no') {
-            await addLiquidityDirect(pendingBetData.poolId, betAmount, pendingBetData.useBitr);
+            await addLiquidityDirect(pendingBetData.poolId, betAmount, pendingBetData.usePrix);
           } else {
-            await placeBetDirect(pendingBetData.poolId, betAmount, pendingBetData.useBitr);
+            await placeBetDirect(pendingBetData.poolId, betAmount, pendingBetData.usePrix);
           }
           
           // Clear pending state immediately to prevent double execution
@@ -228,7 +228,7 @@ export function usePools() {
       
       proceedWithBet();
     }
-  }, [isApprovalSuccess, approvalConfirmed, pendingBetData, address, getBITRAllowance, addLiquidityDirect, placeBetDirect, showError]);
+  }, [isApprovalSuccess, approvalConfirmed, pendingBetData, address, getPRIXAllowance, addLiquidityDirect, placeBetDirect, showError]);
 
   // Track bet transaction confirmation
   const { isSuccess: isBetSuccess } = useWaitForTransactionReceipt({ 
@@ -284,17 +284,17 @@ export function usePools() {
 
   const { data: minPoolStake } = useReadContract({
     ...CONTRACTS.POOL_CORE,
-    functionName: 'minPoolStakeSTT',
+    functionName: 'minPoolStakeBNB',
   });
 
-  const { data: creationFeeSTT } = useReadContract({
+  const { data: creationFeeBNB } = useReadContract({
     ...CONTRACTS.POOL_CORE,
-    functionName: 'creationFeeSTT',
+    functionName: 'creationFeeBNB',
   });
 
-  const { data: creationFeeBITR } = useReadContract({
+  const { data: creationFeePRIX } = useReadContract({
     ...CONTRACTS.POOL_CORE,
-    functionName: 'creationFeeBITR',
+    functionName: 'creationFeePRIX',
   });
 
   // Get pool data
@@ -385,7 +385,7 @@ export function usePools() {
     region: string,
     isPrivate: boolean = false,
     maxBetPerUser: string = "0",
-    useBitr: boolean = true,
+    usePrix: boolean = true,
     oracleType: number = 0,
     marketId: string = "",
     marketType: number = 0
@@ -406,25 +406,25 @@ export function usePools() {
       region,
       isPrivate,
       maxBetWei,
-      useBitr,
+      usePrix,
       oracleType, // Remove BigInt wrapper - should be number
       encodeBytes32String(marketId || ''), // Properly encode bytes32
       marketType // MarketType enum value
     ] as const;
 
-    if (useBitr) {
-      // For BITR pools, the contract will handle the token transfer internally
+    if (usePrix) {
+      // For PRIX pools, the contract will handle the token transfer internally
       // The user needs to approve the total amount (creation fee + stake) beforehand
       writeContract({
         ...CONTRACTS.POOL_CORE,
         functionName: 'createPool',
         args,
-        value: 0n, // No ETH/STT value for BITR pools
+        value: 0n, // No ETH/BNB value for PRIX pools
         ...getTransactionOptions(), // Use same gas settings as other functions
       });
     } else {
-      // Calculate total required (creation fee + stake) for STT pools
-      const totalRequired = (creationFeeSTT as bigint) + stakeWei;
+      // Calculate total required (creation fee + stake) for BNB pools
+      const totalRequired = (creationFeeBNB as bigint) + stakeWei;
       writeContract({
         ...CONTRACTS.POOL_CORE,
         functionName: 'createPool',
@@ -436,41 +436,41 @@ export function usePools() {
   };
 
   // Add liquidity function (for NO bets - supporting creator)
-  const addLiquidity = async (poolId: number, amount: string, useBitr: boolean = false) => {
+  const addLiquidity = async (poolId: number, amount: string, usePrix: boolean = false) => {
     try {
       const liquidityAmount = parseUnits(amount, 18);
 
       // Check minimum liquidity amount
       if (minBetAmount && typeof minBetAmount === 'bigint' && liquidityAmount < minBetAmount) {
-        throw new Error(`Liquidity amount ${amount} STT is below minimum amount ${formatUnits(minBetAmount, 18)} STT`);
+        throw new Error(`Liquidity amount ${amount} BNB is below minimum amount ${formatUnits(minBetAmount, 18)} BNB`);
       }
 
-      if (useBitr) {
-        // For BITR pools, check and handle approval first
+      if (usePrix) {
+        // For PRIX pools, check and handle approval first
         if (!address) {
           throw new Error('Wallet not connected');
         }
 
         // Check current allowance
-        const currentAllowance = await getBITRAllowance(address, CONTRACT_ADDRESSES.POOL_CORE);
+        const currentAllowance = await getPRIXAllowance(address, CONTRACT_ADDRESSES.POOL_CORE);
         
         if (currentAllowance < liquidityAmount) {
           // Need to approve more tokens - store pending liquidity data and trigger approval
-          setPendingBetData({ poolId, amount, useBitr, betType: 'no' });
+          setPendingBetData({ poolId, amount, usePrix, betType: 'no' });
           setApprovalConfirmed(false);
           
           // Trigger approval transaction
-          approveBITR(CONTRACT_ADDRESSES.POOL_CORE, liquidityAmount);
+          approvePRIX(CONTRACT_ADDRESSES.POOL_CORE, liquidityAmount);
           
           // Return early - the approval confirmation will trigger the liquidity addition
           return;
         }
 
         // Sufficient allowance - add liquidity directly
-        await addLiquidityDirect(poolId, liquidityAmount, useBitr);
+        await addLiquidityDirect(poolId, liquidityAmount, usePrix);
       } else {
-        // For STT pools, send native token as value
-        await addLiquidityDirect(poolId, liquidityAmount, useBitr);
+        // For BNB pools, send native token as value
+        await addLiquidityDirect(poolId, liquidityAmount, usePrix);
       }
     } catch (error) {
       console.error('Error in addLiquidity:', error);
@@ -491,8 +491,8 @@ export function usePools() {
           showError('Transaction Cancelled', 'The transaction was cancelled by user.');
         } else if (error.message.includes('insufficient funds')) {
           showError('Insufficient Funds', 'You do not have enough tokens for this liquidity addition.');
-        } else if (error.message.includes('BITR transfer failed')) {
-          showError('Transfer Failed', 'BITR token transfer failed. Please check your balance and try again.');
+        } else if (error.message.includes('PRIX transfer failed')) {
+          showError('Transfer Failed', 'PRIX token transfer failed. Please check your balance and try again.');
         } else if (error.message.includes('gas')) {
           showError('Gas Error', 'Transaction failed due to gas issues. Please try again.');
         } else {
@@ -506,41 +506,41 @@ export function usePools() {
   };
 
 
-  const placeBet = async (poolId: number, amount: string, useBitr: boolean = false) => {
+  const placeBet = async (poolId: number, amount: string, usePrix: boolean = false) => {
     try {
       const betAmount = parseUnits(amount, 18);
 
       // Check minimum bet amount
       if (minBetAmount && typeof minBetAmount === 'bigint' && betAmount < minBetAmount) {
-        throw new Error(`Bet amount ${amount} STT is below minimum bet amount ${formatUnits(minBetAmount, 18)} STT`);
+        throw new Error(`Bet amount ${amount} BNB is below minimum bet amount ${formatUnits(minBetAmount, 18)} BNB`);
       }
 
-      if (useBitr) {
-        // For BITR pools, check and handle approval first
+      if (usePrix) {
+        // For PRIX pools, check and handle approval first
         if (!address) {
           throw new Error('Wallet not connected');
         }
 
         // Check current allowance
-        const currentAllowance = await getBITRAllowance(address, CONTRACT_ADDRESSES.POOL_CORE);
+        const currentAllowance = await getPRIXAllowance(address, CONTRACT_ADDRESSES.POOL_CORE);
         
         if (currentAllowance < betAmount) {
           // Need to approve more tokens - store pending bet data and trigger approval
-          setPendingBetData({ poolId, amount, useBitr, betType: 'yes' });
+          setPendingBetData({ poolId, amount, usePrix, betType: 'yes' });
           setApprovalConfirmed(false);
           
           // Trigger approval transaction
-          approveBITR(CONTRACT_ADDRESSES.POOL_CORE, betAmount);
+          approvePRIX(CONTRACT_ADDRESSES.POOL_CORE, betAmount);
           
           // Return early - the approval confirmation will trigger the bet
           return;
         }
 
         // Sufficient allowance - place bet directly
-        await placeBetDirect(poolId, betAmount, useBitr);
+        await placeBetDirect(poolId, betAmount, usePrix);
       } else {
-        // For STT pools, send native token as value
-        await placeBetDirect(poolId, betAmount, useBitr);
+        // For BNB pools, send native token as value
+        await placeBetDirect(poolId, betAmount, usePrix);
       }
     } catch (error) {
       console.error('Error in placeBet:', error);
@@ -563,8 +563,8 @@ export function usePools() {
           showError('Transaction Cancelled', 'The transaction was cancelled by user.');
         } else if (error.message.includes('insufficient funds')) {
           showError('Insufficient Funds', 'You do not have enough tokens for this bet.');
-        } else if (error.message.includes('BITR transfer failed')) {
-          showError('Transfer Failed', 'BITR token transfer failed. Please check your balance and try again.');
+        } else if (error.message.includes('PRIX transfer failed')) {
+          showError('Transfer Failed', 'PRIX token transfer failed. Please check your balance and try again.');
         } else if (error.message.includes('gas')) {
           showError('Gas Estimation Failed', 'Gas estimation failed. Please try again.');
         } else if (error.message.includes('Internal JSON-RPC error')) {
@@ -603,9 +603,9 @@ export function usePools() {
   const boostPool = async (poolId: number, tier: number) => {
     // Get boost fees - these would need to be read from contract
     const boostFees: { [key: number]: bigint } = {
-            1: parseUnits("10", 18), // Bronze - 10 STT
-      2: parseUnits("25", 18), // Silver - 25 STT
-      3: parseUnits("50", 18), // Gold - 50 STT
+            1: parseUnits("10", 18), // Bronze - 10 BNB
+      2: parseUnits("25", 18), // Silver - 25 BNB
+      3: parseUnits("50", 18), // Gold - 50 BNB
     };
 
     writeContract({
@@ -626,7 +626,7 @@ export function usePools() {
     latestEventEnd: Date,
     category: string,
     maxBetPerUser: string = "0",
-    useBitr: boolean = true
+    usePrix: boolean = true
   ) => {
     const startTimestamp = BigInt(Math.floor(earliestEventStart.getTime() / 1000));
     const endTimestamp = BigInt(Math.floor(latestEventEnd.getTime() / 1000));
@@ -646,10 +646,10 @@ export function usePools() {
       endTimestamp,
       category,
       maxBetWei,
-      useBitr
+      usePrix
     ] as const;
 
-    if (useBitr) {
+    if (usePrix) {
       writeContract({
         ...CONTRACTS.POOL_CORE,
         functionName: 'createComboPool',
@@ -657,7 +657,7 @@ export function usePools() {
         ...getTransactionOptions(),
       });
     } else {
-      const totalRequired = (creationFeeSTT as bigint) + stakeWei;
+      const totalRequired = (creationFeeBNB as bigint) + stakeWei;
       writeContract({
         ...CONTRACTS.POOL_CORE,
         functionName: 'createComboPool',
@@ -671,11 +671,11 @@ export function usePools() {
   const placeComboBet = async (comboPoolId: number, amount: string) => {
     const betAmount = parseUnits(amount, 18);
     
-    // Get combo pool data to check if it uses BITR
+    // Get combo pool data to check if it uses PRIX
     const { comboPool } = getComboPool(comboPoolId);
-    const useBitr = comboPool?.usesBitr ?? true;
+    const usePrix = comboPool?.usesPrix ?? true;
 
-    if (useBitr) {
+    if (usePrix) {
       writeContract({
         ...CONTRACTS.POOL_CORE,
         functionName: 'placeComboBet',
@@ -770,8 +770,8 @@ export function usePools() {
     comboPoolCount: Number(comboPoolCount || 0),
     minBetAmount: formatAmount(minBetAmount as bigint),
     minPoolStake: formatAmount(minPoolStake as bigint),
-    creationFeeSTT: formatAmount(creationFeeSTT as bigint),
-    creationFeeBITR: formatAmount(creationFeeBITR as bigint),
+    creationFeeBNB: formatAmount(creationFeeBNB as bigint),
+    creationFeePRIX: formatAmount(creationFeePRIX as bigint),
     
     // Pool functions
     getPool,

@@ -7,7 +7,7 @@ export interface FaucetEligibility {
   status: {
     hasClaimed: boolean;
     claimTime: string;
-    hasSTTActivity: boolean;
+    hasBNBActivity: boolean;
     faucetHasBalance: boolean;
   };
   activity: {
@@ -15,10 +15,10 @@ export interface FaucetEligibility {
     betsPlaced: number;
     firstActivity: string | null;
     lastActivity: string | null;
-    totalSTTActions: number;
+    totalBNBActions: number;
   };
   requirements: {
-    sttActivityRequired: boolean;
+    bnbActivityRequired: boolean;
     message: string;
   };
 }
@@ -48,7 +48,7 @@ export interface FaucetActivity {
   summary: {
     poolsCreated: number;
     betsPlaced: number;
-    totalSTTActions: number;
+    totalBNBActions: number;
     firstActivity: string | null;
     lastActivity: string | null;
   };
@@ -62,7 +62,7 @@ export interface FaucetActivity {
     league: string;
   }[];
   eligibility: {
-    hasSTTActivity: boolean;
+    hasBNBActivity: boolean;
     message: string;
   };
 }
@@ -151,20 +151,20 @@ export class FaucetService {
           return {
             faucet: {
               active: true,
-              balance: '20000000000000000000000000', // 20M BITR
+              balance: '20000000000000000000000000', // 20M PRIX
               totalDistributed: '0',
               totalUsers: '0',
               maxPossibleClaims: '1000',
               hasSufficientBalance: true,
             },
             constants: {
-              faucetAmount: '20000000000000000000000', // 20K BITR
+              faucetAmount: '20000000000000000000000', // 20K PRIX
               contractAddress: '0x1656712131BB07dDE6EeC7D88757Db24782cab71',
             },
             formatted: {
-              balance: '20,000,000.0 BITR',
-              totalDistributed: '0.0 BITR',
-              faucetAmount: '20,000 BITR',
+              balance: '20,000,000.0 PRIX',
+              totalDistributed: '0.0 PRIX',
+              faucetAmount: '20,000 PRIX',
             },
           };
         }
@@ -206,7 +206,7 @@ export class FaucetService {
             status: {
               hasClaimed: false,
               claimTime: '0',
-              hasSTTActivity: false,
+              hasBNBActivity: false,
               faucetHasBalance: true,
             },
             activity: {
@@ -214,10 +214,10 @@ export class FaucetService {
               betsPlaced: 0,
               firstActivity: null,
               lastActivity: null,
-              totalSTTActions: 0,
+              totalBNBActions: 0,
             },
             requirements: {
-              sttActivityRequired: true,
+              bnbActivityRequired: true,
               message: '❌ API temporarily unavailable - please try again later',
             },
           };

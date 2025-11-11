@@ -13,7 +13,7 @@ interface Pool {
   creatorAddress: string;
   totalBettorStake: string;
   eventEndTime: number;
-  arbitrationDeadline?: number;
+  arprixationDeadline?: number;
   creatorSideWon?: boolean;
   oracleType: number;
 }
@@ -34,12 +34,12 @@ export function PoolActions({ pool, userAddress, contractAddress, onSuccess }: P
   // Check if pool can be refunded
   const canRefund = () => {
     const now = Math.floor(Date.now() / 1000);
-    const arbitrationDeadline = pool.arbitrationDeadline || (pool.eventEndTime + 24 * 60 * 60);
+    const arprixationDeadline = pool.arprixationDeadline || (pool.eventEndTime + 24 * 60 * 60);
     
     return (
       !pool.settled &&
       Number(pool.totalBettorStake) === 0 &&
-      now > arbitrationDeadline &&
+      now > arprixationDeadline &&
       pool.status !== 'refunded'
     );
   };
@@ -244,8 +244,8 @@ export function PoolActions({ pool, userAddress, contractAddress, onSuccess }: P
         <div>Pool ID: {pool.poolId}</div>
         <div>Total Bettor Stake: {pool.totalBettorStake} tokens</div>
         <div>Event End: {new Date(pool.eventEndTime * 1000).toLocaleString()}</div>
-        {pool.arbitrationDeadline && (
-          <div>Arbitration Deadline: {new Date(pool.arbitrationDeadline * 1000).toLocaleString()}</div>
+        {pool.arprixationDeadline && (
+          <div>Arprixation Deadline: {new Date(pool.arprixationDeadline * 1000).toLocaleString()}</div>
         )}
       </div>
     </div>
