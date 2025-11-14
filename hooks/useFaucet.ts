@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { CONTRACTS } from '@/contracts';
 import { formatUnits } from 'viem';

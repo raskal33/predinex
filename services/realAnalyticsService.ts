@@ -5,7 +5,7 @@
  * Properly handles BigInt serialization and data types
  */
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://prixedict-backend.fly.dev';
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://predinex-backend.fly.dev';
 
 // Helper to safely parse BigInt values
 function parseBigIntSafe(value: any): string {

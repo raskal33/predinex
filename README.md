@@ -1,6 +1,6 @@
-# Prixedict - Decentralized Prediction Markets
+# Predinex - Decentralized Prediction Markets
 
-This is the frontend for **Prixedict**, a comprehensive decentralized prediction market platform built on **Somnia blockchain** with smart contracts deployed on **Somnia testnet**.
+This is the frontend for **Predinex**, a comprehensive decentralized prediction market platform built on **Somnia blockchain** with smart contracts deployed on **Somnia testnet**.
 
 ## 🚀 Features
 
@@ -96,7 +96,7 @@ Open [http://localhost:8080](http://localhost:8080) to view the application.
 ## 🔧 Smart Contracts
 
 ### Core Contracts
-- **PrixedictPoolCore**: Main prediction pool logic
+- **PredinexPoolCore**: Main prediction pool logic
 - **ReputationSystem**: User reputation and permissions
 - **BoostSystem**: Pool promotion mechanics
 - **Oddyssey**: Daily prediction game contract
@@ -110,12 +110,12 @@ Open [http://localhost:8080](http://localhost:8080) to view the application.
 ## 🌐 Deployment
 
 ### Frontend (Vercel)
-- **Production URL**: [prixedict.vercel.app](https://prixedict.vercel.app)
+- **Production URL**: [predinex.vercel.app](https://predinex.vercel.app)
 - **Automatic Deployments**: Connected to main branch
 - **Environment**: Production-optimized build
 
 ### Backend (Fly.io)
-- **API Endpoint**: [prixedict-backend.fly.dev](https://prixedict-backend.fly.dev)
+- **API Endpoint**: [predinex-backend.fly.dev](https://predinex-backend.fly.dev)
 - **Database**: Neon PostgreSQL
 - **Real-time Data**: Football fixtures and market data
 

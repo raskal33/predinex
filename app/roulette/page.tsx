@@ -8,9 +8,6 @@ import {
   ArrowRightIcon, 
   ArrowLeftIcon,
   BoltIcon,
-  SparklesIcon,
-  FireIcon,
-  TrophyIcon,
   XMarkIcon
 } from "@heroicons/react/24/outline";
 import { 
@@ -22,6 +19,19 @@ import { toast } from "react-hot-toast";
 import { EnhancedPool } from "@/components/EnhancedPoolCard";
 import { AbstractPoolCardImage } from "@/components/AbstractPoolCardImage";
 import { getCategorySpecificImageMetadata } from "@/services/poolImageService";
+
+interface CardMetadata {
+  colors: {
+    primary: string;
+    secondary: string;
+    accent: string;
+  };
+  category: string;
+  homeLogo?: string;
+  awayLogo?: string;
+  coinLogo?: string;
+  leagueLogo?: string;
+}
 
 interface RoulettePool extends EnhancedPool {
   homeTeamLogo?: string;
@@ -42,7 +52,7 @@ export default function PoolRoulettePage() {
   const [totalViews, setTotalViews] = useState(0);
   const [quickBetAmount, setQuickBetAmount] = useState<string>("10");
   const [isPlacingBet, setIsPlacingBet] = useState(false);
-  const [cardMetadata, setCardMetadata] = useState<any>(null);
+  const [cardMetadata, setCardMetadata] = useState<CardMetadata | null>(null);
   
   // Fetch pools for roulette
   const fetchPools = useCallback(async () => {
@@ -325,7 +335,7 @@ export default function PoolRoulettePage() {
                       </div>
                       <div className="text-center">
                         <div className="text-2xl font-bold text-pink-400">
-                          {parseFloat((currentPool.indexedData?.fillPercentage?.toString() || (currentPool as any).fillPercentage?.toString() || '0')).toFixed(0)}%
+                          {parseFloat((currentPool.indexedData?.fillPercentage?.toString() || (currentPool as { fillPercentage?: { toString: () => string } }).fillPercentage?.toString() || '0')).toFixed(0)}%
                         </div>
                         <div className="text-xs text-gray-400">Filled</div>
                       </div>

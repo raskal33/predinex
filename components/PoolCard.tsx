@@ -2,10 +2,10 @@
 
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Share2, Users, Clock, TrendingUp, TrendingDown, Zap, Trophy, ArrowUpRight } from "lucide-react";
+import { Share2, Users, Clock } from "lucide-react";
 import { formatEther } from "viem";
 import { EnhancedPool } from "./EnhancedPoolCard";
-import { getPoolImageUrlWithFallback, getPoolImageUrlWithLogos, getCategorySpecificImageMetadata } from "@/services/poolImageService";
+import { getPoolImageUrlWithFallback, getCategorySpecificImageMetadata } from "@/services/poolImageService";
 import { AbstractPoolCardImage } from "./AbstractPoolCardImage";
 
 // Color Psychology: 
@@ -85,7 +85,6 @@ const calculateOdds = (pool: EnhancedPool) => {
   let noOdds = 1.5; // Default
   if (totalVolume > 0) {
     // Calculate implied odds from volume distribution
-    const yesImplied = totalVolume / (yesVolume || 1);
     const noImplied = totalVolume / (noVolume || 1);
     noOdds = Math.max(1.1, Math.min(10, noImplied));
   }
@@ -203,7 +202,7 @@ export const PoolCardNFT = ({ pool, onClick }: PoolCardProps) => {
   const totalVolume = yesVolume + noVolume;
   const yesPct = totalVolume > 0 ? Math.round((yesVolume / totalVolume) * 100) : 50;
   
-  const { yesOdds, noOdds } = calculateOdds(pool);
+  const { yesOdds } = calculateOdds(pool);
   const timeInfo = timeRemaining(pool.bettingEndTime || pool.eventEndTime);
   const participants = pool.indexedData?.participantCount || parseInt(pool.participants || "0") || 0;
   
@@ -399,39 +398,7 @@ export const PoolCardFull = ({ pool, onClick }: PoolCardProps) => {
   // Market status
   const isHot = yesPct > 70 || (pool.indexedData?.isHot ?? false) || (pool.trending ?? false);
   const isContrarian = yesPct < 35;
-  const isMinority = isContrarian;
   
-  // Color psychology: Hot = red/orange (urgency), Bullish = green (trust), Contrarian = purple (premium)
-  const getThemeColors = () => {
-    if (isHot) {
-      return {
-        primary: "from-red-500 to-orange-500",
-        secondary: "from-orange-500 to-yellow-500",
-        glow: "shadow-red-500/30",
-        text: "text-red-400",
-        bg: "from-red-950/20 to-orange-950/20",
-      };
-    } else if (isContrarian) {
-      return {
-        primary: "from-purple-500 to-pink-500",
-        secondary: "from-violet-500 to-purple-500",
-        glow: "shadow-purple-500/30",
-        text: "text-purple-400",
-        bg: "from-purple-950/20 to-pink-950/20",
-      };
-    } else {
-      return {
-        primary: "from-cyan-500 to-blue-500",
-        secondary: "from-green-500 to-emerald-500",
-        glow: "shadow-cyan-500/30",
-        text: "text-cyan-400",
-        bg: "from-cyan-950/20 to-blue-950/20",
-      };
-    }
-  };
-
-  const theme = getThemeColors();
-
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}

@@ -78,7 +78,7 @@ export default function StakingPage() {
   // Check if approval is needed
   useEffect(() => {
     if (stakeAmount && token.balance && isMountedRef.current) {
-      const allowance = token.getAllowance(CONTRACTS.PRIXEDICT_STAKING.address);
+      const allowance = token.getAllowance(CONTRACTS.PREDINEX_STAKING.address);
       const stakeAmountWei = parseUnits(stakeAmount, 18);
       setNeedsApproval(!allowance || (allowance as bigint) < stakeAmountWei);
     }
@@ -211,7 +211,7 @@ export default function StakingPage() {
       }
 
       const stakeAmountWei = parseUnits(stakeAmount, 18);
-      await token.approve(CONTRACTS.PRIXEDICT_STAKING.address, stakeAmountWei.toString());
+      await token.approve(CONTRACTS.PREDINEX_STAKING.address, stakeAmountWei.toString());
       showSuccess("Approval Successful", "PRIX tokens approved for staking. You can now create your stake.");
       
       // Reset approval state after successful approval

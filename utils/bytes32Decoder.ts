@@ -35,7 +35,7 @@ export function isBytes32String(bytes32: string): boolean {
     const decoded = ethersDecodeBytes32String(bytes32);
     // If it decodes successfully and doesn't contain null bytes, it's likely a string
     return !decoded.includes('\x00') && decoded.length > 0;
-  } catch (error) {
+  } catch {
     return false;
   }
 }

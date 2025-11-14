@@ -10,7 +10,7 @@ export async function GET(
     cycleId = resolvedParams.cycleId;
     console.log(`🎯 Fetching results for cycle: ${cycleId}`);
 
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://prixedict-backend.fly.dev';
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://predinex-backend.fly.dev';
 
     // First try to get results from /results/all and filter by cycleId
     const response = await fetch(`${backendUrl}/api/oddyssey/results/all`, {

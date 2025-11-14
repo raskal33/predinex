@@ -56,7 +56,7 @@ export default function DocsPage() {
   const documentation = [
     {
       title: "Introduction",
-      description: "Get started with Prixedict decentralized prediction markets",
+      description: "Get started with Predinex decentralized prediction markets",
       href: "/docs/intro.html",
       category: "guides",
       icon: BookOpenIcon,
@@ -104,7 +104,7 @@ export default function DocsPage() {
     },
     {
       title: "Smart Contracts",
-      description: "PrixedictPool and Oddyssey contract documentation",
+      description: "PredinexPool and Oddyssey contract documentation",
       href: "/docs/contracts/prediction-pool.html",
       category: "technical",
       icon: BeakerIcon,
@@ -174,7 +174,7 @@ export default function DocsPage() {
       >
         <h1 className="text-4xl font-bold text-white">Documentation</h1>
         <p className="text-gray-400 text-lg max-w-3xl mx-auto">
-          Comprehensive technical documentation for the Prixedict platform, including user guides, API references, smart contract documentation, and system architecture details.
+          Comprehensive technical documentation for the Predinex platform, including user guides, API references, smart contract documentation, and system architecture details.
         </p>
       </motion.div>
 

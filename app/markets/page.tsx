@@ -2,29 +2,23 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { toast } from "react-hot-toast";
-import AnimatedTitle from "@/components/AnimatedTitle";
 import { optimizedPoolService, type OptimizedPool } from "@/services/optimizedPoolService";
 import { poolStateService } from "@/services/poolStateService";
 import { frontendCache } from "@/services/frontendCache";
 import RecentBetsLane from "@/components/RecentBetsLane";
-import SkeletonLoader from "@/components/SkeletonLoader";
-import EnhancedPoolCard, { type EnhancedPool } from "@/components/EnhancedPoolCard";
+import { type EnhancedPool } from "@/components/EnhancedPoolCard";
 import { PoolCardCatalog, PoolCardModal } from "@/components/PoolCard";
 import { 
   FaChartLine, 
-  FaFilter, 
   FaSearch, 
   FaBolt, 
   FaTrophy, 
   FaLock, 
-  FaStar,
   FaFire,
   FaClock,
-  FaSort,
-  FaShieldAlt,
-  FaGift
+  FaSort
 } from "react-icons/fa";
 
 type MarketCategory = "all" | "boosted" | "trending" | "private" | "combo" | "active" | "closed" | "settled";
@@ -40,7 +34,7 @@ export default function MarketsPage() {
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
   const [sortBy, setSortBy] = useState<SortBy>("newest");
   const [searchTerm, setSearchTerm] = useState("");
-  const [showFilters, setShowFilters] = useState(false);
+  const [, _setShowFilters] = useState(false);
   const [selectedPool, setSelectedPool] = useState<EnhancedPool | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [enhancedPools, setEnhancedPools] = useState<Array<OptimizedPool & { isSettled?: boolean; creatorSideWon?: boolean }>>([]);

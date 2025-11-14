@@ -53,15 +53,15 @@ export default function ContactPage() {
       title: "Community Discord",
       description: "Join our Discord server for real-time support and community discussions",
       action: "Join Discord",
-      href: "https://discord.gg/prixedict",
+      href: "https://discord.gg/predinex",
       color: "text-purple-400"
     },
     {
       icon: EnvelopeIcon,
       title: "Email Support", 
       description: "Send us an email for detailed inquiries and technical support",
-      action: "support@prixedict.com",
-      href: "mailto:support@prixedict.com",
+      action: "support@predinex.com",
+      href: "mailto:support@predinex.com",
       color: "text-blue-400"
     },
     {

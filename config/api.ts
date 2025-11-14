@@ -1,7 +1,7 @@
 export const API_CONFIG = {
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://prixedict-backend.fly.dev',
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://predinex-backend.fly.dev',
   // Use relative URLs for frontend API routes that proxy to backend
-  frontendBaseURL: typeof window !== 'undefined' ? '' : 'https://prixedict-backend.fly.dev',
+  frontendBaseURL: typeof window !== 'undefined' ? '' : 'https://predinex-backend.fly.dev',
   endpoints: {
     airdrop: '/api/airdrop',
     faucet: '/api/faucet', 

@@ -1,12 +1,12 @@
-// Gas estimation script for PrixedictPoolCore contracts
+// Gas estimation script for PredinexPoolCore contracts
 const { ethers } = require("hardhat");
 
 async function estimateGasUsage() {
-    console.log("🔍 Gas Usage Analysis for PrixedictPoolCore Contracts\n");
+    console.log("🔍 Gas Usage Analysis for PredinexPoolCore Contracts\n");
     
     // Deploy both contracts for comparison
-    const PrixedictPoolCore = await ethers.getContractFactory("PrixedictPoolCore");
-    const PrixedictPoolCoreOptimized = await ethers.getContractFactory("PrixedictPoolCoreOptimized");
+    const PredinexPoolCore = await ethers.getContractFactory("PredinexPoolCore");
+    const PredinexPoolCoreOptimized = await ethers.getContractFactory("PredinexPoolCoreOptimized");
     
     // Mock addresses for testing
     const mockPrixToken = "0x1234567890123456789012345678901234567890";
@@ -17,7 +17,7 @@ async function estimateGasUsage() {
     console.log("📊 Deploying contracts for gas estimation...\n");
     
     // Deploy original contract
-    const originalContract = await PrixedictPoolCore.deploy(
+    const originalContract = await PredinexPoolCore.deploy(
         mockPrixToken,
         mockFeeCollector,
         mockGuidedOracle,
@@ -27,7 +27,7 @@ async function estimateGasUsage() {
     console.log("✅ Original contract deployed");
     
     // Deploy optimized contract
-    const optimizedContract = await PrixedictPoolCoreOptimized.deploy(
+    const optimizedContract = await PredinexPoolCoreOptimized.deploy(
         mockPrixToken,
         mockFeeCollector,
         mockGuidedOracle,

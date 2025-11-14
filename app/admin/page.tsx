@@ -127,7 +127,7 @@ export default function AdminPage() {
   const [filteredLogs, setFilteredLogs] = useState<LogEntry[]>([]);
   const [logFilter, setLogFilter] = useState<string>('all');
 
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://prixedict-backend.fly.dev';
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://predinex-backend.fly.dev';
 
   // Define all admin actions
   const adminActions: AdminAction[] = [
@@ -526,7 +526,7 @@ export default function AdminPage() {
         >
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold mb-2">Prixedict Admin Dashboard</h1>
+              <h1 className="text-4xl font-bold mb-2">Predinex Admin Dashboard</h1>
               <p className="text-gray-400">Comprehensive system administration and betting management</p>
             </div>
             <div className="flex items-center gap-4">

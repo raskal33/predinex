@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 // EVM/Ethers integration can be added here when needed
 // import { ethers } from 'ethers';
 
-// Contract interfaces based on the PrixedictPool.sol
+// Contract interfaces based on the PredinexPool.sol
 interface GlobalStats {
   totalPools: number;
   totalVolume: number;

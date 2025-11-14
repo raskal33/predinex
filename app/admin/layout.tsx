@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Admin Dashboard - Prixedict",
+  title: "Admin Dashboard - Predinex",
   description: "System administration and monitoring dashboard",
 };
 

@@ -1,28 +1,28 @@
 import { CONTRACT_ADDRESSES } from '@/config/wagmi';
 
 // Import ABIs - Updated for Modular Architecture
-import PrixedictTokenArtifact from './abis/PrixedictToken.json';
+import PredinexTokenArtifact from './abis/PredinexToken.json';
 import PrixFaucetArtifact from './abis/PrixFaucet.json';
 import GuidedOracleArtifact from './abis/GuidedOracle.json';
 import OptimisticOracleArtifact from './abis/OptimisticOracle.json';
-import PrixedictPoolCoreArtifact from './abis/PrixedictPoolCore.json';
-import PrixedictBoostSystemArtifact from './abis/PrixedictBoostSystem.json';
-import PrixedictComboPoolsArtifact from './abis/PrixedictComboPools.json';
-import PrixedictPoolFactoryArtifact from './abis/PrixedictPoolFactory.json';
-import PrixedictStakingArtifact from './abis/PrixedictStaking.json';
+import PredinexPoolCoreArtifact from './abis/PredinexPoolCore.json';
+import PredinexBoostSystemArtifact from './abis/PredinexBoostSystem.json';
+import PredinexComboPoolsArtifact from './abis/PredinexComboPools.json';
+import PredinexPoolFactoryArtifact from './abis/PredinexPoolFactory.json';
+import PredinexStakingArtifact from './abis/PredinexStaking.json';
 import ReputationSystemArtifact from './abis/ReputationSystem.json';
 import OddysseyArtifact from './abis/Oddyssey.json';
 
 // Extract ABI arrays from artifacts (ABI files are arrays directly, not objects with .abi property)
-const PrixedictTokenABI = PrixedictTokenArtifact as any;
+const PredinexTokenABI = PredinexTokenArtifact as any;
 const PrixFaucetABI = PrixFaucetArtifact as any;
 const GuidedOracleABI = GuidedOracleArtifact as any;
 const OptimisticOracleABI = OptimisticOracleArtifact as any;
-const PrixedictPoolCoreABI = PrixedictPoolCoreArtifact as any;
-const PrixedictBoostSystemABI = PrixedictBoostSystemArtifact as any;
-const PrixedictComboPoolsABI = PrixedictComboPoolsArtifact as any;
-const PrixedictPoolFactoryABI = PrixedictPoolFactoryArtifact as any;
-const PrixedictStakingABI = PrixedictStakingArtifact as any;
+const PredinexPoolCoreABI = PredinexPoolCoreArtifact as any;
+const PredinexBoostSystemABI = PredinexBoostSystemArtifact as any;
+const PredinexComboPoolsABI = PredinexComboPoolsArtifact as any;
+const PredinexPoolFactoryABI = PredinexPoolFactoryArtifact as any;
+const PredinexStakingABI = PredinexStakingArtifact as any;
 const ReputationSystemABI = ReputationSystemArtifact as any;
 const OddysseyABI = OddysseyArtifact as any;
 
@@ -31,23 +31,23 @@ export const CONTRACTS = {
   // Core Contracts
   PRIX_TOKEN: {
     address: CONTRACT_ADDRESSES.PRIX_TOKEN,
-    abi: PrixedictTokenABI,
+    abi: PredinexTokenABI,
   },
   POOL_CORE: {
     address: CONTRACT_ADDRESSES.POOL_CORE,
-    abi: PrixedictPoolCoreABI,
+    abi: PredinexPoolCoreABI,
   },
   BOOST_SYSTEM: {
     address: CONTRACT_ADDRESSES.BOOST_SYSTEM,
-    abi: PrixedictBoostSystemABI,
+    abi: PredinexBoostSystemABI,
   },
   COMBO_POOLS: {
     address: CONTRACT_ADDRESSES.COMBO_POOLS,
-    abi: PrixedictComboPoolsABI,
+    abi: PredinexComboPoolsABI,
   },
   FACTORY: {
     address: CONTRACT_ADDRESSES.FACTORY,
-    abi: PrixedictPoolFactoryABI,
+    abi: PredinexPoolFactoryABI,
   },
   
   // Oracle Contracts
@@ -67,7 +67,7 @@ export const CONTRACTS = {
   },
   STAKING_CONTRACT: {
     address: CONTRACT_ADDRESSES.STAKING_CONTRACT,
-    abi: PrixedictStakingABI,
+    abi: PredinexStakingABI,
   },
   FAUCET: {
     address: CONTRACT_ADDRESSES.FAUCET,
@@ -79,28 +79,28 @@ export const CONTRACTS = {
   },
   
   // Legacy support (for backward compatibility) - DEPRECATED: Use POOL_CORE instead
-  PRIXEDICT_POOL: {
-    address: CONTRACT_ADDRESSES.PRIXEDICT_POOL, // DEPRECATED: Use POOL_CORE
-    abi: PrixedictPoolCoreABI, // DEPRECATED: Use POOL_CORE.abi
+  PREDINEX_POOL: {
+    address: CONTRACT_ADDRESSES.PREDINEX_POOL, // DEPRECATED: Use POOL_CORE
+    abi: PredinexPoolCoreABI, // DEPRECATED: Use POOL_CORE.abi
   },
-  PRIXEDICT_STAKING: {
-    address: CONTRACT_ADDRESSES.PRIXEDICT_STAKING,
-    abi: PrixedictStakingABI,
+  PREDINEX_STAKING: {
+    address: CONTRACT_ADDRESSES.PREDINEX_STAKING,
+    abi: PredinexStakingABI,
   },
 } as const;
 
 // Export contract addresses and ABIs for direct use
 export { CONTRACT_ADDRESSES } from '@/config/wagmi';
 export {
-  PrixedictTokenABI,
+  PredinexTokenABI,
   PrixFaucetABI,
   GuidedOracleABI,
   OptimisticOracleABI,
-  PrixedictPoolCoreABI,
-  PrixedictBoostSystemABI,
-  PrixedictComboPoolsABI,
-  PrixedictPoolFactoryABI,
-  PrixedictStakingABI,
+  PredinexPoolCoreABI,
+  PredinexBoostSystemABI,
+  PredinexComboPoolsABI,
+  PredinexPoolFactoryABI,
+  PredinexStakingABI,
   ReputationSystemABI,
   OddysseyABI,
 };
@@ -169,13 +169,13 @@ export const CONTRACT_EVENTS = {
   },
   
   // Legacy events (for backward compatibility)
-  PRIXEDICT_POOL: {
+  PREDINEX_POOL: {
     POOL_CREATED: 'PoolCreated',
     BET_PLACED: 'BetPlaced',
     POOL_SETTLED: 'PoolSettled',
     WINNINGS_CLAIMED: 'WinningsClaimed',
   },
-  PRIXEDICT_STAKING: {
+  PREDINEX_STAKING: {
     STAKED: 'Staked',
     UNSTAKED: 'Unstaked',
     REWARDS_CLAIMED: 'RewardsClaimed',

@@ -165,7 +165,6 @@ function truncateSingleWord(word: string): string {
   if (word.length <= 31) return word;
   
   // Try to keep meaningful parts
-  const vowels = 'aeiouAEIOU';
   let result = word;
   
   // Remove vowels from the middle, keep first and last few characters

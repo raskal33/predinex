@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'wss://prixedict-backend.fly.dev';
+const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'wss://predinex-backend.fly.dev';
 
 interface UseWebSocketOptions {
   channel: string | null;

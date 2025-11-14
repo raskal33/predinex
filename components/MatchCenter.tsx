@@ -88,7 +88,7 @@ export default function MatchCenter({ fixtureId, marketId, className = "" }: Mat
         
         // Use fixture endpoint if fixtureId is provided, otherwise use market endpoint
         // CRITICAL: Use absolute backend URL, not relative path which calls frontend domain
-        const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://prixedict-backend.fly.dev';
+        const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://predinex-backend.fly.dev';
         const endpoint = isFixtureId 
           ? `${backendUrl}/api/match-center/fixture/${id}?t=${Date.now()}`
           : `${backendUrl}/api/match-center/market/${id}?t=${Date.now()}`;

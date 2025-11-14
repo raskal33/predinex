@@ -29,11 +29,11 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL('https://prixedict.vercel.app'),
+  metadataBase: new URL('https://predinex.vercel.app'),
   openGraph: {
     title: "Predinex - Decentralized Prediction Markets",
     description: "Trade on real-world outcomes with transparent, blockchain-powered markets on Somnia Network",
-    url: "https://prixedict.vercel.app",
+    url: "https://predinex.vercel.app",
     siteName: "Predinex",
     images: [
       {
@@ -50,7 +50,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Predinex - Decentralized Prediction Markets",
     description: "Trade on real-world outcomes with transparent, blockchain-powered markets",
-    creator: "@prixedict",
+    creator: "@predinex",
     images: ["/logo.png"],
   },
 };

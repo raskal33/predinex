@@ -4,7 +4,7 @@ export async function GET() {
   try {
     console.log('🧪 Test API: Starting test...');
     
-    const backendUrl = 'https://prixedict-backend.fly.dev';
+    const backendUrl = 'https://predinex-backend.fly.dev';
     
     // Test health endpoint
     console.log('🧪 Test API: Testing health endpoint...');

@@ -5,8 +5,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const { id } = await params;
     console.log(`🎯 Fetching fixture details for ID: ${id}`);
 
-    // Use prixedict-backend for testing
-    const backendUrl = 'https://prixedict-backend.fly.dev';
+    // Use predinex-backend for testing
+    const backendUrl = 'https://predinex-backend.fly.dev';
     const response = await fetch(`${backendUrl}/api/match-center/fixture/${id}`, {
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate',

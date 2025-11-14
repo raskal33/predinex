@@ -142,7 +142,7 @@ export default function DisclaimerPage() {
               <section>
                 <h2 className="text-2xl font-bold text-text-primary mb-4">Limitation of Liability</h2>
                 <p className="text-text-secondary leading-relaxed">
-                  IN NO EVENT SHALL PRIXEDICT, ITS DEVELOPERS, OR AFFILIATES BE LIABLE FOR ANY DIRECT, INDIRECT, 
+                  IN NO EVENT SHALL PREDINEX, ITS DEVELOPERS, OR AFFILIATES BE LIABLE FOR ANY DIRECT, INDIRECT, 
                   INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES ARISING FROM YOUR USE OF THE PLATFORM, 
                   INCLUDING BUT NOT LIMITED TO LOSS OF FUNDS, PROFITS, OR DATA.
                 </p>

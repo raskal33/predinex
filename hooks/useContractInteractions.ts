@@ -1,9 +1,8 @@
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, usePublicClient } from 'wagmi';
+import { useAccount, useWriteContract, useWaitForTransactionReceipt, usePublicClient } from 'wagmi';
 import { CONTRACTS, CONTRACT_ADDRESSES } from '@/contracts';
 import { executeContractCall, getTransactionOptions } from '@/lib/network-connection';
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import { toast } from 'react-hot-toast';
-import { keccak256, toBytes } from 'viem';
 import { ethers } from 'ethers';
 import { formatTeamNamesForPool } from '@/utils/teamNameFormatter';
 
@@ -224,8 +223,8 @@ export function usePoolCore() {
           
           toast.loading('Approving PRIX tokens for pool creation...', { id: 'prix-approval' });
           try {
-            const approvalTx = await approve(approvalTarget, totalRequired);
-            console.log(`✅ Approval transaction confirmed: ${approvalTx}`);
+            await approve(approvalTarget, totalRequired);
+            console.log(`✅ Approval transaction confirmed`);
             toast.dismiss('prix-approval');
             toast.success('PRIX tokens approved for pool creation!');
             
@@ -257,7 +256,7 @@ export function usePoolCore() {
             try {
               // Approve a larger amount to avoid this issue in future
               const bufferAmount = totalRequired * 2n; // Approve 2x to cover multiple pools
-              const approvalTx = await approve(CONTRACT_ADDRESSES.POOL_CORE, bufferAmount);
+              await approve(CONTRACT_ADDRESSES.POOL_CORE, bufferAmount);
               console.log(`✅ Approval refreshed with buffer: ${bufferAmount / BigInt(10**18)} PRIX`);
               toast.dismiss('prix-approval-refresh');
               toast.success('PRIX tokens approved!');

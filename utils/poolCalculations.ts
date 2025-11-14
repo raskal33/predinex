@@ -2,7 +2,7 @@
  * Pool Calculation Utilities
  * 
  * Standardized calculations for pool size, fill percentage, and betting limits
- * based on the PrixedictPoolCore contract formula.
+ * based on the PredinexPoolCore contract formula.
  */
 
 export interface PoolCalculationInputs {

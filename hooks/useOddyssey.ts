@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { CONTRACTS } from '@/contracts';
-import { formatUnits, parseUnits } from 'viem';
+import { formatUnits } from 'viem';
 import { useQuery } from '@tanstack/react-query';
-import { oddysseyService, type OddysseyMatch } from '@/services/oddysseyService';
+import { oddysseyService } from '@/services/oddysseyService';
 import { transformContractData } from '@/utils/bigint-serializer';
 
 export enum BetType {
@@ -192,7 +192,7 @@ export function useOddyssey() {
   });
 
   // Contract synchronization status (always synced in contract-only mode)
-  const { data: contractSyncStatus, refetch: refetchContractSync } = useQuery({
+  useQuery({
     queryKey: ['oddyssey', 'contract', 'sync'],
     queryFn: () => oddysseyService.checkCycleSync(),
     refetchInterval: 300000, // Every 5 minutes
@@ -241,7 +241,7 @@ export function useOddyssey() {
   });
 
   // Write contract functions
-  const placeSlip = async (predictions: UserPrediction[]) => {
+  const placeSlip = async (_predictions: UserPrediction[]) => {
     if (!entryFee || !address) return;
     
     try {
@@ -288,7 +288,7 @@ export function useOddyssey() {
   }, []);
 
   // Contract-based daily matches (no live data integration)
-  const { data: dailyMatchesWithLive, refetch: refetchDailyMatches } = useQuery({
+  const { refetch: refetchDailyMatches } = useQuery({
     queryKey: ['oddyssey-daily-matches-contract', dailyCycleId],
     queryFn: async () => {
       const matches = Array.isArray(dailyMatches) ? dailyMatches : [];

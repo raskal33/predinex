@@ -8,7 +8,7 @@ export async function GET(
     const { address } = await params;
     console.log(`🎯 Fetching creator reputation for address: ${address}`);
 
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://prixedict-backend.fly.dev';
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://predinex-backend.fly.dev';
     const response = await fetch(`${backendUrl}/api/pool-analytics/creator/${address}`, {
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate',

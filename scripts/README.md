@@ -74,7 +74,7 @@ This directory contains scripts to debug and verify the faucet functionality.
 
 📁 Contract Files Check:
    ✅ contracts/abis/PrixFaucet.json
-   ✅ contracts/abis/PrixedictToken.json
+   ✅ contracts/abis/PredinexToken.json
    ✅ contracts/index.ts
    ✅ config/wagmi.ts
    ✅ hooks/useFaucet.ts

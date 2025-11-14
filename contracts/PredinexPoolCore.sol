@@ -3,15 +3,17 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import "./ReputationSystem.sol";
-interface IBitredictBoostSystem {
+import "./libraries/ClaimCalculations.sol";
+import "./libraries/PoolValidations.sol";
+import "./libraries/PoolStats.sol";
+interface IPredinexBoostSystem {
     function getPoolBoost(uint256 poolId) external view returns (uint8 tier, uint256 expiry);
     function isPoolBoosted(uint256 poolId) external view returns (bool);
+    function getBoostCost(address user) external view returns (uint256 cost);
 }
-interface IBitredictStaking {
-    function addRevenue(uint256 bitrAmount, uint256 sttAmount) external;
+interface IPredinexStaking {
+    function addRevenue(uint256 prixAmount, uint256 bnbAmount) external;
 }
 interface IReputationSystem {
     function getUserReputation(address user) external view returns (uint256);
@@ -24,33 +26,30 @@ interface IGuidedOracle {
 }
 interface IOptimisticOracle {
     function getOutcome(string memory marketId) external view returns (bool isSettled, bytes memory outcome);
+    function createMarket(string memory marketId, uint256 poolId, string memory question, string memory category, uint256 eventEndTime) external;
 }
 enum OracleType {
     GUIDED,
     OPEN
 }
 enum MarketType {
-    MONEYLINE,
-    OVER_UNDER,
-    BOTH_TEAMS_SCORE,
-    HALF_TIME,
-    DOUBLE_CHANCE,
-    CORRECT_SCORE,
-    FIRST_GOAL,
-    CUSTOM
+    MONEYLINE,        // 0 - Winner/Outcome (works for all sports: 1X2, Win/Lose, Above/Below)
+    OVER_UNDER,       // 1 - Total points/goals/runs (works for all sports)
+    SPREAD,           // 2 - Point spread (basketball, american football, etc.)
+    PROPOSITION,      // 3 - Prop bets (first scorer, specific events, etc.)
+    CORRECT_SCORE,    // 4 - Exact score/result (football, basketball, etc.)
+    CUSTOM            // 5 - Arbitrary YES/NO predictions
 }
-contract BitredictPoolCore is Ownable, ReentrancyGuard {
-    using ECDSA for bytes32;
-    using MessageHashUtils for bytes32;
-    IERC20 public bitrToken;
+contract PredinexPoolCore is Ownable, ReentrancyGuard {
+    IERC20 public prixToken;
     uint256 public poolCount;
-    uint256 public constant creationFeeSTT = 1e18;
-    uint256 public constant creationFeeBITR = 50e18;
+    uint256 public constant creationFeeBNB = 1e16; // 0.01 BNB
+    uint256 public constant creationFeePrix = 50e18;
     uint256 public constant platformFee = 500;
     uint256 public constant bettingGracePeriod = 60;
     uint256 public constant arbitrationTimeout = 24 hours;
-    uint256 public constant minPoolStakeSTT = 5e18;
-    uint256 public constant minPoolStakeBITR = 1000e18;
+    uint256 public constant minPoolStakeBNB = 1e18; // 1 BNB
+    uint256 public constant minPoolStakePrix = 1000e18;
     uint256 public constant minBetAmount = 1e18;
     uint256 public constant HIGH_ODDS_THRESHOLD = 500;
     uint256 public constant MAX_PARTICIPANTS = 500;
@@ -60,9 +59,9 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
     address public immutable guidedOracle;
     address public immutable optimisticOracle;
     IReputationSystem public reputationSystem;
-    IBitredictBoostSystem public boostSystem;
-    uint256 public totalCollectedSTT;
-    uint256 public totalCollectedBITR;
+    IPredinexBoostSystem public boostSystem;
+    uint256 public totalCollectedBNB;
+    uint256 public totalCollectedPrix;
     struct PoolAnalytics {
         uint256 totalVolume;
         uint256 participantCount;
@@ -129,6 +128,10 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
     mapping(address => CreatorStats) public creatorStats;
     mapping(uint256 => PoolAnalytics) public poolAnalytics;
     GlobalStats public globalStats;
+    mapping(uint256 => uint256) public poolCollectedFeesBNB;
+    mapping(uint256 => uint256) public poolCollectedFeesPrix;
+    mapping(address => uint256) public creatorPendingFeesBNB;
+    mapping(address => uint256) public creatorPendingFeesPrix;
     mapping(address => uint256) public predictionStreaks;
     mapping(address => uint256) public longestStreak;
     mapping(address => uint256) public streakMultiplier;
@@ -144,13 +147,19 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
     event UserWhitelisted(uint256 indexed poolId, address indexed user);
     event ReputationActionOccurred(address indexed user, ReputationSystem.ReputationAction action, uint256 value, bytes32 indexed poolId, uint256 timestamp);
     event AnalyticsUpdated(uint256 indexed poolId, uint256 totalVolume, uint256 participantCount);
+    event CreatorFeeAccrued(uint256 indexed poolId, address indexed creator, uint256 bnbAmount, uint256 prixAmount);
+    event CreatorFeeClaimed(address indexed creator, uint256 bnbAmount, uint256 prixAmount);
     constructor(
-        address _bitrToken,
+        address _prixToken,
         address _feeCollector,
         address _guidedOracle,
         address _optimisticOracle
     ) Ownable(msg.sender) {
-        bitrToken = IERC20(_bitrToken);
+        require(_prixToken != address(0), "Invalid token address");
+        require(_feeCollector != address(0), "Invalid fee collector");
+        require(_guidedOracle != address(0), "Invalid guided oracle");
+        require(_optimisticOracle != address(0), "Invalid optimistic oracle");
+        prixToken = IERC20(_prixToken);
         feeCollector = _feeCollector;
         guidedOracle = _guidedOracle;
         optimisticOracle = _optimisticOracle;
@@ -160,15 +169,15 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
         reputationSystem = IReputationSystem(_reputationSystem);
     }
     function setBoostSystem(address _boostSystem) external onlyOwner {
-        boostSystem = IBitredictBoostSystem(_boostSystem);
+        boostSystem = IPredinexBoostSystem(_boostSystem);
     }
     modifier validPool(uint256 poolId) {
-        require(poolId < poolCount, "Invalid pool");
-        require(pools[poolId].creator != address(0), "Pool does not exist");
+        require(poolId < poolCount);
+        require(pools[poolId].creator != address(0));
         _;
     }
     modifier onlyOracle() {
-        require(msg.sender == guidedOracle || msg.sender == optimisticOracle, "Not oracle");
+        require(msg.sender == guidedOracle || msg.sender == optimisticOracle);
         _;
     }
     function createPool(
@@ -184,43 +193,55 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
         bytes32 _title,
         bool _isPrivate,
         uint256 _maxBetPerUser,
-        bool _useBitr,
+        bool _usePrix,
         OracleType _oracleType,
         MarketType _marketType,
         string memory _marketId
     ) external payable nonReentrant returns (uint256) {
-        require(_odds > 100 && _odds <= 10000, "Invalid odds: must be between 1.01 and 100.00");
+        require(_odds > 100 && _odds <= 10000);
         if (_oracleType == OracleType.GUIDED) {
-            require(_marketType != MarketType.CUSTOM, "Guided pools need specific market type");
+            require(_marketType != MarketType.CUSTOM);
         }
         if (address(reputationSystem) != address(0)) {
             (, bool canCreateGuided, bool canCreateOpen,) = reputationSystem.getReputationBundle(msg.sender);
             if (_oracleType == OracleType.OPEN) {
-                require(canCreateOpen, "Insufficient reputation for OPEN pools");
+                require(canCreateOpen);
             } else {
-                require(canCreateGuided, "Insufficient reputation for GUIDED pools");
+                require(canCreateGuided);
             }
         }
-        if (_useBitr) {
-            require(_creatorStake >= minPoolStakeBITR, "BITR stake below minimum");
+        if (_usePrix) {
+            require(_creatorStake >= minPoolStakePrix);
         } else {
-            require(_creatorStake >= minPoolStakeSTT, "STT stake below minimum");
+            require(_creatorStake >= minPoolStakeBNB);
         }
-        require(_creatorStake <= 1000000 * 1e18, "Stake too large");
-        require(_eventStartTime > block.timestamp, "Event must be in future");
-        require(_eventEndTime > _eventStartTime, "Event end must be after start");
-        require(_eventStartTime > block.timestamp + bettingGracePeriod, "Event too soon");
-        uint256 creationFee = _useBitr ? creationFeeBITR : creationFeeSTT;
-        uint256 totalRequired = creationFee + _creatorStake;
-        if (_useBitr) {
-            require(msg.value == 0, "No ETH payment for BITR pools");
-            require(bitrToken.transferFrom(msg.sender, address(this), totalRequired), "BITR transfer failed");
+        require(_creatorStake <= 1000000 * 1e18);
+        require(_eventStartTime > block.timestamp);
+        require(_eventEndTime > _eventStartTime);
+        require(_eventStartTime > block.timestamp + bettingGracePeriod);
+        
+        // Apply fee reduction based on Prix balance
+        uint256 baseCreationFee = _usePrix ? creationFeePrix : creationFeeBNB;
+        uint256 prixBalance = prixToken.balanceOf(msg.sender);
+        uint256 discountMultiplier = 100; // 100% = no discount
+        
+        // Calculate discount percentage based on Prix balance
+        if (prixBalance >= 500000 * 1e18) discountMultiplier = 50;  // 50% discount
+        else if (prixBalance >= 200000 * 1e18) discountMultiplier = 70;  // 30% discount
+        else if (prixBalance >= 50000 * 1e18) discountMultiplier = 80;   // 20% discount
+        else if (prixBalance >= 5000 * 1e18) discountMultiplier = 90;   // 10% discount
+        
+        uint256 adjustedCreationFee = (baseCreationFee * discountMultiplier) / 100;
+        uint256 totalRequired = adjustedCreationFee + _creatorStake;
+        if (_usePrix) {
+            require(msg.value == 0);
+            require(prixToken.transferFrom(msg.sender, address(this), totalRequired));
         } else {
-            require(msg.value == totalRequired, "ETH payment mismatch");
+            require(msg.value == totalRequired);
         }
         uint8 flags = 0;
         if (_isPrivate) flags |= 4;      
-        if (_useBitr) flags |= 8;        
+        if (_usePrix) flags |= 8;        
         pools[poolCount] = Pool({
             creator: msg.sender,
             odds: uint16(_odds),
@@ -261,31 +282,39 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
         emit ReputationActionOccurred(msg.sender, ReputationSystem.ReputationAction.POOL_CREATED, _creatorStake, bytes32(poolCount), block.timestamp);
         uint256 currentPoolId = poolCount;
         poolCount++;
+        
+        // ✅ Create market in OptimisticOracle for OPEN pools
+        if (_oracleType == OracleType.OPEN) {
+            string memory question = string(abi.encodePacked(_title));
+            string memory category = string(abi.encodePacked(_category));
+            IOptimisticOracle(optimisticOracle).createMarket(_marketId, currentPoolId, question, category, _eventEndTime);
+        }
+        
         _scheduleRefundCheck(currentPoolId, _eventStartTime);
         return currentPoolId;
     }
     function placeBet(uint256 poolId, uint256 amount) external payable nonReentrant validPool(poolId) {
         Pool storage poolPtr = pools[poolId];
         Pool memory pool = poolPtr;
-        require(!_isPoolSettled(poolId), "Pool settled");
-        require(amount >= minBetAmount, "Bet below minimum");
-        require(amount <= 100000 * 1e18, "Bet too large");
-        require(block.timestamp < pool.bettingEndTime, "Betting period ended");
-        require(amount > 0, "Bet amount must be greater than zero");
+        require(!_isPoolSettled(poolId));
+        require(amount >= minBetAmount);
+        require(amount <= 100000 * 1e18);
+        require(block.timestamp < pool.bettingEndTime);
+        require(amount > 0);
         uint256 effectiveCreatorSideStake = pool.totalBettorStake == 0 || pool.totalBettorStake + amount > pool.creatorStake ? 
             pool.totalCreatorSideStake : pool.creatorStake;
         uint256 poolOdds = uint256(pool.odds);
         uint256 currentMaxBettorStake = (effectiveCreatorSideStake * 100) / (poolOdds - 100);
-        require(pool.totalBettorStake + amount <= currentMaxBettorStake, "Pool full");
+        require(pool.totalBettorStake + amount <= currentMaxBettorStake);
         uint256 currentBettorStake = bettorStakes[poolId][msg.sender];
         if (currentBettorStake == 0) {
-            require(poolBettors[poolId].length < MAX_PARTICIPANTS, "Too many participants");
+            require(poolBettors[poolId].length < MAX_PARTICIPANTS);
         }
         if (_isPoolPrivate(poolId)) {
-            require(poolWhitelist[poolId][msg.sender], "Not whitelisted");
+            require(poolWhitelist[poolId][msg.sender]);
         }
         if (pool.maxBetPerUser > 0) {
-            require(currentBettorStake + amount <= pool.maxBetPerUser, "Exceeds max bet per user");
+            require(currentBettorStake + amount <= pool.maxBetPerUser);
         }
         if (currentBettorStake == 0) {
             poolBettors[poolId].push(msg.sender);
@@ -297,26 +326,27 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
             poolPtr.flags |= 16; 
             emit ReputationActionOccurred(pool.creator, ReputationSystem.ReputationAction.POOL_FILLED_ABOVE_60, poolPtr.totalBettorStake, bytes32(poolId), block.timestamp);
         }
-        if (_poolUsesBitr(poolId)) {
-            require(bitrToken.transferFrom(msg.sender, address(this), amount), "BITR transfer failed");
+        if (_poolUsesPrix(poolId)) {
+            require(prixToken.transferFrom(msg.sender, address(this), amount));
         } else {
-            require(msg.value == amount, "Incorrect STT amount");
+            require(msg.value == amount);
         }
         _updatePoolAnalytics(poolId, amount, 1);
+        // 🔧 FIX: placeBet is for challenging the creator (YES bet), so isForOutcome = true
         emit BetPlaced(poolId, msg.sender, amount, true);
     }
     function addLiquidity(uint256 poolId, uint256 amount) external payable nonReentrant validPool(poolId) {
         Pool storage pool = pools[poolId];
-        require(!_isPoolSettled(poolId), "Pool settled");
-        require(amount >= minBetAmount, "Liquidity below minimum");
-        require(amount <= 500000 * 1e18, "Liquidity too large");
-        require(block.timestamp < pool.bettingEndTime, "Betting period ended");
-        require(pool.totalCreatorSideStake <= type(uint256).max - amount, "Creator stake overflow");
+        require(!_isPoolSettled(poolId));
+        require(amount >= minBetAmount);
+        require(amount <= 500000 * 1e18);
+        require(block.timestamp < pool.bettingEndTime);
+        require(pool.totalCreatorSideStake <= type(uint256).max - amount);
         if (lpStakes[poolId][msg.sender] == 0) {
-            require(poolLPs[poolId].length < MAX_LP_PROVIDERS, "Too many LP providers");
+            require(poolLPs[poolId].length < MAX_LP_PROVIDERS);
         }
         if (_isPoolPrivate(poolId)) {
-            require(poolWhitelist[poolId][msg.sender], "Not whitelisted");
+            require(poolWhitelist[poolId][msg.sender]);
         }
         if (lpStakes[poolId][msg.sender] == 0) {
             poolLPs[poolId].push(msg.sender);
@@ -327,22 +357,22 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
             pool.totalCreatorSideStake : pool.creatorStake;
         uint256 denominator = uint256(pool.odds) - 100;
         pool.maxBettorStake = (effectiveCreatorSideStake * 100) / denominator;
-        if (_poolUsesBitr(poolId)) {
-            require(bitrToken.transferFrom(msg.sender, address(this), amount), "BITR transfer failed");
+        if (_poolUsesPrix(poolId)) {
+            require(prixToken.transferFrom(msg.sender, address(this), amount));
         } else {
-            require(msg.value == amount, "Incorrect STT amount");
+            require(msg.value == amount);
         }
         _updatePoolAnalytics(poolId, amount, 0);
         emit LiquidityAdded(poolId, msg.sender, amount);
     }
     function settlePool(uint256 poolId, bytes32 outcome) external validPool(poolId) {
         Pool storage pool = pools[poolId];
-        require(!_isPoolSettled(poolId), "Already settled");
-        require(block.timestamp >= pool.eventEndTime, "Event not ended yet");
+        require(!_isPoolSettled(poolId));
+        require(block.timestamp >= pool.eventEndTime);
         if (pool.oracleType == OracleType.GUIDED) {
-            require(msg.sender == guidedOracle, "Only guided oracle");
+            require(msg.sender == guidedOracle);
         } else if (pool.oracleType == OracleType.OPEN) {
-            require(msg.sender == optimisticOracle, "Only optimistic oracle");
+            require(msg.sender == optimisticOracle);
         }
         pool.result = outcome;
         pool.flags |= 1; 
@@ -356,22 +386,22 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
     }
     function settlePoolAutomatically(uint256 poolId) external validPool(poolId) {
         Pool storage pool = pools[poolId];
-        require(!_isPoolSettled(poolId), "Already settled");
-        require(block.timestamp >= pool.eventEndTime, "Event not ended yet");
+        require(!_isPoolSettled(poolId));
+        require(block.timestamp >= pool.eventEndTime);
         bytes32 outcome;
         bool isReady = false;
         if (pool.oracleType == OracleType.GUIDED) {
             (bool isSet, bytes memory resultData) = IGuidedOracle(guidedOracle).getOutcome(pool.marketId);
-            require(isSet, "Guided outcome not available");
+            require(isSet);
             outcome = bytes32(resultData);
             isReady = true;
         } else if (pool.oracleType == OracleType.OPEN) {
             (bool isSettled, bytes memory resultData) = IOptimisticOracle(optimisticOracle).getOutcome(pool.marketId);
-            require(isSettled, "Optimistic outcome not finalized");
+            require(isSettled);
             outcome = bytes32(resultData);
             isReady = true;
         }
-        require(isReady, "Outcome not ready");
+        require(isReady);
         pool.result = outcome;
         pool.flags |= 1; 
         bool creatorSideWon = (outcome != pool.predictedOutcome);
@@ -389,32 +419,57 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
     }
     function _processAutomaticRefund(uint256 poolId) internal {
         Pool storage pool = pools[poolId];
-        require(!_isPoolSettled(poolId), "Pool already settled");
-        require(pool.totalBettorStake == 0, "Pool has bets");
-        require(block.timestamp >= pool.eventStartTime, "Event not started");
-        pool.flags |= 1; 
-        pool.result = bytes32(0); 
-        if (_poolUsesBitr(poolId)) {
-            require(bitrToken.transfer(pool.creator, pool.creatorStake), "BITR refund failed");
-        } else {
-            (bool success, ) = payable(pool.creator).call{value: pool.creatorStake}("");
-            require(success, "STT refund failed");
+        require(!_isPoolSettled(poolId));
+        require(pool.totalBettorStake == 0);
+        require(block.timestamp >= pool.eventStartTime);
+        pool.flags |= 1; // Mark as settled
+        pool.flags |= 32; // Mark as refunded
+        pool.result = bytes32(0);
+        bool usePrix = _poolUsesPrix(poolId);
+        
+        // Refund LPs if they exist
+        address[] memory lps = poolLPs[poolId];
+        for (uint256 i = 0; i < lps.length; ) {
+            address lp = lps[i];
+            uint256 stake = lpStakes[poolId][lp];
+            if (stake > 0) {
+                if (usePrix) {
+                    require(prixToken.transfer(lp, stake));
+                } else {
+                    (bool success, ) = payable(lp).call{value: stake}("");
+                    require(success, "LP refund failed");
+                }
+                emit RewardClaimed(poolId, lp, stake);
+            }
+            unchecked { ++i; }
         }
+        
+        // Refund creator stake
+        if (pool.creatorStake > 0) {
+            if (usePrix) {
+                require(prixToken.transfer(pool.creator, pool.creatorStake));
+            } else {
+                (bool success, ) = payable(pool.creator).call{value: pool.creatorStake}("");
+                require(success, "Creator refund failed");
+            }
+            emit RewardClaimed(poolId, pool.creator, pool.creatorStake);
+        }
+        
         emit PoolSettled(poolId, 0, false, block.timestamp);
-        emit RewardClaimed(poolId, pool.creator, pool.creatorStake);
     }
     function checkAndRefundEmptyPool(uint256 poolId) external validPool(poolId) {
         Pool storage pool = pools[poolId];
-        require(!_isPoolSettled(poolId), "Pool already settled");
-        require(pool.totalBettorStake == 0, "Pool has bets");
-        require(block.timestamp >= pool.eventStartTime, "Event not started");
+        require(!_isPoolSettled(poolId));
+        require(pool.totalBettorStake == 0);
+        require(block.timestamp >= pool.eventStartTime);
         _processAutomaticRefund(poolId);
     }
     function isEligibleForRefund(uint256 poolId) external view validPool(poolId) returns (bool) {
         Pool memory pool = pools[poolId];
-        return !_isPoolSettled(poolId) && 
-               pool.totalBettorStake == 0 && 
-               block.timestamp >= pool.eventStartTime;
+        return PoolStats.checkRefundEligibility(pool.totalBettorStake, pool.flags);
+    }
+    function isPoolRefunded(uint256 poolId) external view validPool(poolId) returns (bool) {
+        return _isPoolRefunded(poolId);
     }
     function getPoolStats(uint256 poolId) external view validPool(poolId) returns (
         uint256 totalBettorStake,
@@ -422,6 +477,7 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
         uint256 bettorCount,
         uint256 lpCount,
         bool isSettled,
+        bool isRefunded,
         bool eligibleForRefund,
         uint256 timeUntilEventStart,
         uint256 timeUntilBettingEnd
@@ -431,18 +487,19 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
         totalCreatorSideStake = pool.totalCreatorSideStake;
         bettorCount = poolBettors[poolId].length;
         lpCount = poolLPs[poolId].length;
-        isSettled = _isPoolSettled(poolId);
-        eligibleForRefund = !isSettled && pool.totalBettorStake == 0 && block.timestamp >= pool.eventStartTime;
-        if (block.timestamp < pool.eventStartTime) {
-            timeUntilEventStart = pool.eventStartTime - block.timestamp;
-        } else {
-            timeUntilEventStart = 0;
-        }
-        if (block.timestamp < pool.bettingEndTime) {
-            timeUntilBettingEnd = pool.bettingEndTime - block.timestamp;
-        } else {
-            timeUntilBettingEnd = 0;
-        }
+        isSettled = PoolStats.isPoolSettled(pool.flags);
+        isRefunded = _isPoolRefunded(poolId);
+        eligibleForRefund = PoolStats.checkRefundEligibility(pool.totalBettorStake, pool.flags);
+        
+        (,,,uint256 _timeUntilStart) = PoolStats.getPoolTimingInfo(
+            pool.eventStartTime,
+            pool.eventEndTime,
+            pool.bettingEndTime
+        );
+        
+        timeUntilEventStart = _timeUntilStart;
+        timeUntilBettingEnd = block.timestamp < pool.bettingEndTime ? 
+            pool.bettingEndTime - block.timestamp : 0;
     }
     function getClaimInfo(uint256 poolId, address user) external view validPool(poolId) returns (
         bool canClaim,
@@ -456,23 +513,24 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
         alreadyClaimed = claimed[poolId][user];
         if (!_isPoolSettled(poolId)) return (false, 0, false, 0, alreadyClaimed, "Pool not settled");
         if (alreadyClaimed) return (false, 0, false, 0, true, "Already claimed");
-        bool creatorSideWon = _poolCreatorSideWon(poolId);
+        
+        bool creatorSideWon = ClaimCalculations.creatorSideWon(pool.predictedOutcome, pool.result);
+        
         if (creatorSideWon) {
             // Check if user is the creator first (priority)
             if (user == pool.creator) {
                 userStake = pool.creatorStake;
                 if (userStake == 0) return (false, 0, false, 0, false, "No creator stake");
                 
-                // Creator gets: initial stake + reward based on odds
-                // Max reward = creatorStake / (odds - 1) * 100 + creatorStake
-                uint256 poolOdds = uint256(pool.odds);
-                uint256 denominator = poolOdds > 100 ? poolOdds - 100 : 1;
-                uint256 maxReward = pool.creatorStake + ((pool.creatorStake * 100) / denominator);
+                // Use library for creator calculation
+                ClaimCalculations.PoolData memory poolData = ClaimCalculations.PoolData({
+                    odds: pool.odds,
+                    creatorStake: pool.creatorStake,
+                    totalCreatorSideStake: pool.totalCreatorSideStake,
+                    totalBettorStake: pool.totalBettorStake
+                });
                 
-                // Actual reward is min(maxReward, creatorStake + totalBettorStake)
-                claimableAmount = maxReward > pool.creatorStake + pool.totalBettorStake ? 
-                    pool.creatorStake + pool.totalBettorStake : maxReward;
-                
+                claimableAmount = ClaimCalculations.calculateCreatorClaim(poolData);
                 return (true, claimableAmount, true, userStake, false, "Ready to claim");
             }
             
@@ -487,204 +545,253 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
             // Bettor wins: Bettor Stake * Odds
             userStake = bettorStakes[poolId][user];
             if (userStake == 0) return (false, 0, false, 0, false, "No bet placed");
-            uint256 poolOdds = uint256(pool.odds);
-            uint256 grossPayout = (userStake * poolOdds) / 100;
-            uint256 profit = grossPayout - userStake;
-            uint256 fee = (profit * adjustedFeeRate(user)) / 10000;
-            claimableAmount = grossPayout - fee;
+            
+            // Use library for bettor calculation
+            (, uint256 netPayout,) = ClaimCalculations.calculateBettorPayout(
+                userStake,
+                pool.odds,
+                adjustedFeeRate(user)
+            );
+            claimableAmount = netPayout;
             return (true, claimableAmount, true, userStake, false, "Ready to claim");
         }
-    }
-    function _calculateLPPayout(uint256 poolId, address user) internal view returns (uint256) {
-        Pool memory pool = pools[poolId];
-        uint256 stake = lpStakes[poolId][user];
-        if (stake == 0 || pool.totalCreatorSideStake == 0) return 0;
-        uint256 sharePercentage = (stake * 10000) / pool.totalCreatorSideStake;
-        return stake + ((pool.totalBettorStake * sharePercentage) / 10000);
     }
     function _calculateLPPayoutWithFIFO(uint256 poolId, address user) internal view returns (uint256) {
         Pool memory pool = pools[poolId];
         uint256 userLPStake = lpStakes[poolId][user];
         if (userLPStake == 0) return 0;
         
-        // Step 1: Calculate creator's reward first (priority)
-        uint256 poolOdds = uint256(pool.odds);
-        uint256 denominator = poolOdds > 100 ? poolOdds - 100 : 1;
-        uint256 creatorMaxReward = pool.creatorStake + ((pool.creatorStake * 100) / denominator);
-        uint256 creatorActualReward = creatorMaxReward > pool.creatorStake + pool.totalBettorStake ? 
-            pool.creatorStake + pool.totalBettorStake : creatorMaxReward;
+        // Use library to get remaining stakes after creator
+        ClaimCalculations.PoolData memory poolData = ClaimCalculations.PoolData({
+            odds: pool.odds,
+            creatorStake: pool.creatorStake,
+            totalCreatorSideStake: pool.totalCreatorSideStake,
+            totalBettorStake: pool.totalBettorStake
+        });
         
-        // Step 2: Calculate remaining bettor stakes after creator's share
-        uint256 creatorRewardFromBettors = creatorActualReward > pool.creatorStake ? 
-            creatorActualReward - pool.creatorStake : 0;
-        uint256 remainingBettorStakes = pool.totalBettorStake > creatorRewardFromBettors ?
-            pool.totalBettorStake - creatorRewardFromBettors : 0;
+        uint256 remainingStakes = ClaimCalculations.getRemainingStakesForLP(poolData);
         
-        if (remainingBettorStakes == 0) {
-            return userLPStake; // Only refund, no rewards
-        }
-        
-        // Step 3: Calculate LP rewards based on FIFO and correspondence
-        // LP stake creates bettor capacity: lpStake / (odds - 1) - same as creator formula
-        uint256 denominator = poolOdds > 100 ? poolOdds - 100 : 1;
-        address[] memory lps = poolLPs[poolId];
-        uint256 distributedStakes = 0;
-        
-        for (uint256 i = 0; i < lps.length; i++) {
-            address lp = lps[i];
-            uint256 lpStake = lpStakes[poolId][lp];
-            
-            if (lp == user) {
-                // This is our user, calculate their reward
-                // LP max reward = lpStake + (lpStake / (odds - 1))
-                uint256 lpMaxReward = lpStake + ((lpStake * 100) / denominator);
-                uint256 lpRewardFromBettors = lpMaxReward > lpStake ? lpMaxReward - lpStake : 0;
-                
-                uint256 availableReward = remainingBettorStakes > distributedStakes ? 
-                    remainingBettorStakes - distributedStakes : 0;
-                uint256 userReward = lpRewardFromBettors > availableReward ? availableReward : lpRewardFromBettors;
-                
-                return userLPStake + userReward;
-            }
-            
-            // Calculate how much this earlier LP provider takes
-            uint256 lpMaxReward = lpStake + ((lpStake * 100) / denominator);
-            uint256 lpRewardFromBettors = lpMaxReward > lpStake ? lpMaxReward - lpStake : 0;
-            uint256 lpReward = remainingBettorStakes > distributedStakes ? 
-                (lpRewardFromBettors > (remainingBettorStakes - distributedStakes) ? 
-                    (remainingBettorStakes - distributedStakes) : lpRewardFromBettors) : 0;
-            distributedStakes += lpReward;
-            
-            if (distributedStakes >= remainingBettorStakes) break;
-        }
-        
-        return userLPStake; // Only refund if we reach here
+        // Use library to calculate LP reward with FIFO
+        return ClaimCalculations.calculateLPReward(
+            poolData,
+            lpStakes,
+            poolLPs,
+            poolId,
+            user,
+            userLPStake,
+            remainingStakes
+        );
     }
     function _calculateBettorPayout(uint256 poolId, address user) internal returns (uint256) {
         Pool memory pool = pools[poolId];
         uint256 stake = bettorStakes[poolId][user];
         if (stake == 0) return 0;
-        uint256 poolOdds = uint256(pool.odds);
-        uint256 grossPayout = (stake * poolOdds) / 100;
-        uint256 profit = grossPayout - stake;
-        uint256 fee = (profit * adjustedFeeRate(user)) / 10000;
-                if (fee > 0) {
-                    if (_poolUsesBitr(poolId)) {
-                        totalCollectedBITR += fee;
-                    } else {
-                        totalCollectedSTT += fee;
-                    }
-                }
-                uint256 minValueSTT = 10 * 1e18;
-                uint256 minValueBITR = 2000 * 1e18;
-        bool qualifiesForReputation = _poolUsesBitr(poolId) ? (stake >= minValueBITR) : (stake >= minValueSTT);
-                if (qualifiesForReputation) {
-            emit ReputationActionOccurred(user, ReputationSystem.ReputationAction.BET_WON_HIGH_VALUE, stake, bytes32(poolId), block.timestamp);
+        
+        // Use library for bettor payout calculation
+        (, uint256 netPayout, uint256 fee) = ClaimCalculations.calculateBettorPayout(
+            stake,
+            pool.odds,
+            adjustedFeeRate(user)
+        );
+        
+        if (fee > 0) {
+            address creator = pool.creator;
+            
+            // Fee Distribution:
+            // - Creator: 20% (stored separately, claimable via claimCreatorFees())
+            // - Platform: 80% (stored in totalCollectedBNB/Prix, distributed via distributeFees())
+            //   Platform's 80% is further split:
+            //   - Stakers: 30% of platform = 24% of total fees
+            //   - FeeCollector: 70% of platform = 56% of total fees
+            uint256 creatorShare = (fee * 20) / 100;
+            uint256 platformShare = fee - creatorShare;
+            
+            if (_poolUsesPrix(poolId)) {
+                totalCollectedPrix += platformShare;
+                poolCollectedFeesPrix[poolId] += platformShare;
+                creatorPendingFeesPrix[creator] += creatorShare;
+                emit CreatorFeeAccrued(poolId, creator, 0, creatorShare);
+            } else {
+                totalCollectedBNB += platformShare;
+                poolCollectedFeesBNB[poolId] += platformShare;
+                creatorPendingFeesBNB[creator] += creatorShare;
+                emit CreatorFeeAccrued(poolId, creator, creatorShare, 0);
+            }
         }
-        return grossPayout - fee;
+        
+        uint256 minValueBNB = 20 * 1e18; // 20 BNB
+        uint256 minValuePrix = 20000 * 1e18; // 20K Prix
+        bool isHighValue = _poolUsesPrix(poolId) ? (stake >= minValuePrix) : (stake >= minValueBNB);
+        
+        if (isHighValue) {
+            // High-value bettor win: +8 points
+            emit ReputationActionOccurred(user, ReputationSystem.ReputationAction.BET_WON_HIGH_VALUE, stake, bytes32(poolId), block.timestamp);
+        } else {
+            // Low-value bettor win: +3 points
+            emit ReputationActionOccurred(user, ReputationSystem.ReputationAction.BET_WON, stake, bytes32(poolId), block.timestamp);
+        }
+        
+        return netPayout;
     }
     function claim(uint256 poolId) external validPool(poolId) nonReentrant {
-        require(_isPoolSettled(poolId), "Not settled");
-        require(!claimed[poolId][msg.sender], "Already claimed");
+        require(_isPoolSettled(poolId));
+        require(!claimed[poolId][msg.sender]);
         
         uint256 payout;
         Pool memory pool = pools[poolId];
         
-        if (_poolCreatorSideWon(poolId)) {
+        bool creatorWon = ClaimCalculations.creatorSideWon(pool.predictedOutcome, pool.result);
+        
+        if (creatorWon) {
             // Handle creator claims (priority)
             if (msg.sender == pool.creator) {
                 // Ensure creator has stake to claim
-                require(pool.creatorStake > 0, "No creator stake");
-                uint256 poolOdds = uint256(pool.odds);
-                uint256 denominator = poolOdds > 100 ? poolOdds - 100 : 1;
-                uint256 maxReward = pool.creatorStake + ((pool.creatorStake * 100) / denominator);
-                payout = maxReward > pool.creatorStake + pool.totalBettorStake ? 
-                    pool.creatorStake + pool.totalBettorStake : maxReward;
+                require(pool.creatorStake > 0);
+                
+                // Use library for creator calculation
+                ClaimCalculations.PoolData memory poolData = ClaimCalculations.PoolData({
+                    odds: pool.odds,
+                    creatorStake: pool.creatorStake,
+                    totalCreatorSideStake: pool.totalCreatorSideStake,
+                    totalBettorStake: pool.totalBettorStake
+                });
+                
+                payout = ClaimCalculations.calculateCreatorClaim(poolData);
+                
+                // ✅ Reputation: Creator wins
+                uint256 minValueBNB = 20 * 1e18; // 20 BNB
+                uint256 minValuePrix = 20000 * 1e18; // 20K Prix
+                bool isHighValue = _poolUsesPrix(poolId) ? 
+                    (pool.creatorStake >= minValuePrix) : (pool.creatorStake >= minValueBNB);
+                
+                if (isHighValue) {
+                    // High-value creator win: +8 points
+                    emit ReputationActionOccurred(pool.creator, ReputationSystem.ReputationAction.CREATOR_WON_HIGH_VALUE, pool.creatorStake, bytes32(poolId), block.timestamp);
+                } else {
+                    // Low-value creator win: +5 points
+                    emit ReputationActionOccurred(pool.creator, ReputationSystem.ReputationAction.CREATOR_WON, pool.creatorStake, bytes32(poolId), block.timestamp);
+                }
             } else {
                 // LP provider claims with FIFO logic - ensure they have LP stake
-                require(lpStakes[poolId][msg.sender] > 0, "No LP stake");
+                require(lpStakes[poolId][msg.sender] > 0);
                 payout = _calculateLPPayoutWithFIFO(poolId, msg.sender);
             }
         } else {
             // Bettor wins: Bettor Stake * Odds - ensure they have bettor stake
-            require(bettorStakes[poolId][msg.sender] > 0, "No bettor stake");
+            require(bettorStakes[poolId][msg.sender] > 0);
             payout = _calculateBettorPayout(poolId, msg.sender);
         }
         
-        require(payout > 0, "No payout available");
+        require(payout > 0);
         claimed[poolId][msg.sender] = true;
         
-        if (_poolUsesBitr(poolId)) {
-            require(bitrToken.transfer(msg.sender, payout), "BITR payout failed");
+        if (_poolUsesPrix(poolId)) {
+            require(prixToken.transfer(msg.sender, payout));
         } else {
             (bool success, ) = payable(msg.sender).call{value: payout}("");
-            require(success, "STT payout failed");
+            require(success);
         }
         
         emit RewardClaimed(poolId, msg.sender, payout);
     }
     function adjustedFeeRate(address user) public view returns (uint256) {
-        uint256 bitrBalance = bitrToken.balanceOf(user);
-        if (bitrBalance >= 50000 * 1e18) return platformFee * 50 / 100;  
-        if (bitrBalance >= 20000 * 1e18) return platformFee * 70 / 100;  
-        if (bitrBalance >= 5000 * 1e18) return platformFee * 80 / 100;   
-        if (bitrBalance >= 2000 * 1e18) return platformFee * 90 / 100;   
-        return platformFee;
+        return PoolStats.getAdjustedFeeRate(prixToken.balanceOf(user), platformFee);
     }
-    function distributeFees(address stakingContract) external {
-        require(msg.sender == feeCollector, "Only fee collector");
-        uint256 _stt = totalCollectedSTT;
-        uint256 _bitr = totalCollectedBITR;
-        if (_stt > 0) {
-            uint256 sttStakers = (_stt * 30) / 100;
-            totalCollectedSTT = 0;
-            (bool success1, ) = payable(feeCollector).call{value: _stt - sttStakers}("");
-            require(success1, "STT fee collector transfer failed");
-            (bool success2, ) = payable(stakingContract).call{value: sttStakers}("");
-            require(success2, "STT staking transfer failed");
+    function claimCreatorFees() external nonReentrant {
+        uint256 bnbAmount = creatorPendingFeesBNB[msg.sender];
+        uint256 prixAmount = creatorPendingFeesPrix[msg.sender];
+        require(bnbAmount > 0 || prixAmount > 0, "No fees to claim");
+        
+        if (bnbAmount > 0) {
+            creatorPendingFeesBNB[msg.sender] = 0;
+            (bool success, ) = payable(msg.sender).call{value: bnbAmount}("");
+            require(success, "BNB transfer failed");
         }
-        if (_bitr > 0) {
-            uint256 bitrStakers = (_bitr * 30) / 100;
-            totalCollectedBITR = 0;
-            bitrToken.transfer(feeCollector, _bitr - bitrStakers);
-            bitrToken.transfer(stakingContract, bitrStakers);
+        
+        if (prixAmount > 0) {
+            creatorPendingFeesPrix[msg.sender] = 0;
+            require(prixToken.transfer(msg.sender, prixAmount), "Prix transfer failed");
         }
-        if (_stt > 0 || _bitr > 0) {
-            IBitredictStaking(stakingContract).addRevenue((_bitr * 30) / 100, (_stt * 30) / 100);
+        
+        emit CreatorFeeClaimed(msg.sender, bnbAmount, prixAmount);
+    }
+    function getCreatorPendingFees(address creator) external view returns (uint256 bnbAmount, uint256 prixAmount) {
+        return (creatorPendingFeesBNB[creator], creatorPendingFeesPrix[creator]);
+    }
+    function distributeFees(address stakingContract) external nonReentrant {
+        require(msg.sender == feeCollector);
+        require(stakingContract != address(0), "Invalid staking contract");
+        
+        // Note: totalCollectedBNB/Prix contains only the platform's 80% share
+        // (Creator's 20% is stored separately in creatorPendingFeesBNB/Prix)
+        // 
+        // Distribution of platform's 80%:
+        // - Stakers: 30% of platform = 24% of original total fees
+        // - FeeCollector: 70% of platform = 56% of original total fees
+        
+        uint256 _bnb = totalCollectedBNB;
+        uint256 _prix = totalCollectedPrix;
+        uint256 bnbStakers = 0;
+        uint256 prixStakers = 0;
+        
+        if (_bnb > 0) {
+            bnbStakers = (_bnb * 30) / 100;  // 30% of platform's 80% = 24% of total
+            uint256 bnbFeeCollector = _bnb - bnbStakers;  // 70% of platform's 80% = 56% of total
+            totalCollectedBNB = 0;
+            (bool success1, ) = payable(feeCollector).call{value: bnbFeeCollector}("");
+            require(success1, "FeeCollector BNB transfer failed");
+            (bool success2, ) = payable(stakingContract).call{value: bnbStakers}("");
+            require(success2, "Staking contract BNB transfer failed");
+        }
+        
+        if (_prix > 0) {
+            prixStakers = (_prix * 30) / 100;  // 30% of platform's 80% = 24% of total
+            uint256 prixFeeCollector = _prix - prixStakers;  // 70% of platform's 80% = 56% of total
+            totalCollectedPrix = 0;
+            require(prixToken.transfer(feeCollector, prixFeeCollector), "FeeCollector Prix transfer failed");
+            require(prixToken.transfer(stakingContract, prixStakers), "Staking contract Prix transfer failed");
+        }
+        
+        if (_bnb > 0 || _prix > 0) {
+            // Notify staking contract of revenue (for staker rewards)
+            IPredinexStaking(stakingContract).addRevenue(prixStakers, bnbStakers);
         }
     }
     function addToWhitelist(uint256 poolId, address user) external validPool(poolId) {
-        require(msg.sender == pools[poolId].creator, "Not creator");
+        require(msg.sender == pools[poolId].creator);
         poolWhitelist[poolId][user] = true;
         emit UserWhitelisted(poolId, user);
     }
     function removeFromWhitelist(uint256 poolId, address user) external validPool(poolId) {
-        require(msg.sender == pools[poolId].creator, "Not creator");
+        require(msg.sender == pools[poolId].creator);
         poolWhitelist[poolId][user] = false;
     }
-    function refundPool(uint256 poolId) external validPool(poolId) {
+    function refundPool(uint256 poolId) external nonReentrant validPool(poolId) {
         Pool storage pool = pools[poolId];
-        require(!_isPoolSettled(poolId), "Already settled");
-        require(block.timestamp > pool.arbitrationDeadline, "Arbitration period not expired");
+        require(!_isPoolSettled(poolId));
+        require(!_isPoolRefunded(poolId), "Pool already refunded");
+        require(block.timestamp > pool.arbitrationDeadline);
         uint256 totalParticipants = poolLPs[poolId].length + poolBettors[poolId].length;
         if (totalParticipants > REFUND_BATCH_SIZE) {
-            pool.flags |= 1; 
+            pool.flags |= 1; // Mark as settled
+            pool.flags |= 32; // Mark as refunded
             emit PoolRefunded(poolId, "Use batchRefund for large pools");
             return;
         }
-        pool.flags |= 1; 
+        pool.flags |= 1; // Mark as settled
+        pool.flags |= 32; // Mark as refunded 
         address[] memory lps = poolLPs[poolId];
         uint256 lpCount = lps.length;
-        bool useBitr = _poolUsesBitr(poolId);
+        bool usePrix = _poolUsesPrix(poolId);
         for (uint256 i = 0; i < lpCount; ) {
             address lp = lps[i];
             uint256 stake = lpStakes[poolId][lp];
             if (stake > 0) {
-                if (useBitr) {
-                    require(bitrToken.transfer(lp, stake), "BITR LP refund failed");
+                if (usePrix) {
+                    require(prixToken.transfer(lp, stake));
                 } else {
                     (bool success, ) = payable(lp).call{value: stake}("");
-                    require(success, "STT LP refund failed");
+                    require(success);
                 }
             }
             unchecked { ++i; } 
@@ -695,14 +802,24 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
             address bettor = bettors[i];
             uint256 stake = bettorStakes[poolId][bettor];
             if (stake > 0) {
-                if (useBitr) {
-                    require(bitrToken.transfer(bettor, stake), "BITR bettor refund failed");
+                if (usePrix) {
+                    require(prixToken.transfer(bettor, stake));
                 } else {
                     (bool success, ) = payable(bettor).call{value: stake}("");
-                    require(success, "STT bettor refund failed");
+                    require(success);
                 }
             }
             unchecked { ++i; } 
+        }
+        // Refund creator stake
+        if (pool.creatorStake > 0) {
+            if (usePrix) {
+                require(prixToken.transfer(pool.creator, pool.creatorStake));
+            } else {
+                (bool success, ) = payable(pool.creator).call{value: pool.creatorStake}("");
+                require(success, "Creator refund failed");
+            }
+            emit RewardClaimed(poolId, pool.creator, pool.creatorStake);
         }
         _removePoolFromCreatorActiveList(poolId);
         emit PoolRefunded(poolId, "Arbitration timeout");
@@ -712,11 +829,12 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
         uint256 startIndex, 
         uint256 batchSize
     ) external nonReentrant validPool(poolId) {
-        require(_isPoolSettled(poolId), "Pool not settled for refund");
+        require(_isPoolSettled(poolId));
+        require(_isPoolRefunded(poolId), "Pool not marked for refund");
         Pool storage pool = pools[poolId];
-        require(block.timestamp > pool.arbitrationDeadline, "Arbitration period not expired");
-        require(batchSize <= REFUND_BATCH_SIZE, "Batch size too large");
-        bool useBitr = _poolUsesBitr(poolId);
+        require(block.timestamp > pool.arbitrationDeadline);
+        require(batchSize <= REFUND_BATCH_SIZE);
+        bool usePrix = _poolUsesPrix(poolId);
         uint256 processed = 0;
         uint256 lpCount = poolLPs[poolId].length;
         if (startIndex < lpCount) {
@@ -727,11 +845,11 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
                 uint256 stake = lpStakes[poolId][lp];
                 if (stake > 0 && !claimed[poolId][lp]) {
                     claimed[poolId][lp] = true; 
-                    if (useBitr) {
-                        require(bitrToken.transfer(lp, stake), "BITR LP refund failed");
+                    if (usePrix) {
+                        require(prixToken.transfer(lp, stake));
                     } else {
                         (bool success, ) = payable(lp).call{value: stake}("");
-                        require(success, "STT LP refund failed");
+                        require(success);
                     }
                     emit RewardClaimed(poolId, lp, stake);
                     processed++;
@@ -742,7 +860,7 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
         }
         uint256 bettorStartIndex = startIndex - lpCount;
         uint256 bettorCount = poolBettors[poolId].length;
-        require(bettorStartIndex < bettorCount, "Invalid start index");
+        require(bettorStartIndex < bettorCount);
         address[] storage bettors = poolBettors[poolId];
         uint256 bettorEndIndex = bettorStartIndex + batchSize > bettorCount ? bettorCount : bettorStartIndex + batchSize;
         for (uint256 i = bettorStartIndex; i < bettorEndIndex && processed < batchSize; ) {
@@ -750,11 +868,11 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
             uint256 stake = bettorStakes[poolId][bettor];
             if (stake > 0 && !claimed[poolId][bettor]) {
                 claimed[poolId][bettor] = true; 
-                if (useBitr) {
-                    require(bitrToken.transfer(bettor, stake), "BITR bettor refund failed");
+                if (usePrix) {
+                    require(prixToken.transfer(bettor, stake));
                 } else {
                     (bool success, ) = payable(bettor).call{value: stake}("");
-                    require(success, "STT bettor refund failed");
+                    require(success);
                 }
                 emit RewardClaimed(poolId, bettor, stake);
                 processed++;
@@ -762,6 +880,7 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
             unchecked { ++i; }
         }
         if (bettorStartIndex + batchSize >= bettorCount) {
+            pools[poolId].flags |= 32; // Mark as refunded when batch is completed
             _removePoolFromCreatorActiveList(poolId);
             emit PoolRefunded(poolId, "Batch refund completed");
         }
@@ -806,27 +925,6 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
         }
         return (poolIds, totalCount);
     }
-    function getActivePools(uint256 limit) external view returns (uint256[] memory poolIds, uint256 totalCount) {
-        if (limit == 0) limit = 100;
-        uint256[] memory activePools = new uint256[](limit);
-        uint256 count = 0;
-        totalCount = 0;
-        for (uint256 i = 0; i < poolCount; ) {
-            if (!_isPoolSettled(i) && block.timestamp < pools[i].bettingEndTime) {
-                totalCount++;
-                if (count < limit) {
-                activePools[count] = i;
-                count++;
-            }
-        }
-            unchecked { ++i; }
-        }
-        poolIds = new uint256[](count);
-        for (uint256 i = 0; i < count; ) {
-            poolIds[i] = activePools[i];
-            unchecked { ++i; }
-        }
-    }
     function getPoolsByCreator(address creator, uint256 limit) external view returns (uint256[] memory) {
         uint256[] storage creatorPools = creatorActivePools[creator];
         if (limit == 0 || limit > creatorPools.length) limit = creatorPools.length;
@@ -841,7 +939,7 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
         return poolId < poolCount;
     }
     function updateStreak(address user, bool won) external {
-        require(msg.sender == address(this) || msg.sender == owner(), "Unauthorized");
+        require(msg.sender == address(this) || msg.sender == owner());
         if (won) {
             predictionStreaks[user]++;
             if (predictionStreaks[user] > longestStreak[user]) {
@@ -862,17 +960,17 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
     function _isPoolSettled(uint256 poolId) internal view returns (bool) {
         return (pools[poolId].flags & 1) != 0;
     }
-    function _poolCreatorSideWon(uint256 poolId) internal view returns (bool) {
-        return (pools[poolId].flags & 2) != 0;
-    }
     function _isPoolPrivate(uint256 poolId) internal view returns (bool) {
         return (pools[poolId].flags & 4) != 0;
     }
-    function _poolUsesBitr(uint256 poolId) internal view returns (bool) {
+    function _poolUsesPrix(uint256 poolId) internal view returns (bool) {
         return (pools[poolId].flags & 8) != 0;
     }
     function _isPoolFilledAbove60(uint256 poolId) internal view returns (bool) {
         return (pools[poolId].flags & 16) != 0;
+    }
+    function _isPoolRefunded(uint256 poolId) internal view returns (bool) {
+        return (pools[poolId].flags & 32) != 0;
     }
     function _removePoolFromCreatorActiveList(uint256 poolId) internal {
         address creator = pools[poolId].creator;
@@ -932,111 +1030,13 @@ contract BitredictPoolCore is Ownable, ReentrancyGuard {
             globalStats.averagePoolSize = globalStats.totalVolume / globalStats.totalPools;
         }
     }
-    function getGlobalStats() external view returns (
-        uint256 totalPools,
-        uint256 totalVolume,
-        uint256 averagePoolSize,
-        uint256 lastUpdated
-    ) {
-        return (
-            globalStats.totalPools,
-            globalStats.totalVolume,
-            globalStats.averagePoolSize,
-            globalStats.lastUpdated
-        );
-    }
-    function getParticipantCounts(uint256 poolId) 
-        external view validPool(poolId) returns (
-            uint256 bettorCount,
-            uint256 lpCount
-        ) 
-    {
-        bettorCount = poolBettors[poolId].length;
-        lpCount = poolLPs[poolId].length;
-    }
-    function isParticipant(uint256 poolId, address user) 
-        external view validPool(poolId) returns (bool hasStake) 
-    {
-        return bettorStakes[poolId][user] > 0 || lpStakes[poolId][user] > 0;
-    }
-    function getPoolBettorsPaginated(
-        uint256 poolId,
-        uint256 offset,
-        uint256 limit
-    ) external view validPool(poolId) returns (
-        address[] memory bettors,
-        uint256[] memory stakes,
-        uint256 totalCount
-    ) {
-        totalCount = poolBettors[poolId].length;
-        if (offset >= totalCount || limit == 0) {
-            return (new address[](0), new uint256[](0), totalCount);
-        }
-        uint256 returnSize = limit;
-        if (offset + limit > totalCount) {
-            returnSize = totalCount - offset;
-        }
-        bettors = new address[](returnSize);
-        stakes = new uint256[](returnSize);
-        address[] storage allBettors = poolBettors[poolId];
-        for (uint256 i = 0; i < returnSize; ) {
-            address bettor = allBettors[offset + i];
-            bettors[i] = bettor;
-            stakes[i] = bettorStakes[poolId][bettor];
-            unchecked { ++i; }
-        }
-        return (bettors, stakes, totalCount);
-    }
-    function getPoolLPsPaginated(
-        uint256 poolId,
-        uint256 offset,
-        uint256 limit
-    ) external view validPool(poolId) returns (
-        address[] memory lps,
-        uint256[] memory stakes,
-        uint256 totalCount
-    ) {
-        totalCount = poolLPs[poolId].length;
-        if (offset >= totalCount || limit == 0) {
-            return (new address[](0), new uint256[](0), totalCount);
-        }
-        uint256 returnSize = limit;
-        if (offset + limit > totalCount) {
-            returnSize = totalCount - offset;
-        }
-        lps = new address[](returnSize);
-        stakes = new uint256[](returnSize);
-        address[] storage allLPs = poolLPs[poolId];
-        for (uint256 i = 0; i < returnSize; ) {
-            address lp = allLPs[offset + i];
-            lps[i] = lp;
-            stakes[i] = lpStakes[poolId][lp];
-            unchecked { ++i; }
-        }
-        return (lps, stakes, totalCount);
-    }
-    function getUserPoolStake(uint256 poolId, address user) 
-        external view validPool(poolId) returns (
-            uint256 bettorStake,
-            uint256 lpStake,
-            bool hasClaimed
-        ) 
-    {
-        bettorStake = bettorStakes[poolId][user];
-        lpStake = lpStakes[poolId][user];
-        hasClaimed = claimed[poolId][user];
-    }
-    function getBatchRefundInfo(uint256 poolId) 
-        external view validPool(poolId) returns (
-            uint256 totalParticipants,
-            bool needsBatchRefund,
-            uint256 suggestedBatchSize
-        ) 
-    {
-        uint256 lpCount = poolLPs[poolId].length;
-        uint256 bettorCount = poolBettors[poolId].length;
-        totalParticipants = lpCount + bettorCount;
-        needsBatchRefund = totalParticipants > REFUND_BATCH_SIZE;
-        suggestedBatchSize = needsBatchRefund ? REFUND_BATCH_SIZE : totalParticipants;
-    }
+    // Removed analytics/stats functions - backend handles via:
+    // - getGlobalStats() -> /api/unified-stats
+    // - getPoolAnalytics() -> /api/pool-analytics/:poolId
+    // - getCreatorReputation() -> /api/leaderboards/creators
+    // - getPotentialWinnings() -> calculate off-chain
+    // - getParticipantCounts() -> backend syncs via event-driven-pool-sync
+    // - isParticipant() -> backend syncs via event-driven-bet-sync
+    // - getUserPoolStake() -> backend syncs via event-driven-bet-sync
+    // Removed getBatchRefundInfo - calculate directly if needed
 }

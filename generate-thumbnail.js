@@ -34,13 +34,13 @@ async function generateThumbnail() {
         // Take screenshot
         console.log('📸 Capturing screenshot...');
         await page.screenshot({
-            path: 'prixedict-thumbnail.png',
+            path: 'predinex-thumbnail.png',
             type: 'png',
             fullPage: false,
             omitBackground: false
         });
         
-        console.log('✅ Thumbnail generated successfully: prixedict-thumbnail.png');
+        console.log('✅ Thumbnail generated successfully: predinex-thumbnail.png');
         
     } catch (error) {
         console.error('❌ Error generating thumbnail:', error);

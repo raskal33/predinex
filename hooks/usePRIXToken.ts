@@ -43,8 +43,8 @@ export function usePRIXToken() {
   const { data: stakingAllowance, refetch: refetchStakingAllowance } = useReadContract({
     ...CONTRACTS.PRIX_TOKEN,
     functionName: 'allowance',
-    args: address && CONTRACTS.PRIXEDICT_STAKING?.address ? [address, CONTRACTS.PRIXEDICT_STAKING.address] : undefined,
-    query: { enabled: !!(address && CONTRACTS.PRIXEDICT_STAKING?.address) }
+    args: address && CONTRACTS.PREDINEX_STAKING?.address ? [address, CONTRACTS.PREDINEX_STAKING.address] : undefined,
+    query: { enabled: !!(address && CONTRACTS.PREDINEX_STAKING?.address) }
   });
 
   // Get allowance for faucet contract
@@ -57,10 +57,10 @@ export function usePRIXToken() {
 
   // Update allowances when data changes
   useEffect(() => {
-    if (stakingAllowance !== undefined && stakingAllowance !== null && CONTRACTS.PRIXEDICT_STAKING?.address) {
+    if (stakingAllowance !== undefined && stakingAllowance !== null && CONTRACTS.PREDINEX_STAKING?.address) {
       setAllowances(prev => ({
         ...prev,
-        [CONTRACTS.PRIXEDICT_STAKING.address]: stakingAllowance as bigint
+        [CONTRACTS.PREDINEX_STAKING.address]: stakingAllowance as bigint
       }));
     }
   }, [stakingAllowance]);

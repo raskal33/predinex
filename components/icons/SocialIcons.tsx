@@ -56,7 +56,7 @@ export function SocialIcons() {
   return (
     <div className="flex items-center gap-4">
       <a 
-        href="https://twitter.com/prixedict" 
+        href="https://twitter.com/predinex" 
         target="_blank" 
         rel="noopener noreferrer"
         className="p-2 rounded-button bg-bg-card border border-border-card text-text-muted hover:text-primary hover:bg-[rgba(255,255,255,0.05)] hover:border-primary/30 hover:shadow-glow-cyan transition-all duration-200"
@@ -64,7 +64,7 @@ export function SocialIcons() {
         <TwitterIcon className="h-5 w-5" />
       </a>
       <a 
-        href="https://discord.gg/prixedict" 
+        href="https://discord.gg/predinex" 
         target="_blank" 
         rel="noopener noreferrer"
         className="p-2 rounded-button bg-bg-card border border-border-card text-text-muted hover:text-secondary hover:bg-[rgba(255,255,255,0.05)] hover:border-secondary/30 hover:shadow-glow-magenta transition-all duration-200"
@@ -72,7 +72,7 @@ export function SocialIcons() {
         <DiscordIcon className="h-5 w-5" />
       </a>
       <a 
-        href="https://t.me/prixedict" 
+        href="https://t.me/predinex" 
         target="_blank" 
         rel="noopener noreferrer"
         className="p-2 rounded-button bg-bg-card border border-border-card text-text-muted hover:text-accent hover:bg-[rgba(255,255,255,0.05)] hover:border-accent/30 hover:shadow-glow-violet transition-all duration-200"
@@ -80,7 +80,7 @@ export function SocialIcons() {
         <TelegramIcon className="h-5 w-5" />
       </a>
       <a 
-        href="https://github.com/prixedict" 
+        href="https://github.com/predinex" 
         target="_blank" 
         rel="noopener noreferrer"
         className="p-2 rounded-button bg-bg-card border border-border-card text-text-muted hover:text-text-primary hover:bg-[rgba(255,255,255,0.05)] hover:border-text-primary/30 transition-all duration-200"

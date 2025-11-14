@@ -8,7 +8,7 @@ export async function GET(
     const { address } = await params;
     const { searchParams } = new URL(request.url);
     const limit = searchParams.get('limit') || '20';
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://prixedict-backend.fly.dev';
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://predinex-backend.fly.dev';
 
     console.log('🎯 Fetching user activity for address:', { address, limit });
 

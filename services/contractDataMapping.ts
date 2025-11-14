@@ -3,7 +3,7 @@
  * Maps contract enums and hashes to readable values
  */
 
-// Contract MarketType enum mapping (from PrixedictPoolCore.sol)
+// Contract MarketType enum mapping (from PredinexPoolCore.sol)
 export const MARKET_TYPE_ENUM = {
   0: 'MONEYLINE',
   1: 'OVER_UNDER', 

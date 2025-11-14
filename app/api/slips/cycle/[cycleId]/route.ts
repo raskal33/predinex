@@ -8,7 +8,7 @@ export async function GET(
     const { cycleId } = await params;
     console.log('🎯 Fetching cycle slips for cycleId:', cycleId);
 
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://prixedict-backend.fly.dev';
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://predinex-backend.fly.dev';
 
     const response = await fetch(`${backendUrl}/api/slips/cycle/${cycleId}`, {
       method: 'GET',

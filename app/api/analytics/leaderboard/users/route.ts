@@ -5,7 +5,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const sortBy = searchParams.get('sortBy') || 'profit_loss';
     const limit = searchParams.get('limit') || '100';
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://prixedict-backend.fly.dev';
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://predinex-backend.fly.dev';
 
     console.log('🎯 Fetching user leaderboard:', { sortBy, limit });
 

@@ -5,7 +5,7 @@
  * Prevents issues like "4e+21 PRIX" → "4,000,000 PRIX"
  */
 
-import { formatUnits, parseUnits } from 'viem';
+import { formatUnits } from 'viem';
 
 /**
  * Format token amount from BigInt/wei to human-readable format

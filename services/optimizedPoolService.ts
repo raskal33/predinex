@@ -125,8 +125,8 @@ export interface PoolsResponse {
 
 class OptimizedPoolService {
   private baseUrl = typeof window !== 'undefined' 
-    ? 'https://prixedict-backend.fly.dev/api/optimized-pools'
-    : process.env.NEXT_PUBLIC_API_URL + '/api/optimized-pools' || 'https://prixedict-backend.fly.dev/api/optimized-pools';
+    ? 'https://predinex-backend.fly.dev/api/optimized-pools'
+    : process.env.NEXT_PUBLIC_API_URL + '/api/optimized-pools' || 'https://predinex-backend.fly.dev/api/optimized-pools';
 
   /**
    * Get all pools with comprehensive data for the markets page

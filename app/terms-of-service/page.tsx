@@ -115,7 +115,7 @@ export default function TermsOfServicePage() {
               <section>
                 <h2 className="text-2xl font-bold text-text-primary mb-4">9. Limitation of Liability</h2>
                 <p className="text-text-secondary leading-relaxed">
-                  TO THE MAXIMUM EXTENT PERMITTED BY LAW, PRIXEDICT SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING WITHOUT LIMITATION, LOSS OF PROFITS, DATA, USE, GOODWILL, OR OTHER INTANGIBLE LOSSES.
+                  TO THE MAXIMUM EXTENT PERMITTED BY LAW, PREDINEX SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING WITHOUT LIMITATION, LOSS OF PROFITS, DATA, USE, GOODWILL, OR OTHER INTANGIBLE LOSSES.
                 </p>
               </section>
 

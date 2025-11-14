@@ -9,7 +9,7 @@ export async function GET(
     const poolId = id;
     
     // Fetch analytics data from backend
-    const backendUrl = process.env.BACKEND_URL || 'https://prixedict-backend.fly.dev';
+    const backendUrl = process.env.BACKEND_URL || 'https://predinex-backend.fly.dev';
     const response = await fetch(`${backendUrl}/api/pools/${poolId}/analytics`, {
       method: 'GET',
       headers: {

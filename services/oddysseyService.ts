@@ -1444,7 +1444,7 @@ class OddysseyService {
   // Get results by date from backend
   async getResultsByDate(date: string): Promise<{ success: boolean; data: any }> {
     try {
-      const response = await fetch(`https://prixedict-backend.fly.dev/api/oddyssey/results/${date}`);
+      const response = await fetch(`https://predinex-backend.fly.dev/api/oddyssey/results/${date}`);
       const data = await response.json();
       
       if (data.success && data.data) {
@@ -1491,8 +1491,8 @@ class OddysseyService {
   async getLeaderboard(cycleId?: number): Promise<{ success: boolean; data: any }> {
     try {
       const url = cycleId 
-        ? `https://prixedict-backend.fly.dev/api/oddyssey/leaderboard/${cycleId}`
-        : 'https://prixedict-backend.fly.dev/api/oddyssey/leaderboard';
+        ? `https://predinex-backend.fly.dev/api/oddyssey/leaderboard/${cycleId}`
+        : 'https://predinex-backend.fly.dev/api/oddyssey/leaderboard';
       const response = await fetch(url);
       const data = await response.json();
       return {
@@ -1511,7 +1511,7 @@ class OddysseyService {
   // Check cycle sync status
   async checkCycleSync(): Promise<{ success: boolean; data: any }> {
     try {
-      const response = await fetch('https://prixedict-backend.fly.dev/api/oddyssey/cycle-sync');
+      const response = await fetch('https://predinex-backend.fly.dev/api/oddyssey/cycle-sync');
       const data = await response.json();
       return {
         success: true,
@@ -1529,7 +1529,7 @@ class OddysseyService {
   // Get cycle stats
   async getCycleStats(): Promise<{ success: boolean; data: any }> {
     try {
-      const response = await fetch('https://prixedict-backend.fly.dev/api/oddyssey/stats');
+      const response = await fetch('https://predinex-backend.fly.dev/api/oddyssey/stats');
       const data = await response.json();
       return {
         success: true,
@@ -1547,7 +1547,7 @@ class OddysseyService {
   // Get user slips for cycle from backend
   async getUserSlipsForCycleFromBackend(cycleId: number, address: string): Promise<{ success: boolean; data: any }> {
     try {
-      const response = await fetch(`https://prixedict-backend.fly.dev/api/oddyssey/user-slips/${address}/${cycleId}`);
+      const response = await fetch(`https://predinex-backend.fly.dev/api/oddyssey/user-slips/${address}/${cycleId}`);
       const data = await response.json();
       return {
         success: true,

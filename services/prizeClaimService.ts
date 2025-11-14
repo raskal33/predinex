@@ -7,9 +7,9 @@ import { CONTRACTS } from '@/contracts';
  * Prize Claim Service for Guided and Open Prediction Markets
  * 
  * This service handles prize claiming for both guided and open markets:
- * - Guided markets: PrixedictPool contract claim() function
- * - Open markets: PrixedictPool contract claim() function  
- * - Combo markets: PrixedictPool contract claimCombo() function
+ * - Guided markets: PredinexPool contract claim() function
+ * - Open markets: PredinexPool contract claim() function  
+ * - Combo markets: PredinexPool contract claimCombo() function
  */
 
 export interface ClaimablePosition {
@@ -85,7 +85,7 @@ export class PrizeClaimService {
       }
       
       // Parse the RewardClaimed event to get claimed amount
-      let claimedAmount = '0';
+      const claimedAmount = '0';
       if (receipt.logs) {
         for (const log of receipt.logs) {
           try {

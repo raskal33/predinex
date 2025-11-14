@@ -127,7 +127,7 @@ export function formatAddress(address: string, length: number = 8): string {
 // Calculate progress percentage for requirements
 export function calculateRequirementProgress(requirements: UserEligibility['requirements']): number {
   let completed = 0;
-  let total = 5; // Total number of requirements
+  const total = 5; // Total number of requirements
   
   if (requirements.faucetClaim) completed++;
   if (requirements.bnbActivityBeforeFaucet) completed++;

@@ -5,10 +5,10 @@
 
 import { readContract } from 'wagmi/actions';
 import { config } from '@/config/wagmi';
-import PrixedictPoolCoreArtifact from '@/contracts/abis/PrixedictPoolCore.json';
+import PredinexPoolCoreArtifact from '@/contracts/abis/PredinexPoolCore.json';
 
 // Extract ABI array from artifact (ABI files are arrays directly)
-const PrixedictPoolCoreABI = PrixedictPoolCoreArtifact as any;
+const PredinexPoolCoreABI = PredinexPoolCoreArtifact as any;
 
 interface PoolStateCache {
   [poolId: number]: {
@@ -43,7 +43,7 @@ class PoolStateService {
       // Get pool data and extract flags
       const poolData = await readContract(config, {
         address: this.CONTRACT_ADDRESS as `0x${string}`,
-        abi: PrixedictPoolCoreABI,
+        abi: PredinexPoolCoreABI,
         functionName: 'getPool',
         args: [BigInt(poolId)]
       }) as any;
@@ -103,7 +103,7 @@ class PoolStateService {
         const contractCalls = uncachedIds.map(poolId => 
           readContract(config, {
             address: this.CONTRACT_ADDRESS as `0x${string}`,
-            abi: PrixedictPoolCoreABI,
+            abi: PredinexPoolCoreABI,
             functionName: 'getPool',
             args: [BigInt(poolId)]
           }).catch(error => {

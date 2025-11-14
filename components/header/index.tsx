@@ -33,7 +33,7 @@ import NotificationBadge from "@/components/NotificationBadge";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
-  const [isPrixedictorOpen, setIsPrixedictorOpen] = useState<boolean>(false);
+  const [isPredinextorOpen, setIsPredinextorOpen] = useState<boolean>(false);
   const [isMarketsOpen, setIsMarketsOpen] = useState<boolean>(false);
   const [isWalletDropdownOpen, setIsWalletDropdownOpen] = useState<boolean>(false);
   const [{ y }] = useWindowScroll();
@@ -41,7 +41,7 @@ export default function Header() {
   const [isRender, setIsRender] = useState<boolean>(false);
   
   // Refs for dropdown positioning
-  const prixedictorButtonRef = useRef<HTMLButtonElement>(null);
+  const predinextorButtonRef = useRef<HTMLButtonElement>(null);
   const marketsButtonRef = useRef<HTMLButtonElement>(null);
   const walletButtonRef = useRef<HTMLButtonElement>(null);
   
@@ -91,8 +91,8 @@ export default function Header() {
   const handleClose = () => {
     setIsMenuOpen(false);
   };
-  const handlePrixedictorToggle = () => setIsPrixedictorOpen(!isPrixedictorOpen);
-  const handlePrixedictorClose = () => setIsPrixedictorOpen(false);
+  const handlePredinextorToggle = () => setIsPredinextorOpen(!isPredinextorOpen);
+  const handlePredinextorClose = () => setIsPredinextorOpen(false);
   const handleMarketsToggle = () => setIsMarketsOpen(!isMarketsOpen);
   const handleMarketsClose = () => setIsMarketsOpen(false);
   const handleWalletDropdownToggle = () => setIsWalletDropdownOpen(!isWalletDropdownOpen);
@@ -103,21 +103,21 @@ export default function Header() {
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = () => {
-      setIsPrixedictorOpen(false);
+      setIsPredinextorOpen(false);
       setIsMarketsOpen(false);
       setIsWalletDropdownOpen(false);
     };
 
-    if (isPrixedictorOpen || isMarketsOpen || isWalletDropdownOpen) {
+    if (isPredinextorOpen || isMarketsOpen || isWalletDropdownOpen) {
       document.addEventListener('click', handleClickOutside);
       return () => document.removeEventListener('click', handleClickOutside);
     }
-  }, [isPrixedictorOpen, isMarketsOpen, isWalletDropdownOpen]);
+  }, [isPredinextorOpen, isMarketsOpen, isWalletDropdownOpen]);
 
   // Close dropdowns on scroll
   useEffect(() => {
     const handleScroll = () => {
-      setIsPrixedictorOpen(false);
+      setIsPredinextorOpen(false);
       setIsMarketsOpen(false);
       setIsWalletDropdownOpen(false);
     };
@@ -153,21 +153,21 @@ export default function Header() {
                   />
                 </Link>
 
-                {/* Prixedictor Dropdown */}
+                {/* Predinextor Dropdown */}
                 <div className="relative hidden lg:block" style={{ zIndex: 1000 }}>
                   <motion.button
-                    ref={prixedictorButtonRef}
+                    ref={predinextorButtonRef}
                     onClick={(e) => {
                       e.stopPropagation();
-                      handlePrixedictorToggle();
+                      handlePredinextorToggle();
                     }}
                     whileHover={{ scale: 1.01 }}
                     className="flex items-center gap-2 px-4 py-2 rounded-button text-xs font-medium transition-all duration-200 text-text-secondary hover:text-text-primary hover:bg-bg-card"
                   >
                     <CubeTransparentIcon className="h-4 w-4 text-primary" />
-                    <span className="font-semibold">Prixedictor</span>
+                    <span className="font-semibold">Predinextor</span>
                     <motion.div
-                      animate={{ rotate: isPrixedictorOpen ? 180 : 0 }}
+                      animate={{ rotate: isPredinextorOpen ? 180 : 0 }}
                       transition={{ duration: 0.2 }}
                     >
                       <ChevronDownIcon className="h-4 w-4" />
@@ -175,8 +175,8 @@ export default function Header() {
                   </motion.button>
 
                   <AnimatePresence>
-                    {isPrixedictorOpen && (() => {
-                      const position = getDropdownPosition(prixedictorButtonRef);
+                    {isPredinextorOpen && (() => {
+                      const position = getDropdownPosition(predinextorButtonRef);
                       return (
                         <motion.div
                           initial={{ opacity: 0, y: -10, scale: 0.95 }}
@@ -192,11 +192,11 @@ export default function Header() {
                           onClick={(e) => e.stopPropagation()}
                         >
                         <div className="py-3 px-2">
-                          {prixedictorLinks.map((link) => (
+                          {predinextorLinks.map((link) => (
                             <Link
                               key={link.href}
                               href={link.href}
-                              onClick={handlePrixedictorClose}
+                              onClick={handlePredinextorClose}
                               className={`flex items-center gap-3 px-3 py-2.5 mx-1 text-xs font-medium transition-all duration-200 rounded-xl group ${
                                 segment === link.segment
                                   ? "bg-gradient-primary text-black shadow-lg"
@@ -518,11 +518,11 @@ export default function Header() {
 
                   {/* Navigation Links */}
                   <nav className="flex-1 p-4 overflow-y-auto">
-                    {/* Prixedictor Section */}
+                    {/* Predinextor Section */}
                     <div className="mb-4">
-                      <h3 className="text-xs font-semibold text-text-secondary mb-2 px-2">PRIXEDICTOR</h3>
+                      <h3 className="text-xs font-semibold text-text-secondary mb-2 px-2">PREDINEXTOR</h3>
                       <div className="space-y-1">
-                        {prixedictorLinks.map((link) => (
+                        {predinextorLinks.map((link) => (
                           <Link
                             key={link.href}
                             href={link.href}
@@ -669,7 +669,7 @@ export default function Header() {
   }
 }
 
-const prixedictorLinks = [
+const predinextorLinks = [
   {
     label: "Dashboard",
     href: "/dashboard",

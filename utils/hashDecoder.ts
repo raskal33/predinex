@@ -134,7 +134,7 @@ export function decodeMarketId(marketId: string): { homeTeam?: string; awayTeam?
           if (hash === marketId) {
             return { homeTeam, awayTeam, league };
           }
-        } catch (error) {
+        } catch {
           // Continue trying other combinations
         }
       }

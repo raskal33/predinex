@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 import { useReadContract } from 'wagmi';
 import { CONTRACT_ADDRESSES } from '@/config/wagmi';
-import PoolCoreArtifact from '@/contracts/abis/PrixedictPoolCore.json';
+import PoolCoreArtifact from '@/contracts/abis/PredinexPoolCore.json';
 
 // Extract ABI array from artifact (ABI files are arrays directly)
 const PoolCoreABI = PoolCoreArtifact as any;

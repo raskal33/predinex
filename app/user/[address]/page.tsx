@@ -80,7 +80,7 @@ export default function PublicProfilePage() {
           setBets([]);
           // setTotalProfitLoss(0); // This line is removed as per the edit hint
         }
-      } catch (error) {
+      } catch {
         console.error('❌ Error fetching bets');
         setBets([]);
         // setTotalProfitLoss(0); // This line is removed as per the edit hint

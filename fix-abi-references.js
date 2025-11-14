@@ -21,15 +21,15 @@ const filesToFix = [
 
 // ABI imports to fix
 const abiImports = [
-  'PrixedictTokenABI',
+  'PredinexTokenABI',
   'PrixFaucetABI', 
   'GuidedOracleABI',
   'OptimisticOracleABI',
-  'PrixedictPoolCoreABI',
-  'PrixedictBoostSystemABI',
-  'PrixedictComboPoolsABI',
-  'PrixedictPoolFactoryABI',
-  'PrixedictStakingABI',
+  'PredinexPoolCoreABI',
+  'PredinexBoostSystemABI',
+  'PredinexComboPoolsABI',
+  'PredinexPoolFactoryABI',
+  'PredinexStakingABI',
   'ReputationSystemABI',
   'OddysseyABI'
 ];

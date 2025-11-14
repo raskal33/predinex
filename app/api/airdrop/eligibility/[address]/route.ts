@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-const BACKEND_URL = process.env.BACKEND_URL || 'https://prixedict-backend.fly.dev';
+const BACKEND_URL = process.env.BACKEND_URL || 'https://predinex-backend.fly.dev';
 
 export async function GET(
   request: Request,

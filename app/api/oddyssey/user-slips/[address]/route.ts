@@ -20,7 +20,7 @@ export async function GET(
       }, { status: 400 });
     }
 
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://prixedict-backend.fly.dev';
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://predinex-backend.fly.dev';
 
     // Build query parameters
     const queryParams = new URLSearchParams({ limit });

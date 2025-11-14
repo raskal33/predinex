@@ -8,8 +8,8 @@ export async function GET(
     const { marketId } = await params;
     console.log(`🎯 Fetching match center data for market ID: ${marketId}`);
 
-    // Use prixedict-backend for testing
-    const backendUrl = 'https://prixedict-backend.fly.dev';
+    // Use predinex-backend for testing
+    const backendUrl = 'https://predinex-backend.fly.dev';
     const response = await fetch(`${backendUrl}/api/match-center/market/${marketId}`, {
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate',

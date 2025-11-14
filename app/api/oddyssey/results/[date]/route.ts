@@ -8,7 +8,7 @@ export async function GET(
     const { date } = await params;
     console.log('🎯 Fetching Oddyssey results for date:', date);
 
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://prixedict-backend.fly.dev';
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://predinex-backend.fly.dev';
 
     const response = await fetch(`${backendUrl}/api/oddyssey/results/${date}`, {
       method: 'GET',

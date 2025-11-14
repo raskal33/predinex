@@ -39,7 +39,7 @@ import { useReputationCheck } from "@/hooks/useReputationCheck";
 
 
 // Import the full contract ABI (commented out as not currently used)
-// import PrixedictPoolABI from '@/contracts/abis/PrixedictPool.json';
+// import PredinexPoolABI from '@/contracts/abis/PredinexPool.json';
 
 // Contract address (commented out as not currently used)
 // const CONTRACT_ADDRESS = CONTRACTS.POOL_CORE.address; // Updated to use POOL_CORE
@@ -260,7 +260,7 @@ function CreateMarketPageContent() {
   // Notify backend about pool creation for immediate indexing
   const notifyPoolCreation = useCallback(async (transactionHash: string) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://prixedict-backend.fly.dev'}/api/pools/notify-creation`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://predinex-backend.fly.dev'}/api/pools/notify-creation`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

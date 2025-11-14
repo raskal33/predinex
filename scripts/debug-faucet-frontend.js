@@ -35,8 +35,8 @@ function checkFrontendConfig() {
   console.log(`   NEXT_PUBLIC_FAUCET_ADDRESS: ${env.NEXT_PUBLIC_FAUCET_ADDRESS || '❌ NOT SET'}`);
   console.log(`   NEXT_PUBLIC_PRIX_TOKEN_ADDRESS: ${env.NEXT_PUBLIC_PRIX_TOKEN_ADDRESS || '❌ NOT SET'}`);
   console.log(`   NEXT_PUBLIC_GUIDED_ORACLE_ADDRESS: ${env.NEXT_PUBLIC_GUIDED_ORACLE_ADDRESS || '❌ NOT SET'}`);
-  console.log(`   NEXT_PUBLIC_PRIXEDICT_POOL_ADDRESS: ${env.NEXT_PUBLIC_PRIXEDICT_POOL_ADDRESS || '❌ NOT SET'}`);
-  console.log(`   NEXT_PUBLIC_PRIXEDICT_STAKING_ADDRESS: ${env.NEXT_PUBLIC_PRIXEDICT_STAKING_ADDRESS || '❌ NOT SET'}`);
+  console.log(`   NEXT_PUBLIC_PREDINEX_POOL_ADDRESS: ${env.NEXT_PUBLIC_PREDINEX_POOL_ADDRESS || '❌ NOT SET'}`);
+  console.log(`   NEXT_PUBLIC_PREDINEX_STAKING_ADDRESS: ${env.NEXT_PUBLIC_PREDINEX_STAKING_ADDRESS || '❌ NOT SET'}`);
   console.log(`   NEXT_PUBLIC_ODDYSSEY_ADDRESS: ${env.NEXT_PUBLIC_ODDYSSEY_ADDRESS || '❌ NOT SET'}`);
   
   // Check if addresses match deployment
@@ -64,7 +64,7 @@ function checkContractFiles() {
   
   const filesToCheck = [
     'contracts/abis/PrixFaucet.json',
-    'contracts/abis/PrixedictToken.json',
+    'contracts/abis/PredinexToken.json',
     'contracts/index.ts',
     'config/wagmi.ts',
     'hooks/useFaucet.ts'

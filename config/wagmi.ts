@@ -49,8 +49,8 @@ export const appKit = createAppKit({
   metadata: {
     name: 'PRIX - Connect Wallet',
     description: 'Connect your wallet to access decentralized prediction markets on BSC Testnet',
-    url: typeof window !== 'undefined' ? window.location.origin : 'https://prixedict.vercel.app',
-    icons: [typeof window !== 'undefined' ? `${window.location.origin}/logo.png` : 'https://prixedict.vercel.app/logo.png'],
+    url: typeof window !== 'undefined' ? window.location.origin : 'https://predinex.vercel.app',
+    icons: [typeof window !== 'undefined' ? `${window.location.origin}/logo.png` : 'https://predinex.vercel.app/logo.png'],
   },
   features: {
     analytics: false, // Disable analytics to remove Reown tracking
@@ -101,8 +101,8 @@ export const CONTRACT_ADDRESSES = {
   ODDYSSEY: (process.env.NEXT_PUBLIC_ODDYSSEY_ADDRESS || '0x90C34114f1Dd6Ebf34a11F9Dd8f9306d3E1cE8c8') as `0x${string}`,
   
   // Legacy support (for backward compatibility) - UPDATED TO BSC TESTNET ADDRESSES
-  PRIXEDICT_POOL: (process.env.NEXT_PUBLIC_PRIXEDICT_POOL_ADDRESS || '0x8240BCeFd8965AD1543dB073F6Bf60ABf34DB743') as `0x${string}`,
-  PRIXEDICT_STAKING: (process.env.NEXT_PUBLIC_STAKING_CONTRACT_ADDRESS || '0x39a72b531330738f49AA2Aa6A534B967e21A5AFB') as `0x${string}`,
+  PREDINEX_POOL: (process.env.NEXT_PUBLIC_PREDINEX_POOL_ADDRESS || '0x8240BCeFd8965AD1543dB073F6Bf60ABf34DB743') as `0x${string}`,
+  PREDINEX_STAKING: (process.env.NEXT_PUBLIC_STAKING_CONTRACT_ADDRESS || '0x39a72b531330738f49AA2Aa6A534B967e21A5AFB') as `0x${string}`,
 }
 
 // Network configuration for contract calls

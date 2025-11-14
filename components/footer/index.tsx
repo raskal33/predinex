@@ -24,15 +24,15 @@ export default function Footer() {
 
   const resourceLinks = [
     { name: "Documentation", href: "https://drive.google.com/file/d/1YeC8u3tkSA-VOI96Ut2WEfrQhps1OIjG/view" },
-    { name: "API", href: "https://prixedict.com/api" },
+    { name: "API", href: "https://predinex.com/api" },
     { name: "Help Center", href: "/contact" },
     { name: "Blog", href: "/community" },
   ];
 
   const legalLinks = [
     { name: "Terms of Service", href: "/terms-of-service" },
-    { name: "Privacy Policy", href: "https://prixedict.com/privacy-policy" },
-    { name: "Cookie Policy", href: "https://prixedict.com/cookie-policy" },
+    { name: "Privacy Policy", href: "https://predinex.com/privacy-policy" },
+    { name: "Cookie Policy", href: "https://predinex.com/cookie-policy" },
     { name: "Disclaimer", href: "/disclaimer" },
   ];
 

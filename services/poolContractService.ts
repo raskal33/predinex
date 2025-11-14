@@ -1,6 +1,6 @@
 /**
  * Direct Pool Contract Service
- * Fetches pool data directly from the PrixedictPoolCore contract
+ * Fetches pool data directly from the PredinexPoolCore contract
  */
 
 import { 

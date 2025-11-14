@@ -3,9 +3,8 @@ import { useAccount, useReadContract, useWriteContract, useWaitForTransactionRec
 import { CONTRACTS, CONTRACT_ADDRESSES } from '@/contracts';
 import { formatUnits, parseUnits } from 'viem';
 import { encodeBytes32String } from 'ethers';
-import { toast } from 'react-hot-toast';
 import { convertPoolToReadableEnhanced } from '@/lib/bytes32-utils';
-import { useTransactionFeedback, TransactionStatus } from '@/components/TransactionFeedback';
+import { useTransactionFeedback } from '@/components/TransactionFeedback';
 import { getTransactionOptions } from '@/lib/network-connection';
 
 export interface Pool {
@@ -86,7 +85,7 @@ export function usePools() {
   const { writeContract, data: hash, isPending } = useWriteContract();
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
   const publicClient = usePublicClient();
-  const { showSuccess, showError, showPending, showConfirming, clearStatus } = useTransactionFeedback();
+  const { showSuccess, showError, showPending, showConfirming } = useTransactionFeedback();
 
   // State for tracking approval and bet transactions
   const [approvalConfirmed, setApprovalConfirmed] = useState(false);
@@ -390,8 +389,6 @@ export function usePools() {
     marketId: string = "",
     marketType: number = 0
   ) => {
-    const startTimestamp = BigInt(Math.floor(eventStartTime.getTime() / 1000));
-    const endTimestamp = BigInt(Math.floor(eventEndTime.getTime() / 1000));
     const stakeWei = parseUnits(creatorStake, 18);
     const maxBetWei = maxBetPerUser === "0" ? BigInt(0) : parseUnits(maxBetPerUser, 18);
     

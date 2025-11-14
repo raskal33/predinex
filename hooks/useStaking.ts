@@ -49,48 +49,48 @@ export function useStaking() {
 
   // Read contract data
   const { data: totalStaked, refetch: refetchTotalStaked } = useReadContract({
-    ...CONTRACTS.PRIXEDICT_STAKING,
+    ...CONTRACTS.PREDINEX_STAKING,
     functionName: 'totalStaked',
   });
 
   const { data: totalRewardsPaid } = useReadContract({
-    ...CONTRACTS.PRIXEDICT_STAKING,
+    ...CONTRACTS.PREDINEX_STAKING,
     functionName: 'totalRewardsPaid',
   });
 
   const { data: totalRevenuePaid } = useReadContract({
-    ...CONTRACTS.PRIXEDICT_STAKING,
+    ...CONTRACTS.PREDINEX_STAKING,
     functionName: 'totalRevenuePaid',
   });
 
   const { data: tiers, refetch: refetchTiers } = useReadContract({
-    ...CONTRACTS.PRIXEDICT_STAKING,
+    ...CONTRACTS.PREDINEX_STAKING,
     functionName: 'getTiers',
   });
 
   const { data: durationOptions } = useReadContract({
-    ...CONTRACTS.PRIXEDICT_STAKING,
+    ...CONTRACTS.PREDINEX_STAKING,
     functionName: 'getDurationOptions',
   });
 
   // Duration options loaded
 
   const { data: userStakes, refetch: refetchUserStakes } = useReadContract({
-    ...CONTRACTS.PRIXEDICT_STAKING,
+    ...CONTRACTS.PREDINEX_STAKING,
     functionName: 'getUserStakes',
     args: address ? [address] : undefined,
     query: { enabled: !!address }
   });
 
   const { data: pendingRevenuePRIX, refetch: refetchRevenuePRIX } = useReadContract({
-    ...CONTRACTS.PRIXEDICT_STAKING,
+    ...CONTRACTS.PREDINEX_STAKING,
     functionName: 'pendingRevenuePRIX',
     args: address ? [address] : undefined,
     query: { enabled: !!address, refetchInterval: 30000 } // ✅ FIX: Add polling for revenue share
   });
 
   const { data: pendingRevenueBNB, refetch: refetchRevenueBNB } = useReadContract({
-    ...CONTRACTS.PRIXEDICT_STAKING,
+    ...CONTRACTS.PREDINEX_STAKING,
     functionName: 'pendingRevenueBNB',
     args: address ? [address] : undefined,
     query: { enabled: !!address, refetchInterval: 30000 } // ✅ FIX: Add polling for revenue share
@@ -179,7 +179,7 @@ export function useStaking() {
     try {
       const stakeAmount = parseUnits(amount, 18);
       writeContract({
-        ...CONTRACTS.PRIXEDICT_STAKING,
+        ...CONTRACTS.PREDINEX_STAKING,
         functionName: 'stake',
         args: [stakeAmount, BigInt(tierId), BigInt(durationOption)],
       });
@@ -200,7 +200,7 @@ export function useStaking() {
     
     try {
       const result = writeContract({
-        ...CONTRACTS.PRIXEDICT_STAKING,
+        ...CONTRACTS.PREDINEX_STAKING,
         functionName: 'claim',
         args: [BigInt(stakeIndex)],
       });
@@ -222,7 +222,7 @@ export function useStaking() {
     setUnstakingStakeIndex(stakeIndex);
     try {
       writeContract({
-        ...CONTRACTS.PRIXEDICT_STAKING,
+        ...CONTRACTS.PREDINEX_STAKING,
         functionName: 'unstake',
         args: [BigInt(stakeIndex)],
       });
@@ -237,7 +237,7 @@ export function useStaking() {
     setIsClaimingRevenue(true);
     try {
       writeContract({
-        ...CONTRACTS.PRIXEDICT_STAKING,
+        ...CONTRACTS.PREDINEX_STAKING,
         functionName: 'claimRevenue', // ✅ FIX: Contract function is 'claimRevenue', not 'claimRevenueShare'
         args: [],
       });

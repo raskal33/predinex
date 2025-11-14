@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { PoolCardNFT, PoolCardFull, PoolCardCatalog, PoolCardModal } from "@/components/PoolCard";
+import { PoolCardFull, PoolCardCatalog, PoolCardModal } from "@/components/PoolCard";
 import { EnhancedPool } from "@/components/EnhancedPoolCard";
 
 export default function DemoPoolCardsPage() {
