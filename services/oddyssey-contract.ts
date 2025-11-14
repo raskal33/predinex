@@ -89,7 +89,7 @@ export function useOddysseyContract() {
       address: CONTRACT_ADDRESSES.ODDYSSEY,
       abi: ODDYSSEY_ABI,
       functionName: 'placeSlip',
-      args: [slip.predictions],
+      args: [slip.predictions] as any,
       value: entryFee as bigint,
     });
   };

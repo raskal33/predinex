@@ -193,8 +193,8 @@ async function getTeamLogos(pool: EnhancedPool): Promise<{ homeLogo?: string; aw
   }
 
   // Extract team names from pool data
-  const homeTeam = pool.homeTeam || extractTeamName(pool.title, 'home');
-  const awayTeam = pool.awayTeam || extractTeamName(pool.title, 'away');
+  const homeTeam = pool.homeTeam || (pool.title ? extractTeamName(pool.title, 'home') : undefined);
+  const awayTeam = pool.awayTeam || (pool.title ? extractTeamName(pool.title, 'away') : undefined);
   
   if (!homeTeam || !awayTeam) {
     return {};
@@ -220,7 +220,7 @@ async function getTeamLogos(pool: EnhancedPool): Promise<{ homeLogo?: string; aw
   // First, try match-center API (but don't wait long if it fails)
   // Try fixtureId first (SportMonks fixture ID), then marketId
   const fixtureId = (pool as any).fixtureId;
-  const marketId = (pool as any).marketId || pool.indexedData?.marketId;
+  const marketId = (pool as any).marketId;
   const poolId = pool.id?.toString();
   
   // Don't use pool ID as marketId if marketId is already set to pool ID

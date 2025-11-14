@@ -603,7 +603,7 @@ export const PoolCardCatalog = ({
     <div className="w-full overflow-hidden">
       <div className="flex flex-wrap gap-3 p-2 justify-center items-start">
         {pools.map((pool, index) => {
-          const isHovered = hoveredPoolId === pool.id;
+          const isHovered = hoveredPoolId === pool.id.toString();
           return (
             <motion.div
               key={pool.id}
@@ -615,7 +615,7 @@ export const PoolCardCatalog = ({
               transition={{ delay: index * 0.05, duration: 0.2 }}
               className="relative flex-shrink-0"
               style={{ width: '176px' }}
-              onMouseEnter={() => setHoveredPoolId(pool.id)}
+              onMouseEnter={() => setHoveredPoolId(pool.id.toString())}
               onMouseLeave={() => setHoveredPoolId(null)}
             >
               <div className={hoveredPoolId && !isHovered ? 'blur-sm pointer-events-none' : ''}>

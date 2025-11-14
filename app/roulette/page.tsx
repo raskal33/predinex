@@ -21,6 +21,7 @@ import { usePools } from "@/hooks/usePools";
 import { toast } from "react-hot-toast";
 import { EnhancedPool } from "@/components/EnhancedPoolCard";
 import { AbstractPoolCardImage } from "@/components/AbstractPoolCardImage";
+import { getCategorySpecificImageMetadata } from "@/services/poolImageService";
 
 interface RoulettePool extends EnhancedPool {
   homeTeamLogo?: string;
@@ -41,6 +42,7 @@ export default function PoolRoulettePage() {
   const [totalViews, setTotalViews] = useState(0);
   const [quickBetAmount, setQuickBetAmount] = useState<string>("10");
   const [isPlacingBet, setIsPlacingBet] = useState(false);
+  const [cardMetadata, setCardMetadata] = useState<any>(null);
   
   // Fetch pools for roulette
   const fetchPools = useCallback(async () => {
@@ -101,6 +103,25 @@ export default function PoolRoulettePage() {
       }
     }
   }, [currentIndex, pools, viewedPoolIds, trackInteraction]);
+
+  // Load card metadata when pool changes
+  useEffect(() => {
+    const loadMetadata = async () => {
+      if (pools.length > 0 && currentIndex < pools.length) {
+        const currentPool = pools[currentIndex];
+        if (currentPool) {
+          try {
+            const metadata = await getCategorySpecificImageMetadata(currentPool);
+            setCardMetadata(metadata);
+          } catch (error) {
+            console.error('Error loading card metadata:', error);
+            setCardMetadata(null);
+          }
+        }
+      }
+    };
+    loadMetadata();
+  }, [currentIndex, pools]);
   
   // Next pool
   const handleNext = useCallback(() => {
@@ -253,10 +274,21 @@ export default function PoolRoulettePage() {
                 <div className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden border border-purple-500/20">
                   {/* Pool Image */}
                   <div className="relative h-64 bg-gradient-to-br from-purple-600 to-pink-600">
-                    <AbstractPoolCardImage
-                      pool={currentPool}
-                      className="w-full h-full object-cover"
-                    />
+                    {cardMetadata ? (
+                      <AbstractPoolCardImage
+                        colors={cardMetadata.colors}
+                        category={cardMetadata.category}
+                        homeLogo={cardMetadata.homeLogo}
+                        awayLogo={cardMetadata.awayLogo}
+                        coinLogo={cardMetadata.coinLogo}
+                        leagueLogo={cardMetadata.leagueLogo}
+                        homeTeam={currentPool.homeTeam}
+                        awayTeam={currentPool.awayTeam}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-purple-600 to-pink-600" />
+                    )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                     
                     {/* Pool Info Overlay */}
@@ -293,7 +325,7 @@ export default function PoolRoulettePage() {
                       </div>
                       <div className="text-center">
                         <div className="text-2xl font-bold text-pink-400">
-                          {parseFloat(currentPool.fillPercentage?.toString() || '0').toFixed(0)}%
+                          {parseFloat((currentPool.indexedData?.fillPercentage?.toString() || (currentPool as any).fillPercentage?.toString() || '0')).toFixed(0)}%
                         </div>
                         <div className="text-xs text-gray-400">Filled</div>
                       </div>
