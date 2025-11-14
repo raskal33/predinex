@@ -9,7 +9,7 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "https://prixedict-backend.fly.dev/api/$1"
+      "dest": "https://predinex.fly.dev/api/$1"
     },
     {
       "src": "/(.*)",
@@ -17,10 +17,10 @@
     }
   ],
   "env": {
-    "NEXT_PUBLIC_API_URL": "https://prixedict-backend.fly.dev",
-    "NEXT_PUBLIC_API_BASE_URL": "https://prixedict-backend.fly.dev",
-    "BACKEND_URL": "https://prixedict-backend.fly.dev",
-    "NEXT_PUBLIC_BACKEND_URL": "https://prixedict-backend.fly.dev",
+    "NEXT_PUBLIC_API_URL": "https://predinex.fly.dev",
+    "NEXT_PUBLIC_API_BASE_URL": "https://predinex.fly.dev",
+    "BACKEND_URL": "https://predinex.fly.dev",
+    "NEXT_PUBLIC_BACKEND_URL": "https://predinex.fly.dev",
     "NEXT_PUBLIC_RPC_URL": "https://bsc-rpc.publicnode.com",
     "NEXT_PUBLIC_CHAIN_ID": "56"
   }
