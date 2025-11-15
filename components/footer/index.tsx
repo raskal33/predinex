@@ -60,7 +60,7 @@ export default function Footer() {
                     width={200} 
                     height={50}
                     className="h-auto"
-                    style={{ background: 'transparent' }}
+                    style={{ mixBlendMode: 'lighten', background: 'transparent' }}
                   />
                 </Link>
 

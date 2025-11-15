@@ -621,7 +621,7 @@ section {
   background: transparent !important;
 }
 
-/* Navbar logo - web standard size (40px height) */
+/* Navbar logo - web standard size (40px height) - NO color animation */
 header .logo-color-shift.navbar-logo,
 header .navbar-logo,
 header .navbar-logo img,
@@ -635,6 +635,9 @@ header a[href="/"]:has(.navbar-logo) span {
   max-height: 40px !important;
   object-fit: contain !important;
   background: transparent !important;
+  animation: none !important;
+  mix-blend-mode: lighten !important;
+  filter: none !important;
 }
 
 /* Next.js Image wrapper for logo - target parent container */
@@ -654,6 +657,7 @@ footer img[alt*="Predinex"],
 .navbar-logo,
 .navbar-logo img {
   background: transparent !important;
+  mix-blend-mode: lighten !important;
 }
 
 a[href="/"]:has(.logo-color-shift) > span,
@@ -680,7 +684,7 @@ a[href="/"]:has(.logo-color-shift) span {
   background: transparent !important;
 }
 
-/* Footer logo - larger size with transparent background */
+/* Footer logo - larger size with transparent background using blend mode */
 footer .logo-color-shift,
 footer .logo-color-shift img,
 footer a[href="/"]:has(.logo-color-shift) > span,
@@ -695,6 +699,9 @@ footer a[href="/"] img {
   max-height: 50px !important;
   background: transparent !important;
   object-fit: contain !important;
+  mix-blend-mode: lighten !important;
+  animation: none !important;
+  filter: none !important;
 }
 
 @keyframes somnia-color-cycle {

@@ -148,9 +148,9 @@ export default function Header() {
                     alt="Predinex Logo" 
                     width={120} 
                     height={40} 
-                    className="logo-color-shift navbar-logo"
+                    className="navbar-logo"
                     priority 
-                    style={{ background: 'transparent' }}
+                    style={{ mixBlendMode: 'lighten', background: 'transparent' }}
                   />
                 </Link>
 
@@ -511,9 +511,9 @@ export default function Header() {
                         alt="Predinex Logo" 
                         width={120} 
                         height={40} 
-                        className="logo-color-shift navbar-logo"
+                        className="navbar-logo"
                         priority 
-                        style={{ background: 'transparent' }}
+                        style={{ mixBlendMode: 'lighten', background: 'transparent' }}
                       />
                     </Link>
                   </div>
