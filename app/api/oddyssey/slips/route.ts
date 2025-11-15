@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
       }, { status: 400 });
     }
 
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://predinex-backend.fly.dev';
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://predinex.fly.dev';
 
     // Build query parameters
     const queryParams = new URLSearchParams({ limit });

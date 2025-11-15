@@ -199,7 +199,7 @@ export default function UserSlipsDisplay({ userAddress, className = "" }: UserSl
 
     const connectWebSocket = () => {
       try {
-        ws = new WebSocket('wss://predinex-backend.fly.dev/ws');
+        ws = new WebSocket('wss://predinex.fly.dev/ws');
 
         ws.onopen = () => {
           console.log('✅ WebSocket connected for slip updates');

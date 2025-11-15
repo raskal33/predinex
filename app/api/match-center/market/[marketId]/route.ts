@@ -9,7 +9,7 @@ export async function GET(
     console.log(`🎯 Fetching match center data for market ID: ${marketId}`);
 
     // Use predinex-backend for testing
-    const backendUrl = 'https://predinex-backend.fly.dev';
+    const backendUrl = 'https://predinex.fly.dev';
     const response = await fetch(`${backendUrl}/api/match-center/market/${marketId}`, {
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate',

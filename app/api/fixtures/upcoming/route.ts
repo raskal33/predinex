@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     if (oddyssey) queryParams.append('oddyssey', oddyssey);
     if (days) queryParams.append('days', days);
 
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://predinex-backend.fly.dev';
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://predinex.fly.dev';
     const url = `${backendUrl}/api/fixtures/upcoming?${queryParams.toString()}`;
 
     const response = await fetch(url, {

@@ -5,7 +5,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const { poolId } = await params;
     console.log(`🎯 Fetching settlement results for pool ID: ${poolId}`);
 
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://predinex-backend.fly.dev';
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://predinex.fly.dev';
     const response = await fetch(`${backendUrl}/api/settlement-results/${poolId}`, {
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate',

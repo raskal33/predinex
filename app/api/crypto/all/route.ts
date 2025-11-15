@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
     const limit = searchParams.get('limit') || '500';
     const page = searchParams.get('page') || '1';
 
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://predinex-backend.fly.dev';
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://predinex.fly.dev';
     const url = `${backendUrl}/api/crypto/all?limit=${limit}&page=${page}`;
 
     console.log('🎯 Fetching cryptocurrencies from:', url);

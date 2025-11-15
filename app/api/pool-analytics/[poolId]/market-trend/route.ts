@@ -8,7 +8,7 @@ export async function GET(
     const { poolId } = await params;
     console.log(`🎯 Fetching market trend for pool ID: ${poolId}`);
 
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://predinex-backend.fly.dev';
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://predinex.fly.dev';
     const response = await fetch(`${backendUrl}/api/pool-analytics/${poolId}/market-trend`, {
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate',

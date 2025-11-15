@@ -6,7 +6,7 @@ export async function GET(
 ) {
   try {
     const { address } = await params;
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://predinex-backend.fly.dev';
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://predinex.fly.dev';
 
     console.log('🎯 Fetching staking data for address:', address);
 

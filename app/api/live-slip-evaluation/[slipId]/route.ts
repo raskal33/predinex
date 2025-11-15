@@ -8,7 +8,7 @@ export async function GET(
     const { slipId } = await params;
     console.log('🎯 Fetching live slip evaluation for slipId:', slipId);
 
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://predinex-backend.fly.dev';
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://predinex.fly.dev';
 
     const response = await fetch(`${backendUrl}/api/live-slip-evaluation/${slipId}`, {
       method: 'GET',

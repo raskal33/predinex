@@ -12,7 +12,7 @@ import {
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://predinex-backend.fly.dev';
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://predinex.fly.dev';
 
 export default function CreatedPredictionsPage() {
   const { address } = useAccount();

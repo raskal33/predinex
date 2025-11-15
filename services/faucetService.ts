@@ -84,7 +84,7 @@ export interface FaucetClaimResponse {
 }
 
 export class FaucetService {
-  private static baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://predinex-backend.fly.dev';
+  private static baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://predinex.fly.dev';
 
   // Retry configuration
   private static retryConfig = {

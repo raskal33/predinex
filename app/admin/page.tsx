@@ -127,7 +127,7 @@ export default function AdminPage() {
   const [filteredLogs, setFilteredLogs] = useState<LogEntry[]>([]);
   const [logFilter, setLogFilter] = useState<string>('all');
 
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://predinex-backend.fly.dev';
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://predinex.fly.dev';
 
   // Define all admin actions
   const adminActions: AdminAction[] = [

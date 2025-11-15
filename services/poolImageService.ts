@@ -238,7 +238,7 @@ async function getTeamLogos(pool: EnhancedPool): Promise<{ homeLogo?: string; aw
     category: pool.category
   });
   
-  const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://predinex-backend.fly.dev';
+  const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://predinex.fly.dev';
   
   // Strategy 1: Try fixture endpoint if fixtureId is available (most reliable)
   if (fixtureId) {

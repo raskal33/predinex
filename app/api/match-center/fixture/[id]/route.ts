@@ -6,7 +6,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     console.log(`🎯 Fetching fixture details for ID: ${id}`);
 
     // Use predinex-backend for testing
-    const backendUrl = 'https://predinex-backend.fly.dev';
+    const backendUrl = 'https://predinex.fly.dev';
     const response = await fetch(`${backendUrl}/api/match-center/fixture/${id}`, {
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate',

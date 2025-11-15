@@ -5,7 +5,7 @@ export async function GET() {
     console.log('🎯 Fetching live matches');
 
     // Use predinex-backend for testing
-    const backendUrl = 'https://predinex-backend.fly.dev';
+    const backendUrl = 'https://predinex.fly.dev';
     const response = await fetch(`${backendUrl}/api/match-center/live`, {
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate',
