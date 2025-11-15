@@ -97,7 +97,7 @@ export function useStaking() {
   });
 
   // Calculate pending rewards for a specific stake
-  const calculateRewards = (stakeIndex: number): bigint => {
+  const calculateRewards = useCallback((stakeIndex: number): bigint => {
     try {
       // Comprehensive safety checks
       if (!userStakes || !Array.isArray(userStakes) || userStakes.length === 0) return BigInt(0);
@@ -163,7 +163,7 @@ export function useStaking() {
       console.error('Error calculating rewards:', error);
       return BigInt(0);
     }
-  };
+  }, [userStakes, tiers, getDurationBonus]);
 
   // Write contract functions
   const stake = async (amount: string, tierId: number, durationOption: DurationOption) => {
@@ -427,7 +427,7 @@ export function useStaking() {
       console.error('Error in getUserStakesWithRewards:', error);
       return [];
     }
-  }, [userStakes, tiers, durationOptions]);
+  }, [userStakes, tiers, durationOptions, calculateRewards]);
 
   const getTotalStakedAmount = useMemo((): bigint => {
     try {

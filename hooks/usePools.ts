@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, usePublicClient } from 'wagmi';
 import { CONTRACTS, CONTRACT_ADDRESSES } from '@/contracts';
 import { formatUnits, parseUnits } from 'viem';
@@ -137,7 +137,7 @@ export function usePools() {
   };
 
   // Check PRIX allowance
-  const getPRIXAllowance = async (owner: `0x${string}`, spender: `0x${string}`) => {
+  const getPRIXAllowance = useCallback(async (owner: `0x${string}`, spender: `0x${string}`) => {
     try {
       if (!publicClient) {
         console.error('❌ Public client not available');
@@ -154,10 +154,10 @@ export function usePools() {
       console.error('❌ Error getting PRIX allowance:', error);
       return 0n;
     }
-  };
+  }, [publicClient]);
 
   // Direct bet placement function
-  const placeBetDirect = async (poolId: number, betAmount: bigint, usePrix: boolean) => {
+  const placeBetDirect = useCallback(async (poolId: number, betAmount: bigint, usePrix: boolean) => {
     showPending('Placing Bet', 'Please confirm the bet transaction in your wallet...');
     
     writeContract({
@@ -167,7 +167,7 @@ export function usePools() {
       value: usePrix ? 0n : betAmount,
       ...getTransactionOptions(), // Use same gas settings as create pool
     });
-  };
+  }, [writeContract, showPending]);
 
   // Track approval errors
   useEffect(() => {
@@ -178,7 +178,7 @@ export function usePools() {
   }, [hash, isPending, isConfirming, isApprovalSuccess, showError]);
 
   // Direct liquidity addition function
-  const addLiquidityDirect = async (poolId: number, liquidityAmount: bigint, usePrix: boolean) => {
+  const addLiquidityDirect = useCallback(async (poolId: number, liquidityAmount: bigint, usePrix: boolean) => {
     showPending('Adding Liquidity', 'Please confirm the liquidity transaction in your wallet...');
     
     writeContract({
@@ -188,7 +188,7 @@ export function usePools() {
       value: usePrix ? 0n : liquidityAmount,
       ...getTransactionOptions(), // Use same gas settings as placeBet
     });
-  };
+  }, [writeContract, showPending]);
 
   // Handle approval confirmation and proceed with bet
   useEffect(() => {
@@ -255,7 +255,7 @@ export function usePools() {
       console.log('✅ Bet transaction successful - showing feedback with hash:', hash);
       showSuccess('Bet Placed!', 'Your bet has been placed successfully!', hash);
     }
-  }, [isBetSuccess, approvalConfirmed, showSuccess, hash]);
+  }, [isBetSuccess, approvalConfirmed, showSuccess, showConfirming, showPending, hash]);
 
   // Track bet errors
   useEffect(() => {
@@ -263,7 +263,7 @@ export function usePools() {
       console.log('❌ Bet transaction failed - showing error feedback');
       showError('Bet Failed', 'Your bet transaction failed. Please try again.');
     }
-  }, [hash, isPending, isConfirming, isBetSuccess, approvalConfirmed, showError]);
+  }, [hash, isPending, isConfirming, isBetSuccess, approvalConfirmed, showError, showConfirming, showPending, showSuccess]);
 
   // Read contract functions
   const { data: poolCount, refetch: refetchPoolCount } = useReadContract({
@@ -296,80 +296,122 @@ export function usePools() {
     functionName: 'creationFeePRIX',
   });
 
-  // Get pool data
-  const getPool = (poolId: number) => {
-    const { data: rawPool, refetch } = useReadContract({
-      ...CONTRACTS.POOL_CORE,
-      functionName: 'getPool',
-      args: [BigInt(poolId)],
-      query: { enabled: poolId >= 0 }
-    });
+  // Get pool data - using publicClient for dynamic calls
+  const getPool = async (poolId: number) => {
+    if (!publicClient || poolId < 0) return { pool: null, refetch: async () => {} };
     
-    // Convert bytes32 fields to human-readable strings
-    const pool = rawPool && typeof rawPool === 'object' && rawPool !== null 
-      ? convertPoolToReadableEnhanced(rawPool as Record<string, unknown>) 
-      : null;
-    return { pool: pool as unknown as Pool, refetch };
+    try {
+      const rawPool = await publicClient.readContract({
+        address: CONTRACTS.POOL_CORE.address,
+        abi: CONTRACTS.POOL_CORE.abi,
+        functionName: 'getPool',
+        args: [BigInt(poolId)],
+      });
+      
+      // Convert bytes32 fields to human-readable strings
+      const pool = rawPool && typeof rawPool === 'object' && rawPool !== null 
+        ? convertPoolToReadableEnhanced(rawPool as Record<string, unknown>) 
+        : null;
+      return { pool: pool as unknown as Pool, refetch: async () => getPool(poolId) };
+    } catch (error) {
+      console.error('Error fetching pool:', error);
+      return { pool: null, refetch: async () => getPool(poolId) };
+    }
   };
 
-  // Get combo pool data
-  const getComboPool = (comboPoolId: number) => {
-    const { data: rawComboPool, refetch } = useReadContract({
-      ...CONTRACTS.POOL_CORE,
-      functionName: 'comboPools',
-      args: [BigInt(comboPoolId)],
-      query: { enabled: comboPoolId >= 0 }
-    });
+  // Get combo pool data - using publicClient for dynamic calls
+  const getComboPool = async (comboPoolId: number) => {
+    if (!publicClient || comboPoolId < 0) return { comboPool: null, refetch: async () => {} };
     
-    // Convert bytes32 fields to human-readable strings
-    const comboPool = rawComboPool && typeof rawComboPool === 'object' && rawComboPool !== null 
-      ? convertPoolToReadableEnhanced(rawComboPool as Record<string, unknown>) 
-      : null;
-    return { comboPool: comboPool as unknown as ComboPool, refetch };
+    try {
+      const rawComboPool = await publicClient.readContract({
+        address: CONTRACTS.POOL_CORE.address,
+        abi: CONTRACTS.POOL_CORE.abi,
+        functionName: 'comboPools',
+        args: [BigInt(comboPoolId)],
+      });
+      
+      // Convert bytes32 fields to human-readable strings
+      const comboPool = rawComboPool && typeof rawComboPool === 'object' && rawComboPool !== null 
+        ? convertPoolToReadableEnhanced(rawComboPool as Record<string, unknown>) 
+        : null;
+      return { comboPool: comboPool as unknown as ComboPool, refetch: async () => getComboPool(comboPoolId) };
+    } catch (error) {
+      console.error('Error fetching combo pool:', error);
+      return { comboPool: null, refetch: async () => getComboPool(comboPoolId) };
+    }
   };
 
-  // Check if user is whitelisted for private pool
-  const isWhitelisted = (poolId: number) => {
-    const { data: whitelisted, refetch } = useReadContract({
-      ...CONTRACTS.POOL_CORE,
-      functionName: 'poolWhitelist',
-      args: address && poolId >= 0 ? [BigInt(poolId), address] : undefined,
-      query: { enabled: !!(address && poolId >= 0) }
-    });
-    return { whitelisted: whitelisted as boolean, refetch };
+  // Check if user is whitelisted for private pool - using publicClient for dynamic calls
+  const isWhitelisted = async (poolId: number) => {
+    if (!publicClient || !address || poolId < 0) return { whitelisted: false, refetch: async () => {} };
+    
+    try {
+      const whitelisted = await publicClient.readContract({
+        address: CONTRACTS.POOL_CORE.address,
+        abi: CONTRACTS.POOL_CORE.abi,
+        functionName: 'poolWhitelist',
+        args: [BigInt(poolId), address],
+      });
+      return { whitelisted: whitelisted as boolean, refetch: async () => isWhitelisted(poolId) };
+    } catch (error) {
+      console.error('Error checking whitelist:', error);
+      return { whitelisted: false, refetch: async () => isWhitelisted(poolId) };
+    }
   };
 
-  // Get user's stake in a pool
-  const getUserStake = (poolId: number) => {
-    const { data: stake, refetch } = useReadContract({
-      ...CONTRACTS.POOL_CORE,
-      functionName: 'bettorStakes',
-      args: address && poolId >= 0 ? [BigInt(poolId), address] : undefined,
-      query: { enabled: !!(address && poolId >= 0) }
-    });
-    return { stake: stake as bigint, refetch };
+  // Get user's stake in a pool - using publicClient for dynamic calls
+  const getUserStake = async (poolId: number) => {
+    if (!publicClient || !address || poolId < 0) return { stake: BigInt(0), refetch: async () => {} };
+    
+    try {
+      const stake = await publicClient.readContract({
+        address: CONTRACTS.POOL_CORE.address,
+        abi: CONTRACTS.POOL_CORE.abi,
+        functionName: 'bettorStakes',
+        args: [BigInt(poolId), address],
+      });
+      return { stake: stake as bigint, refetch: async () => getUserStake(poolId) };
+    } catch (error) {
+      console.error('Error fetching user stake:', error);
+      return { stake: BigInt(0), refetch: async () => getUserStake(poolId) };
+    }
   };
 
-  // Get user's combo pool stake
-  const getComboStake = (comboPoolId: number) => {
-    const { data: stake, refetch } = useReadContract({
-      ...CONTRACTS.POOL_CORE,
-      functionName: 'comboBettorStakes',
-      args: address && comboPoolId >= 0 ? [BigInt(comboPoolId), address] : undefined,
-      query: { enabled: !!(address && comboPoolId >= 0) }
-    });
-    return { stake: stake as bigint, refetch };
+  // Get user's combo pool stake - using publicClient for dynamic calls
+  const getComboStake = async (comboPoolId: number) => {
+    if (!publicClient || !address || comboPoolId < 0) return { stake: BigInt(0), refetch: async () => {} };
+    
+    try {
+      const stake = await publicClient.readContract({
+        address: CONTRACTS.POOL_CORE.address,
+        abi: CONTRACTS.POOL_CORE.abi,
+        functionName: 'comboBettorStakes',
+        args: [BigInt(comboPoolId), address],
+      });
+      return { stake: stake as bigint, refetch: async () => getComboStake(comboPoolId) };
+    } catch (error) {
+      console.error('Error fetching combo stake:', error);
+      return { stake: BigInt(0), refetch: async () => getComboStake(comboPoolId) };
+    }
   };
 
-  // Get pool boost tier
-  const getPoolBoost = (poolId: number) => {
-    const { data: boostTier, refetch } = useReadContract({
-      ...CONTRACTS.POOL_CORE,
-      functionName: 'poolBoostTier',
-      args: [BigInt(poolId)],
-      query: { enabled: poolId >= 0 }
-    });
-    return { boostTier: boostTier as number, refetch };
+  // Get pool boost tier - using publicClient for dynamic calls
+  const getPoolBoost = async (poolId: number) => {
+    if (!publicClient || poolId < 0) return { boostTier: 0, refetch: async () => {} };
+    
+    try {
+      const boostTier = await publicClient.readContract({
+        address: CONTRACTS.POOL_CORE.address,
+        abi: CONTRACTS.POOL_CORE.abi,
+        functionName: 'poolBoostTier',
+        args: [BigInt(poolId)],
+      });
+      return { boostTier: boostTier as number, refetch: async () => getPoolBoost(poolId) };
+    } catch (error) {
+      console.error('Error fetching pool boost:', error);
+      return { boostTier: 0, refetch: async () => getPoolBoost(poolId) };
+    }
   };
 
   // Write contract functions - Regular Pools
@@ -669,7 +711,7 @@ export function usePools() {
     const betAmount = parseUnits(amount, 18);
     
     // Get combo pool data to check if it uses PRIX
-    const { comboPool } = getComboPool(comboPoolId);
+    const { comboPool } = await getComboPool(comboPoolId);
     const usePrix = comboPool?.usesPrix ?? true;
 
     if (usePrix) {

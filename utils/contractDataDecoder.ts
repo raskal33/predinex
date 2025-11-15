@@ -117,7 +117,7 @@ export function decodeHash(hash: string): string | null {
         console.log('🎯 Found match! Hash decodes to:', selection);
         return selection; // Found the original!
       }
-    } catch (error) {
+    } catch {
       // Continue to next selection
       continue;
     }

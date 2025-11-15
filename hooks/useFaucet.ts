@@ -83,6 +83,7 @@ export function useFaucet() {
     writeContract({
       ...CONTRACTS.FAUCET,
       functionName: 'claimPrix',
+      args: [],
     });
   };
 

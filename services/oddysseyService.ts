@@ -169,6 +169,7 @@ class OddysseyService {
         address: CONTRACTS.ODDYSSEY.address,
         abi: CONTRACTS.ODDYSSEY.abi,
         functionName: 'dailyCycleId',
+        args: [],
       });
       const cycleId = result as bigint;
       console.log('📅 Current cycle ID:', cycleId.toString());
@@ -262,6 +263,7 @@ class OddysseyService {
           address: CONTRACTS.ODDYSSEY.address,
           abi: CONTRACTS.ODDYSSEY.abi,
           functionName: 'getCurrentCycleInfo',
+          args: [],
         });
         
         const [cycleId, state, endTime, prizePool, slipCount] = result as [bigint, number, bigint, bigint, bigint];
@@ -410,6 +412,7 @@ class OddysseyService {
         address: CONTRACTS.ODDYSSEY.address,
         abi: CONTRACTS.ODDYSSEY.abi,
         functionName: 'entryFee',
+        args: [],
       });
       return formatEther(result as bigint);
     } catch (error) {
@@ -455,6 +458,7 @@ class OddysseyService {
         address: CONTRACTS.ODDYSSEY.address,
         abi: CONTRACTS.ODDYSSEY.abi,
         functionName: 'entryFee',
+        args: [],
       });
       
       const entryFeeBigInt = entryFeeResult as bigint;
@@ -925,6 +929,7 @@ class OddysseyService {
         address: CONTRACTS.ODDYSSEY.address,
         abi: CONTRACTS.ODDYSSEY.abi,
         functionName: 'getCurrentCycle',
+        args: [],
       })) as bigint;
 
       const currentCycleNum = Number(currentCycleIdResult);

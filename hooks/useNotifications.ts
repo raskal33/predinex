@@ -37,7 +37,7 @@ export function useNotifications() {
       }
       fetchNotifications();
     }
-  }, [address]);
+  }, [address, fetchNotifications]);
 
   // Save to localStorage whenever notifications change
   useEffect(() => {

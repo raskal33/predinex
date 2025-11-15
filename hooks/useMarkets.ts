@@ -1,5 +1,5 @@
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
-import MarketsService, { PoolWithMetadata, PoolFilters } from '@/services/marketsService';
+import MarketsService, { PoolFilters } from '@/services/marketsService';
 
 // ============================================================================
 // MARKETS HOOKS - Real-time pool and market data integration

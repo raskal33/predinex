@@ -51,6 +51,7 @@ export class PoolContractService {
         address: CONTRACTS.POOL_CORE.address as Address,
         abi: CONTRACTS.POOL_CORE.abi,
         functionName: 'poolCount',
+        args: [],
       });
       return Number(result);
     } catch (error) {

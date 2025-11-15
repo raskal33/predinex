@@ -89,7 +89,7 @@ export function useComboPools() {
       toast.error('Failed to create combo pool');
       throw error;
     }
-  }, [writeContractAsync]);
+  }, [writeContractAsync, address]);
 
   const placeComboBet = useCallback(async (poolId: bigint, betAmount: bigint) => {
     try {

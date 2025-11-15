@@ -494,7 +494,7 @@ export function usePoolCore() {
       
       throw error;
     }
-  }, [writeContractAsync, address, getAllowance, approve, publicClient]);
+  }, [writeContractAsync, address, getAllowance, approve, publicClient, getBalance]);
 
   const placeBet = useCallback(async (poolId: bigint, betAmount: bigint, usePrix: boolean = false) => {
     try {
