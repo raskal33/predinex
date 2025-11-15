@@ -407,16 +407,16 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4 sm:mb-6 leading-tight">
-              <span className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
+              <span className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-amber-400 bg-clip-text text-transparent">
                 The Pump.fun
               </span>
               <br />
-              <span className="bg-gradient-to-r from-purple-400 via-pink-500 to-orange-500 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-green-400 via-emerald-500 to-teal-400 bg-clip-text text-transparent">
                 of Prediction Markets
               </span>
             </h1>
-            <p className="text-base sm:text-lg md:text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed mb-6 sm:mb-8 px-4">
+            <p className="text-base sm:text-lg md:text-xl text-text-secondary max-w-3xl mx-auto leading-relaxed mb-6 sm:mb-8 px-4">
               Where brilliant minds converge to predict tomorrow. Challenge creators, earn legendary rewards, and shape the future of decentralized prediction markets.
             </p>
             
@@ -426,7 +426,7 @@ export default function HomePage() {
                 <motion.button
                   whileHover={{ scale: 1.02, y: -2 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 transition-all duration-300 flex items-center justify-center gap-2 sm:gap-3"
+                  className="w-full sm:w-auto bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 text-black px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg shadow-lg shadow-yellow-500/25 hover:shadow-yellow-500/40 transition-all duration-300 flex items-center justify-center gap-2 sm:gap-3"
                 >
                   <RocketLaunchIcon className="w-5 h-5 sm:w-6 sm:h-6" />
                   Explore Markets
@@ -437,7 +437,7 @@ export default function HomePage() {
                 <motion.button
                   whileHover={{ scale: 1.02, y: -2 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-300 flex items-center justify-center gap-2 sm:gap-3"
+                  className="w-full sm:w-auto bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg shadow-lg shadow-green-500/25 hover:shadow-green-500/40 transition-all duration-300 flex items-center justify-center gap-2 sm:gap-3"
                 >
                   <TrophySolid className="w-5 h-5 sm:w-6 sm:h-6" />
                   Create Market
@@ -751,16 +751,16 @@ export default function HomePage() {
           viewport={{ once: true }}
           className="bg-slate-800/30 backdrop-blur-xl border border-slate-700/50 rounded-xl p-6 sm:p-8 md:p-12 text-center mb-8 sm:mb-12"
         >
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4">
-            <span className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
+            <span className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-amber-400 bg-clip-text text-transparent">
               Ready to Challenge
             </span>
             <br />
-            <span className="bg-gradient-to-r from-purple-400 via-pink-500 to-orange-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-green-400 via-emerald-500 to-teal-400 bg-clip-text text-transparent">
               The Future?
             </span>
           </h2>
-          <p className="text-base sm:text-lg text-gray-300 mb-6 sm:mb-8 leading-relaxed max-w-3xl mx-auto">
+          <p className="text-base sm:text-lg text-text-secondary mb-6 sm:mb-8 leading-relaxed max-w-3xl mx-auto">
             Join the elite community of predictors and start earning from your insights today.
             <br className="hidden sm:block" />
             <span className="sm:hidden"> </span>Your legendary journey begins with a single prediction.
@@ -771,7 +771,7 @@ export default function HomePage() {
               <motion.button
                 whileHover={{ scale: 1.02, y: -2 }}
                 whileTap={{ scale: 0.98 }}
-                className="w-full sm:w-auto bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 transition-all duration-300 flex items-center justify-center gap-2 sm:gap-3"
+                className="w-full sm:w-auto bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 text-black px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg shadow-lg shadow-yellow-500/25 hover:shadow-yellow-500/40 transition-all duration-300 flex items-center justify-center gap-2 sm:gap-3"
               >
                 <RocketLaunchIcon className="w-5 h-5 sm:w-6 sm:h-6" />
                 Start Predicting
@@ -782,7 +782,7 @@ export default function HomePage() {
               <motion.button
                 whileHover={{ scale: 1.02, y: -2 }}
                 whileTap={{ scale: 0.98 }}
-                className="w-full sm:w-auto bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-300 flex items-center justify-center gap-2 sm:gap-3"
+                className="w-full sm:w-auto bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg shadow-lg shadow-green-500/25 hover:shadow-green-500/40 transition-all duration-300 flex items-center justify-center gap-2 sm:gap-3"
               >
                 <TrophySolid className="w-5 h-5 sm:w-6 sm:h-6" />
                 Create Pool

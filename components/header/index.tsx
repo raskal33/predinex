@@ -146,10 +146,11 @@ export default function Header() {
                   <Image 
                     src="/logo.png" 
                     alt="Predinex Logo" 
-                    width={140} 
-                    height={50} 
+                    width={120} 
+                    height={40} 
                     className="logo-color-shift navbar-logo"
                     priority 
+                    style={{ background: 'transparent' }}
                   />
                 </Link>
 
@@ -508,10 +509,11 @@ export default function Header() {
                       <Image 
                         src="/logo.png" 
                         alt="Predinex Logo" 
-                        width={160} 
-                        height={160} 
-                        className="logo-color-shift"
+                        width={120} 
+                        height={40} 
+                        className="logo-color-shift navbar-logo"
                         priority 
+                        style={{ background: 'transparent' }}
                       />
                     </Link>
                   </div>

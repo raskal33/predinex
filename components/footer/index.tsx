@@ -57,9 +57,10 @@ export default function Footer() {
                   <Image 
                     src="/logo.png" 
                     alt="Predinex" 
-                    width={220} 
-                    height={55}
+                    width={200} 
+                    height={50}
                     className="h-auto"
+                    style={{ background: 'transparent' }}
                   />
                 </Link>
 
