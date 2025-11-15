@@ -1,6 +1,6 @@
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { CONTRACT_ADDRESSES } from '@/config/wagmi';
-import { parseUnits, formatUnits } from 'viem';
+import { formatUnits } from 'viem';
 import OddysseyArtifact from '@/contracts/abis/Oddyssey.json';
 
 // Extract ABI array from artifact (ABI files are arrays directly)

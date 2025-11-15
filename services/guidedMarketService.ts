@@ -78,7 +78,7 @@ export interface TimeOption {
 
 export class GuidedMarketService {
   // Football Methods - Updated to use backend API with current date + 7 days
-  static async getFootballMatches(days: number = 7, limit: number = 500): Promise<FootballMatch[]> {
+  static async getFootballMatches(_days: number = 7, limit: number = 500): Promise<FootballMatch[]> {
     try {
       // Call the upcoming fixtures endpoint (original endpoint for guided markets)
       const response = await fetch(`${API_BASE_URL}/fixtures/upcoming?limit=${limit}`);

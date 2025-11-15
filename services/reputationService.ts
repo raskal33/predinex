@@ -182,7 +182,7 @@ export class ReputationService {
   /**
    * Fetch reputation data from contract
    */
-  private async fetchFromContract(address: string): Promise<ReputationData> {
+  private async fetchFromContract(_address: string): Promise<ReputationData> {
     // This would need to be implemented with a proper provider
     // For now, return default data
     return {

@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAccount } from 'wagmi';
 import UserService, { 
   UserProfile, 
-  UserStats, 
+  // UserStats, 
   UserBadge, 
   UserActivity, 
   CategoryPerformance,

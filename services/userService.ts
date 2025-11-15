@@ -281,7 +281,7 @@ class UserService {
         totalRewards: '0',
         activeStakes: 0
       };
-    } catch (error) {
+    } catch {
       return {
         totalStaked: '0',
         totalRewards: '0',
@@ -418,4 +418,5 @@ class UserService {
   }
 }
 
-export default new UserService(); 
+const userService = new UserService();
+export default userService; 

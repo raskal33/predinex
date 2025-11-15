@@ -677,7 +677,7 @@ export function usePoolFactory() {
 // Reputation System Hooks
 export function useReputationSystem() {
   const { address } = useAccount();
-  const { writeContractAsync } = useWriteContract();
+  const { writeContractAsync: _writeContractAsync } = useWriteContract();
 
   const getUserReputation = useCallback(async (userAddress?: string) => {
     try {

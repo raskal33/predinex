@@ -8,7 +8,7 @@
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://predinex-backend.fly.dev';
 
 // Helper to safely parse BigInt values
-function parseBigIntSafe(value: any): string {
+function _parseBigIntSafe(value: any): string {
   if (value === null || value === undefined) return '0';
   if (typeof value === 'bigint') return value.toString();
   if (typeof value === 'string') {

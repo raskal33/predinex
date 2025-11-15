@@ -95,6 +95,7 @@ export class PoolExplanationService {
    */
   private static generateTitle(poolData: PoolData, eventTime: string): string {
     // Import title templates service
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { titleTemplatesService } = require('./title-templates');
     
     try {

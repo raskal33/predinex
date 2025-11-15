@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Share2, Users, Clock } from "lucide-react";
 import { formatEther } from "viem";
@@ -261,12 +262,13 @@ export const PoolCardNFT = ({ pool, onClick }: PoolCardProps) => {
                   className="w-full h-full"
                 />
           ) : !imageError && imageUrl ? (
-            <img 
+            <Image 
               src={imageUrl} 
               alt={pool.title || `${pool.homeTeam || ""} vs ${pool.awayTeam || ""}` || "Pool"} 
-              className="w-full h-full object-cover"
+              fill
+              className="object-cover"
               onError={() => setImageError(true)}
-              loading="lazy"
+              unoptimized
             />
           ) : (
             <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 via-purple-500/20 to-pink-500/20" />
@@ -422,12 +424,13 @@ export const PoolCardFull = ({ pool, onClick }: PoolCardProps) => {
               className="w-full h-full"
             />
           ) : !imageError && imageUrl ? (
-            <img 
+            <Image 
               src={imageUrl} 
               alt={pool.title || `${pool.homeTeam || ""} vs ${pool.awayTeam || ""}` || "Pool"} 
-              className="w-full h-full object-cover"
+              fill
+              className="object-cover"
               onError={() => setImageError(true)}
-              loading="lazy"
+              unoptimized
             />
           ) : (
             <div className="absolute inset-0 bg-gradient-to-br from-neutral-800 to-neutral-900" />

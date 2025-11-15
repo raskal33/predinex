@@ -80,7 +80,7 @@ export function transformContractData<T>(data: T): T {
  */
 export function setupGlobalBigIntSerialization(): void {
   if (typeof window !== 'undefined' && typeof BigInt !== 'undefined') {
-    // @ts-ignore - Adding toJSON method to BigInt prototype
+    // Adding toJSON method to BigInt prototype
     if (!(BigInt.prototype as any).toJSON) {
       (BigInt.prototype as any).toJSON = function() {
         return this.toString();

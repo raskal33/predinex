@@ -213,7 +213,7 @@ class ContractAnalyticsService {
   /**
    * Get active pools from contract
    */
-  async getActivePools(limit: number = 50): Promise<bigint[]> {
+  async getActivePools(_limit: number = 50): Promise<bigint[]> {
     try {
       // Mock implementation - would need proper contract calls
       return [];
@@ -226,7 +226,7 @@ class ContractAnalyticsService {
   /**
    * Get pools by creator from contract
    */
-  async getPoolsByCreator(creator: string, limit: number = 50): Promise<bigint[]> {
+  async getPoolsByCreator(creator: string, _limit: number = 50): Promise<bigint[]> {
     try {
       // Mock implementation - would need proper contract calls
       return [];
@@ -252,7 +252,7 @@ class ContractAnalyticsService {
   /**
    * Get pools by market type from contract
    */
-  async getPoolsByMarketType(marketType: number, limit: number = 50): Promise<bigint[]> {
+  async getPoolsByMarketType(marketType: number, _limit: number = 50): Promise<bigint[]> {
     try {
       // Mock implementation - would need proper contract calls
       return [];
@@ -265,7 +265,7 @@ class ContractAnalyticsService {
   /**
    * Get pools by oracle type from contract
    */
-  async getPoolsByOracleType(oracleType: number, limit: number = 50): Promise<bigint[]> {
+  async getPoolsByOracleType(oracleType: number, _limit: number = 50): Promise<bigint[]> {
     try {
       // Mock implementation - would need proper contract calls
       return [];

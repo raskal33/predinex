@@ -4,7 +4,7 @@
  * Similar to backend service but optimized for frontend use
  */
 
-import { getMarketTypeString, getMarketTypeLabel } from './contractDataMapping';
+import { getMarketTypeString } from './contractDataMapping';
 
 export interface MarketData {
   marketType: string | number; // Accept both string and numeric market types
@@ -266,10 +266,11 @@ class TitleTemplatesService {
    * Generate crypto-specific title
    */
   generateCryptoTitle(marketData: MarketData, options: TitleOptions = {}): string {
-    const { homeTeam, awayTeam, predictedOutcome, marketType } = marketData;
-    const { short = false, maxLength = 60 } = options;
+    const { homeTeam, awayTeam, predictedOutcome, marketType: _marketType } = marketData;
+    const { short = false, maxLength: _maxLength = 60 } = options;
 
     // Import crypto title generator
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { cryptoTitleGenerator } = require('./crypto-title-generator');
     
     // Extract crypto data
@@ -312,19 +313,19 @@ class TitleTemplatesService {
         const coinId = parts[1].toUpperCase();
         const targetPrice = parts[2];
         const direction = parts[3];
-        const timeframe = parts[4];
+        const _timeframe = parts[4];
 
         switch (direction) {
           case 'up':
-            return `${coinId} will go up in ${timeframe}!`;
+            return `${coinId} will go up in ${_timeframe}!`;
           case 'down':
-            return `${coinId} will go down in ${timeframe}!`;
+            return `${coinId} will go down in ${_timeframe}!`;
           case 'above':
-            return `${coinId} will reach above $${targetPrice} in ${timeframe}!`;
+            return `${coinId} will reach above $${targetPrice} in ${_timeframe}!`;
           case 'below':
-            return `${coinId} will stay below $${targetPrice} in ${timeframe}!`;
+            return `${coinId} will stay below $${targetPrice} in ${_timeframe}!`;
           default:
-            return `${coinId} ${predictedOutcome} in ${timeframe}!`;
+            return `${coinId} ${predictedOutcome} in ${_timeframe}!`;
         }
       }
     } catch (error) {
@@ -361,7 +362,7 @@ class TitleTemplatesService {
         const coinId = parts[1].toUpperCase();
         const targetPrice = parts[2];
         const direction = parts[3];
-        const timeframe = parts[4];
+        const _timeframe = parts[4];
 
         switch (direction) {
           case 'up':
@@ -751,7 +752,7 @@ class TitleTemplatesService {
     return false;
   }
 
-  private generateFallbackTitle(predictedOutcome: string, marketType: string): string {
+  private generateFallbackTitle(predictedOutcome: string, _marketType: string): string {
     return predictedOutcome || `Prediction`;
   }
 

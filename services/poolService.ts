@@ -1,5 +1,5 @@
 // PoolService - Direct contract integration ONLY
-import { processRawPoolData } from '@/utils/contractDataDecoder';
+// import { processRawPoolData } from '@/utils/contractDataDecoder';
 import { PoolContractService } from './poolContractService';
 
 export interface Pool {
@@ -130,19 +130,19 @@ export class PoolService {
   }
 
   static async createPool(
-    predictedOutcome: string,
-    odds: number,
-    creatorStake: string,
-    eventStartTime: number,
-    eventEndTime: number,
-    bettingEndTime: number,
-    arprixationDeadline: number,
-    maxBetPerUser: string,
-    isPrivate: boolean,
-    usePrix: boolean,
-    oracleType: string,
-    marketId: string,
-    boostTier: string
+    _predictedOutcome: string,
+    _odds: number,
+    _creatorStake: string,
+    _eventStartTime: number,
+    _eventEndTime: number,
+    _bettingEndTime: number,
+    _arprixationDeadline: number,
+    _maxBetPerUser: string,
+    _isPrivate: boolean,
+    _usePrix: boolean,
+    _oracleType: string,
+    _marketId: string,
+    _boostTier: string
   ): Promise<{ success: boolean; poolId?: number; error?: string }> {
     try {
       console.log('🚧 Pool creation requires wallet interaction - not implemented yet');
@@ -153,7 +153,7 @@ export class PoolService {
     }
   }
 
-  static async boostPool(poolId: number, tier: "BRONZE" | "SILVER" | "GOLD"): Promise<{ success: boolean; error?: string }> {
+  static async boostPool(_poolId: number, _tier: "BRONZE" | "SILVER" | "GOLD"): Promise<{ success: boolean; error?: string }> {
     try {
       console.log('🚧 Pool boosting requires wallet interaction - not implemented yet');
       return { success: false, error: 'Pool boosting requires wallet connection' };
@@ -163,7 +163,7 @@ export class PoolService {
     }
   }
 
-  static async placeBet(poolId: number, amount: string, usePrix: boolean = false): Promise<{ success: boolean; error?: string }> {
+  static async placeBet(_poolId: number, _amount: string, _usePrix: boolean = false): Promise<{ success: boolean; error?: string }> {
     try {
       console.log('🚧 Placing bet requires wallet interaction - not implemented yet');
       return { success: false, error: 'Placing bet requires wallet connection' };
@@ -219,7 +219,7 @@ export class PoolService {
     }
   }
 
-  static async addLiquidity(poolId: number, amount: string): Promise<{ success: boolean; error?: string }> {
+  static async addLiquidity(_poolId: number, _amount: string): Promise<{ success: boolean; error?: string }> {
     try {
       console.log('🚧 Adding liquidity requires wallet interaction - not implemented yet');
       return { success: false, error: 'Adding liquidity requires wallet connection' };
@@ -314,7 +314,7 @@ export class PoolService {
           const bigIntValue = BigInt(stake);
           amount = parseFloat((bigIntValue / BigInt(1e18)).toString());
         }
-      } catch (error) {
+      } catch {
         amount = parseFloat(stake) / 1e18;
       }
 

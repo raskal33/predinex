@@ -1,8 +1,5 @@
-import { useAccount, useWalletClient, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
-import { parseEther, type Address } from 'viem';
-import { CONTRACT_ADDRESSES } from '@/config/wagmi';
-import { CONTRACTS } from '@/contracts';
-import { getTransactionOptions } from '@/lib/network-connection';
+import { useAccount, useWalletClient } from 'wagmi';
+import { type Address } from 'viem';
 
 /**
  * New Claim Service for Pool and Odyssey Claims

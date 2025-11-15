@@ -1,12 +1,8 @@
 import { CONTRACTS } from '@/contracts';
 import { 
   createPublicClient, 
-  createWalletClient, 
   http, 
-  parseEther, 
   formatEther, 
-  keccak256, 
-  stringToHex,
   defineChain,
   type Address,
   type PublicClient,
@@ -971,7 +967,7 @@ class OddysseyService {
         })
       ]);
 
-      const [exists, state, endTime, prizePool, cycleSlipCount, hasWinner] = cycleStatus as any;
+      const [_exists, _state, _endTime, _prizePool, cycleSlipCount, _hasWinner] = cycleStatus as any;
       const dailyStats = dailyStatsData as any;
       
       console.log('📊 Global stats from contract (fallback):', {
@@ -1001,7 +997,7 @@ class OddysseyService {
           totalSlips: slipCount,
           avgPrizePool: volumeInEther,
           totalCycles: currentCycleNum,
-          activeCycles: state === 1 ? 1 : 0,
+          activeCycles: _state === 1 ? 1 : 0,
           avgCorrect: dailyStats?.averageScore ? Number(dailyStats.averageScore) / 1000 : 0,
           winRate: slipCount > 0 ? (winnersCount / slipCount) * 100 : 0,
           totalVolume: volumeInEther,

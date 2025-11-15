@@ -1,4 +1,4 @@
-import { apiRequest, API_CONFIG } from '@/config/api';
+import { apiRequest } from '@/config/api';
 
 export interface StakingStatistics {
   contract: {

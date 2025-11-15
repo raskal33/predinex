@@ -1,5 +1,5 @@
 import { EnhancedPool } from "@/components/EnhancedPoolCard";
-import { PoolMetadataService } from "./poolMetadataService";
+// import { PoolMetadataService } from "./poolMetadataService";
 import { GuidedMarketService } from "./guidedMarketService";
 
 /**
@@ -160,7 +160,7 @@ export function getPoolImageUrlSeeded(pool: EnhancedPool): string {
  * Generate deterministic image URL based on pool metadata
  * Uses pool ID + category + league to create consistent images
  */
-function generateDeterministicImageUrl(pool: EnhancedPool): string {
+function _generateDeterministicImageUrl(pool: EnhancedPool): string {
   // Create a seed from pool metadata for consistency
   const seed = `${pool.id}-${pool.category || 'other'}-${pool.league || ''}-${pool.homeTeam || ''}-${pool.awayTeam || ''}`;
   
@@ -443,7 +443,7 @@ async function getCoinLogo(pool: EnhancedPool): Promise<string | null> {
         return null;
       }
     }
-  } catch (error) {
+  } catch {
     // Silently handle any other errors
     return null;
   }
@@ -549,7 +549,7 @@ export function getPoolImageUrlWithFallback(pool: EnhancedPool): string {
  * Get image URL with logos (async version)
  * Returns null to indicate we should use the React component instead
  */
-export async function getPoolImageUrlWithLogos(pool: EnhancedPool): Promise<string | null> {
+export async function getPoolImageUrlWithLogos(_pool: EnhancedPool): Promise<string | null> {
   // Return null to indicate we should use AbstractPoolCardImage component
   // The component will fetch logos and render the abstract card
   return null;

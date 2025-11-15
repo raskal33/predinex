@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 
 interface AbstractPoolCardImageProps {
   colors: {
@@ -99,18 +100,21 @@ export const AbstractPoolCardImage: React.FC<AbstractPoolCardImageProps> = ({
                     boxShadow: `0 0 6px ${colors.primary}20`,
                   }}
                 >
-                  <img
+                  <Image
                     src={homeLogo}
                     alt={homeTeam || 'Home team'}
+                    width={40}
+                    height={40}
                     className="w-full h-full object-contain p-0.5"
-                    onError={(e) => {
-                      console.warn('❌ Failed to load home logo:', homeLogo, e);
+                    onError={() => {
+                      console.warn('❌ Failed to load home logo:', homeLogo);
                       setHomeLogoError(true);
                     }}
                     onLoad={() => {
                       console.log('✅ Home logo loaded successfully:', homeLogo);
                     }}
                     crossOrigin="anonymous"
+                    unoptimized
                   />
                 </div>
               ) : (
@@ -156,18 +160,21 @@ export const AbstractPoolCardImage: React.FC<AbstractPoolCardImageProps> = ({
                     boxShadow: `0 0 6px ${colors.accent}20`,
                   }}
                 >
-                  <img
+                  <Image
                     src={awayLogo}
                     alt={awayTeam || 'Away team'}
+                    width={40}
+                    height={40}
                     className="w-full h-full object-contain p-0.5"
-                    onError={(e) => {
-                      console.warn('❌ Failed to load away logo:', awayLogo, e);
+                    onError={() => {
+                      console.warn('❌ Failed to load away logo:', awayLogo);
                       setAwayLogoError(true);
                     }}
                     onLoad={() => {
                       console.log('✅ Away logo loaded successfully:', awayLogo);
                     }}
                     crossOrigin="anonymous"
+                    unoptimized
                   />
                 </div>
               ) : (
@@ -219,11 +226,14 @@ export const AbstractPoolCardImage: React.FC<AbstractPoolCardImageProps> = ({
                 boxShadow: `0 0 8px #f59e0b20`,
               }}
             >
-              <img
+              <Image
                 src={coinLogo}
                 alt="Cryptocurrency"
+                width={64}
+                height={64}
                 className="w-full h-full object-contain p-2"
                 onError={() => setCoinLogoError(true)}
+                unoptimized
               />
             </div>
             
@@ -282,11 +292,14 @@ export const AbstractPoolCardImage: React.FC<AbstractPoolCardImageProps> = ({
       {/* League logo (if available) */}
       {leagueLogo && !leagueLogoError && (
         <div className="absolute top-2 left-2 w-8 h-8 flex items-center justify-center opacity-70">
-          <img
+          <Image
             src={leagueLogo}
             alt="League"
+            width={32}
+            height={32}
             className="w-full h-full object-contain"
             onError={() => setLeagueLogoError(true)}
+            unoptimized
           />
         </div>
       )}

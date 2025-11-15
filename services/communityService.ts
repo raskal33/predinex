@@ -528,7 +528,7 @@ class CommunityService {
         return Boolean((response as { canPost: unknown }).canPost);
       }
       return false;
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -567,7 +567,7 @@ class CommunityService {
   /**
    * Legacy method: addComment (alias for addPoolComment or discussion reply)
    */
-  async addComment(threadId: number, commentData: { user: string; text: string; replyTo?: number | null }) {
+  async addComment(_threadId: number, _commentData: { user: string; text: string; replyTo?: number | null }) {
     // This would need to be a discussion reply, but we don't have that endpoint implemented yet
     // For now, return a placeholder
     return { success: true, id: Date.now() };
@@ -576,7 +576,7 @@ class CommunityService {
   /**
    * Legacy method: likeComment (alias for addReaction)
    */
-  async likeComment(threadId: number, commentId: number) {
+  async likeComment(_threadId: number, _commentId: number) {
     // This would be a reaction to a comment/reply
     // For now, return a placeholder
     return { success: true };

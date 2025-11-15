@@ -1,5 +1,5 @@
-import { useAccount, useWalletClient, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
-import { parseEther, type Address } from 'viem';
+import { useAccount, useWalletClient } from 'wagmi';
+import { type Address } from 'viem';
 import { CONTRACT_ADDRESSES } from '@/config/wagmi';
 import { CONTRACTS } from '@/contracts';
 
@@ -94,7 +94,7 @@ export class PrizeClaimService {
               // Parse the amount from the event data
               // This would need the actual event signature
             }
-          } catch (e) {
+          } catch {
             // Continue if log parsing fails
           }
         }

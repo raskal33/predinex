@@ -1,4 +1,4 @@
-import { apiRequest, API_CONFIG } from '@/config/api';
+// import { API_CONFIG } from '@/config/api';
 
 export interface FaucetEligibility {
   address: string;
@@ -84,7 +84,7 @@ export interface FaucetClaimResponse {
 }
 
 export class FaucetService {
-  private static baseUrl = API_CONFIG.baseURL;
+  private static baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://predinex-backend.fly.dev';
 
   // Retry configuration
   private static retryConfig = {

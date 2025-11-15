@@ -22,33 +22,6 @@ export function useNotifications() {
   const [isLoading, setIsLoading] = useState(false);
   const isMountedRef = useRef(true);
 
-  // Load notifications from localStorage on mount
-  useEffect(() => {
-    if (address) {
-      const stored = localStorage.getItem(`notifications_${address.toLowerCase()}`);
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          setNotifications(parsed.notifications || []);
-          setUnreadCount(parsed.unreadCount || 0);
-        } catch (error) {
-          console.error('Error parsing stored notifications:', error);
-        }
-      }
-      fetchNotifications();
-    }
-  }, [address, fetchNotifications]);
-
-  // Save to localStorage whenever notifications change
-  useEffect(() => {
-    if (address && notifications.length > 0) {
-      localStorage.setItem(
-        `notifications_${address.toLowerCase()}`,
-        JSON.stringify({ notifications, unreadCount })
-      );
-    }
-  }, [address, notifications, unreadCount]);
-
   // Fetch notifications from backend
   const fetchNotifications = useCallback(async () => {
     if (!address || !isMountedRef.current) return;

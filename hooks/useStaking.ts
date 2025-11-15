@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { CONTRACTS } from '@/contracts';
-import { formatUnits, parseUnits } from 'viem';
+import { parseUnits } from 'viem';
 import { toBigInt } from '@/utils/bigint-helpers';
 import { formatTokenAmount, formatRewardAmount } from '@/utils/number-helpers';
 
@@ -45,7 +45,7 @@ export function useStaking() {
   const [unstakingStakeIndex, setUnstakingStakeIndex] = useState<number | null>(null);
   const [isClaimingRevenue, setIsClaimingRevenue] = useState(false);
   const [isStaking, setIsStaking] = useState(false);
-  const [isApproving, setIsApproving] = useState(false);
+  const [_isApproving, _setIsApproving] = useState(false);
 
   // Read contract data
   const { data: totalStaked, refetch: refetchTotalStaked } = useReadContract({
@@ -96,6 +96,15 @@ export function useStaking() {
     query: { enabled: !!address, refetchInterval: 30000 } // ✅ FIX: Add polling for revenue share
   });
 
+  const getDurationBonus = useCallback((option: DurationOption): number => {
+    switch (option) {
+      case DurationOption.THIRTY_DAYS: return 0;
+      case DurationOption.SIXTY_DAYS: return 2;
+      case DurationOption.NINETY_DAYS: return 4;
+      default: return 0;
+    }
+  }, []);
+
   // Calculate pending rewards for a specific stake
   const calculateRewards = useCallback((stakeIndex: number): bigint => {
     try {
@@ -138,7 +147,7 @@ export function useStaking() {
       let stakeAmount: bigint;
       try {
         stakeAmount = typeof stake.amount === 'bigint' ? stake.amount : BigInt(stake.amount);
-      } catch (e) {
+      } catch {
         return BigInt(0);
       }
       
@@ -152,7 +161,7 @@ export function useStaking() {
       let claimedRewards: bigint;
       try {
         claimedRewards = typeof stake.claimedRewardPRIX === 'bigint' ? stake.claimedRewardPRIX : BigInt(stake.claimedRewardPRIX || 0);
-      } catch (e) {
+      } catch {
         claimedRewards = BigInt(0);
       }
       
@@ -276,17 +285,6 @@ export function useStaking() {
     }
   };
 
-
-
-  const getDurationBonus = (option: DurationOption): number => {
-    switch (option) {
-      case DurationOption.THIRTY_DAYS: return 0;
-      case DurationOption.SIXTY_DAYS: return 2;
-      case DurationOption.NINETY_DAYS: return 4;
-      default: return 0;
-    }
-  };
-
   const getTierName = (tierId: number): string => {
     const tierNames = ['Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond'];
     return tierNames[tierId] || 'Unknown';
@@ -294,7 +292,6 @@ export function useStaking() {
 
   const getUserStakesWithRewards = useMemo((): StakeWithRewards[] => {
     try {
-      // Comprehensive safety checks
       if (!userStakes || !tiers || !Array.isArray(userStakes) || !Array.isArray(tiers)) return [];
       if (userStakes.length === 0 || tiers.length === 0) return [];
       
@@ -357,7 +354,7 @@ export function useStaking() {
           try {
             baseAPY = typeof tier.baseAPY === 'bigint' ? Number(tier.baseAPY) : Number(tier.baseAPY);
             if (isNaN(baseAPY) || baseAPY < 0) baseAPY = 0;
-          } catch (e) {
+          } catch {
             baseAPY = 0;
           }
           
@@ -377,7 +374,7 @@ export function useStaking() {
               if (isNaN(durationInSeconds) || durationInSeconds < 0) durationInSeconds = 0;
               
               // Duration calculation completed
-            } catch (e) {
+            } catch {
               durationInSeconds = 0;
             }
           }
@@ -386,7 +383,7 @@ export function useStaking() {
           try {
             startTime = Number(stake.startTime);
             if (isNaN(startTime) || startTime <= 0) startTime = 0;
-          } catch (e) {
+          } catch {
             startTime = 0;
           }
           
@@ -427,7 +424,7 @@ export function useStaking() {
       console.error('Error in getUserStakesWithRewards:', error);
       return [];
     }
-  }, [userStakes, tiers, durationOptions, calculateRewards]);
+  }, [userStakes, tiers, durationOptions, calculateRewards, getDurationBonus]);
 
   const getTotalStakedAmount = useMemo((): bigint => {
     try {

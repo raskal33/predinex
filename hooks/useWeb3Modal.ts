@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react'
 
 export function useWeb3ModalSafe() {
-  const [modalOpen, setModalOpen] = useState<(() => void) | null>(null)
+  const [_modalOpen, _setModalOpen] = useState<(() => void) | null>(null)
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      import('@web3modal/wagmi/react').then(({ useWeb3Modal }) => {
+        import('@web3modal/wagmi/react').then(({ useWeb3Modal: _useWeb3Modal }) => {
         // We'll use a global reference instead
         if ((window as any).web3modal) {
-          setModalOpen(() => (window as any).web3modal.open)
+          _setModalOpen(() => (window as any).web3modal.open)
         }
       })
     }

@@ -1,7 +1,7 @@
 "use client";
 
 import websocketClient from './websocket-client';
-import { OddysseySlip } from './oddysseyService';
+// import { OddysseySlip } from './oddysseyService';
 
 export interface SlipPlacedEvent {
   type: 'slip:placed';

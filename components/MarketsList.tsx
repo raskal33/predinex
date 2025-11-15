@@ -102,12 +102,12 @@ export default function MarketsList({
       const comboPools: ComboPool[] = [];
 
       // Helper functions defined inside useCallback
-      const shouldIncludePool = (pool: Pool): boolean => {
+      const shouldIncludePool = async (pool: Pool): Promise<boolean> => {
         switch (marketType) {
           case "private":
             return pool.isPrivate;
           case "boosted":
-            return !pool.isPrivate && poolsContract.getPoolBoost(Number(pool.id)).boostTier > 0;
+            return !pool.isPrivate && (await poolsContract.getPoolBoost(Number(pool.id))).boostTier > 0;
           case "trending":
             return !pool.isPrivate && poolsContract.isPoolActive(pool);
           case "combo":
@@ -132,7 +132,7 @@ export default function MarketsList({
         }
       };
 
-      const filterAndSortPools = (pools: Pool[]): Pool[] => {
+      const filterAndSortPools = async (pools: Pool[]): Promise<Pool[]> => {
         const filtered = [...pools];
 
         switch (marketType) {
@@ -145,11 +145,13 @@ export default function MarketsList({
             });
             break;
           case "boosted":
-            // Sort by boost amount
+            // Sort by boost amount - need to fetch all boosts first
+            const boostPromises = filtered.map(p => poolsContract.getPoolBoost(Number(p.id)));
+            const boosts = await Promise.all(boostPromises);
             filtered.sort((a, b) => {
-              const aBoost = poolsContract.getPoolBoost(Number(a.id)).boostTier;
-              const bBoost = poolsContract.getPoolBoost(Number(b.id)).boostTier;
-              return bBoost - aBoost;
+              const aIndex = filtered.indexOf(a);
+              const bIndex = filtered.indexOf(b);
+              return boosts[bIndex].boostTier - boosts[aIndex].boostTier;
             });
             break;
           default:
@@ -183,8 +185,8 @@ export default function MarketsList({
       // Load regular pools
       if (poolType !== "combo") {
         for (let i = 0; i < Number(poolsContract.poolCount || 0); i++) {
-          const { pool } = poolsContract.getPool(i);
-          if (pool && shouldIncludePool(pool)) {
+          const { pool } = await poolsContract.getPool(i);
+          if (pool && await shouldIncludePool(pool)) {
             regularPools.push(pool);
           }
         }
@@ -193,14 +195,14 @@ export default function MarketsList({
       // Load combo pools
       if (poolType !== "regular") {
         for (let i = 0; i < Number(poolsContract.comboPoolCount || 0); i++) {
-          const { comboPool } = poolsContract.getComboPool(i);
+          const { comboPool } = await poolsContract.getComboPool(i);
           if (comboPool && shouldIncludeComboPool(comboPool)) {
             comboPools.push(comboPool);
           }
         }
       }
 
-      setPools(filterAndSortPools(regularPools));
+      setPools(await filterAndSortPools(regularPools));
       setComboPools(filterAndSortComboPools(comboPools));
     } catch (error) {
       console.error("Error loading pools:", error);

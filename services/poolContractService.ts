@@ -6,7 +6,7 @@
 import { 
   createPublicClient, 
   http, 
-  formatEther,
+  // formatEther,
   type Address
 } from 'viem';
 import { CONTRACTS } from '@/contracts';

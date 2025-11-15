@@ -24,7 +24,7 @@ class CryptoTitleGenerator {
    */
   generateTitle(marketData: CryptoMarketData, options: CryptoTitleOptions = {}): string {
     const { asset, targetPrice, direction, timeframe, predictedOutcome, marketType } = marketData;
-    const { short = false, includeTimeframe = true, maxLength = 60 } = options;
+    const { short = false, includeTimeframe = true, maxLength: _maxLength = 60 } = options;
 
     console.log('🪙 CRYPTO TITLE GENERATOR - Input:', marketData);
 

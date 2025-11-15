@@ -1,5 +1,5 @@
 import { PoolContractService } from './poolContractService';
-import { processRawPoolData } from '@/utils/contractDataDecoder';
+// import { processRawPoolData } from '@/utils/contractDataDecoder';
 
 // ============================================================================
 // MARKETS SERVICE - Real-time pool and market data integration
@@ -159,7 +159,7 @@ export class MarketsService {
   /**
    * Get boosted pools - DIRECT CONTRACT CALLS ONLY
    */
-  static async getBoostedPools(filters: Omit<PoolFilters, 'sortBy'> = {}): Promise<PoolWithMetadata[]> {
+  static async getBoostedPools(_filters: Omit<PoolFilters, 'sortBy'> = {}): Promise<PoolWithMetadata[]> {
     try {
       console.log('🔗 Fetching boosted pools DIRECTLY from contract (NO backend)');
       
@@ -179,7 +179,7 @@ export class MarketsService {
   /**
    * Get trending pools - DIRECT CONTRACT CALLS ONLY
    */
-  static async getTrendingPools(filters: Omit<PoolFilters, 'sortBy'> = {}): Promise<PoolWithMetadata[]> {
+  static async getTrendingPools(_filters: Omit<PoolFilters, 'sortBy'> = {}): Promise<PoolWithMetadata[]> {
     try {
       console.log('🔗 Fetching trending pools DIRECTLY from contract (NO backend)');
       
@@ -206,7 +206,7 @@ export class MarketsService {
   /**
    * Get private pools - DIRECT CONTRACT CALLS ONLY
    */
-  static async getPrivatePools(filters: Omit<PoolFilters, 'isPrivate'> = {}): Promise<PoolWithMetadata[]> {
+  static async getPrivatePools(_filters: Omit<PoolFilters, 'isPrivate'> = {}): Promise<PoolWithMetadata[]> {
     try {
       console.log('🔗 Fetching private pools DIRECTLY from contract (NO backend)');
       
@@ -224,7 +224,7 @@ export class MarketsService {
   /**
    * Get combo pools - DIRECT CONTRACT CALLS ONLY
    */
-  static async getComboPools(filters: PoolFilters = {}): Promise<PoolWithMetadata[]> {
+  static async getComboPools(_filters: PoolFilters = {}): Promise<PoolWithMetadata[]> {
     try {
       console.log('🔗 Fetching combo pools DIRECTLY from contract (NO backend)');
       
@@ -290,7 +290,7 @@ export class MarketsService {
   /**
    * Get pools by category - DIRECT CONTRACT CALLS ONLY
    */
-  static async getPoolsByCategory(category: string, filters: Omit<PoolFilters, 'category'> = {}): Promise<PoolWithMetadata[]> {
+  static async getPoolsByCategory(category: string, _filters: Omit<PoolFilters, 'category'> = {}): Promise<PoolWithMetadata[]> {
     try {
       console.log('🔗 Fetching pools by category DIRECTLY from contract (NO backend):', category);
       
@@ -310,7 +310,7 @@ export class MarketsService {
   /**
    * Search pools - DIRECT CONTRACT CALLS ONLY
    */
-  static async searchPools(query: string, filters: PoolFilters = {}): Promise<PoolWithMetadata[]> {
+  static async searchPools(query: string, _filters: PoolFilters = {}): Promise<PoolWithMetadata[]> {
     try {
       console.log('🔗 Searching pools DIRECTLY from contract (NO backend):', query);
       

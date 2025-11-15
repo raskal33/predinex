@@ -1,5 +1,5 @@
-import { useAccount, useWalletClient, useWriteContract, useWaitForTransactionReceipt, usePublicClient } from 'wagmi';
-import { parseEther, parseUnits, type Address } from 'viem';
+import { useAccount, useWalletClient, usePublicClient } from 'wagmi';
+import { parseEther, type Address } from 'viem';
 import { CONTRACT_ADDRESSES } from '@/config/wagmi';
 import { CONTRACTS } from '@/contracts';
 import { GuidedMarketService } from './guidedMarketService';
@@ -289,7 +289,7 @@ export class GuidedMarketWalletService {
         try {
           const numericValue = parseInt(marketId, 16);
           hashedParameters[marketIdIndex] = numericValue.toString();
-        } catch (error) {
+        } catch {
           // If conversion fails, remove the 0x prefix
           hashedParameters[marketIdIndex] = marketId.replace('0x', '');
         }

@@ -297,8 +297,9 @@ export function usePools() {
   });
 
   // Get pool data - using publicClient for dynamic calls
-  const getPool = async (poolId: number) => {
-    if (!publicClient || poolId < 0) return { pool: null, refetch: async () => {} };
+  type PoolResult = { pool: Pool | null; refetch: () => Promise<PoolResult> };
+  const getPool = async (poolId: number): Promise<PoolResult> => {
+    if (!publicClient || poolId < 0) return { pool: null, refetch: async () => getPool(poolId) };
     
     try {
       const rawPool = await publicClient.readContract({
@@ -320,8 +321,9 @@ export function usePools() {
   };
 
   // Get combo pool data - using publicClient for dynamic calls
-  const getComboPool = async (comboPoolId: number) => {
-    if (!publicClient || comboPoolId < 0) return { comboPool: null, refetch: async () => {} };
+  type ComboPoolResult = { comboPool: ComboPool | null; refetch: () => Promise<ComboPoolResult> };
+  const getComboPool = async (comboPoolId: number): Promise<ComboPoolResult> => {
+    if (!publicClient || comboPoolId < 0) return { comboPool: null, refetch: async () => getComboPool(comboPoolId) };
     
     try {
       const rawComboPool = await publicClient.readContract({
@@ -343,8 +345,9 @@ export function usePools() {
   };
 
   // Check if user is whitelisted for private pool - using publicClient for dynamic calls
-  const isWhitelisted = async (poolId: number) => {
-    if (!publicClient || !address || poolId < 0) return { whitelisted: false, refetch: async () => {} };
+  type WhitelistedResult = { whitelisted: boolean; refetch: () => Promise<WhitelistedResult> };
+  const isWhitelisted = async (poolId: number): Promise<WhitelistedResult> => {
+    if (!publicClient || !address || poolId < 0) return { whitelisted: false, refetch: async () => isWhitelisted(poolId) };
     
     try {
       const whitelisted = await publicClient.readContract({
@@ -361,8 +364,9 @@ export function usePools() {
   };
 
   // Get user's stake in a pool - using publicClient for dynamic calls
-  const getUserStake = async (poolId: number) => {
-    if (!publicClient || !address || poolId < 0) return { stake: BigInt(0), refetch: async () => {} };
+  type StakeResult = { stake: bigint; refetch: () => Promise<StakeResult> };
+  const getUserStake = async (poolId: number): Promise<StakeResult> => {
+    if (!publicClient || !address || poolId < 0) return { stake: BigInt(0), refetch: async () => getUserStake(poolId) };
     
     try {
       const stake = await publicClient.readContract({
@@ -379,8 +383,8 @@ export function usePools() {
   };
 
   // Get user's combo pool stake - using publicClient for dynamic calls
-  const getComboStake = async (comboPoolId: number) => {
-    if (!publicClient || !address || comboPoolId < 0) return { stake: BigInt(0), refetch: async () => {} };
+  const getComboStake = async (comboPoolId: number): Promise<StakeResult> => {
+    if (!publicClient || !address || comboPoolId < 0) return { stake: BigInt(0), refetch: async () => getComboStake(comboPoolId) };
     
     try {
       const stake = await publicClient.readContract({
@@ -397,8 +401,9 @@ export function usePools() {
   };
 
   // Get pool boost tier - using publicClient for dynamic calls
-  const getPoolBoost = async (poolId: number) => {
-    if (!publicClient || poolId < 0) return { boostTier: 0, refetch: async () => {} };
+  type BoostResult = { boostTier: number; refetch: () => Promise<BoostResult> };
+  const getPoolBoost = async (poolId: number): Promise<BoostResult> => {
+    if (!publicClient || poolId < 0) return { boostTier: 0, refetch: async () => getPoolBoost(poolId) };
     
     try {
       const boostTier = await publicClient.readContract({
@@ -770,7 +775,7 @@ export function usePools() {
   const calculatePotentialWinnings = (
     pool: Pool,
     betAmount: string,
-    prediction: boolean
+    _prediction: boolean
   ): string => {
     const amount = parseFloat(betAmount);
     const odds = calculateOdds(pool);
