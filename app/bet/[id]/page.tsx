@@ -434,8 +434,8 @@ export default function BetPage() {
     } finally {
       setLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
    }, [poolId, lastFetchTime]);
-   // eslint-disable-next-line react-hooks/exhaustive-deps
 
   const checkUserBetStatus = useCallback(async () => {
     if (!address) return;
