@@ -11,13 +11,14 @@ import {
   SparklesIcon,
   HeartIcon,
   ChatBubbleLeftIcon,
-  EyeIcon
+  EyeIcon,
+  PlusCircleIcon
 } from "@heroicons/react/24/outline";
 import { formatEther } from "viem";
-import { useState, useEffect } from "react";
-import Link from "next/link";
+import { useState, useEffect, startTransition } from "react";
+import { useRouter } from "next/navigation";
 import { useAccount } from "wagmi";
-import { calculatePoolFill } from "../utils/poolCalculations";
+import { calculatePoolFill, calculateSellOdds } from "../utils/poolCalculations";
 import { getPoolStatusDisplay, getStatusBadgeProps } from "../utils/poolStatus";
 import { getPoolIcon } from "../services/crypto-icons";
 import { titleTemplatesService } from "../services/title-templates";
@@ -132,6 +133,7 @@ export default function EnhancedPoolCard({
   showBoostButton = false,
   onBoostPool
 }: EnhancedPoolCardProps) {
+  const router = useRouter();
   const { address } = useAccount();
   const [indexedData, setIndexedData] = useState(pool.indexedData);
   const [showBoostModal, setShowBoostModal] = useState(false);
@@ -160,11 +162,12 @@ export default function EnhancedPoolCard({
   // ✅ Social stats hook
   const { socialStats, isLiked, isLoading, trackView, toggleLike, fetchStats } = usePoolSocialStats(pool.id);
   
-  // Track view when card is mounted
+  // Track view when card is mounted and prefetch bet page
   useEffect(() => {
     trackView();
     fetchStats();
-  }, [trackView, fetchStats]);
+    router.prefetch(`/bet/${pool.id}`);
+  }, [trackView, fetchStats, router, pool.id]);
   
   // Update local social stats when pool data changes
   const [localSocialStats, setLocalSocialStats] = useState(pool.socialStats || {
@@ -303,7 +306,26 @@ export default function EnhancedPoolCard({
                         pool.odds >= 300 ? 'EXPERT' : 
                         pool.odds >= 200 ? 'ADVANCED' : 
                         pool.odds >= 150 ? 'INTERMEDIATE' : 'BEGINNER';
-  
+
+  // Calculate buy and sell odds
+  const buyOdds = pool.odds ? pool.odds / 100 : 2.0;
+  const sellOdds = calculateSellOdds(buyOdds);
+
+  // Handle card click for navigation (like predict-linux)
+  const handleClick = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.closest('button, a, [role="button"]')) {
+      return; // Don't navigate if clicking on buttons
+    }
+
+    startTransition(() => {
+      router.push(`/bet/${pool.id}`, { scroll: false });
+    });
+  };
+
+  const handleMouseEnter = () => {
+    router.prefetch(`/bet/${pool.id}`);
+  };
   
   // Enhanced title generation with proper market type detection
   const displayTitle = pool.isComboPool 
@@ -436,25 +458,22 @@ export default function EnhancedPoolCard({
   };
 
   return (
-    <Link 
-      href={`/bet/${pool.id}`}
-      prefetch={true}
-      className="block"
+    <motion.div
+      initial={{ opacity: 0, y: 30, scale: 0.9 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.6, delay: index * 0.1 }}
+      whileHover={{ y: -4, scale: 1.01 }}
+      onClick={handleClick}
+      onMouseEnter={handleMouseEnter}
+      className={`
+        relative overflow-hidden group cursor-pointer min-h-[360px] md:min-h-[380px] flex flex-col
+        glass-card ${theme.glow} ${theme.hoverGlow}
+        ${pool.boostTier && pool.boostTier !== 'NONE' ? getBoostGlow(pool.boostTier) : ''}
+        transition-all duration-500 backdrop-blur-card
+        w-full max-w-full overflow-x-hidden
+        ${className}
+      `}
     >
-      <motion.div
-        initial={{ opacity: 0, y: 20, scale: 0.98 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.2, delay: index * 0.02, ease: "easeOut" }}
-        whileHover={{ y: -2, scale: 1.005 }}
-        className={`
-          relative overflow-hidden group cursor-pointer min-h-[420px] md:min-h-[450px] flex flex-col
-          glass-card ${theme.glow} ${theme.hoverGlow}
-          ${pool.boostTier && pool.boostTier !== 'NONE' ? getBoostGlow(pool.boostTier) : ''}
-          transition-all duration-200 backdrop-blur-card
-          w-full
-          ${className}
-        `}
-      >
       {/* Badge Container - Organized and Clean */}
       <div className="absolute top-2 left-2 right-2 sm:top-3 sm:left-3 sm:right-3 z-10 flex justify-between items-start pointer-events-none">
         {/* Left side badges */}
@@ -842,29 +861,44 @@ export default function EnhancedPoolCard({
             )}
           </div>
           
-          {/* Betting Options */}
-          <div className="flex items-center justify-between">
-            <div className="text-center">
-              <div className="text-xs text-gray-400">Odds</div>
-              <div className={`text-lg font-bold ${theme.accent}`}>
-                {typeof pool.odds === 'number' ? (pool.odds / 100).toFixed(2) : (parseFloat(String(pool.odds)) / 100).toFixed(2)}x
-              </div>
-            </div>
-            
-            {/* Challenge Button - Orange marked area */}
-            <div className="text-center">
-              <div className="text-xs text-gray-400 mb-2">Challenge</div>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation(); // Prevent card navigation
-                  setShowBetModal(true);
-                }}
-                disabled={pool.settled || (pool.bettingEndTime ? Date.now() / 1000 > pool.bettingEndTime : false)}
-                className="px-6 py-2 rounded-lg text-sm font-bold bg-gradient-to-r from-primary to-secondary text-black hover:from-primary/90 hover:to-secondary/90 transition-all transform hover:scale-105 shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center gap-2"
+          {/* Buy and Sell Buttons */}
+          <div className="mb-2 sm:mb-3 mt-2 sm:mt-3 px-3 sm:px-4 md:px-5">
+            <div className="flex items-center gap-2">
+              <div 
+                className="text-center flex-1"
+                onClick={(e) => e.stopPropagation()}
               >
-                <BoltIcon className="w-4 h-4" />
-                Challenge
-              </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowBetModal(true);
+                  }}
+                  disabled={pool.settled || (pool.bettingEndTime ? Date.now() / 1000 > pool.bettingEndTime : false)}
+                  className="w-full px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold bg-gradient-to-r from-emerald-500 to-green-500 text-white hover:from-emerald-600 hover:to-green-600 transition-all transform hover:scale-105 shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
+                >
+                  <BoltIcon className="w-3.5 h-3.5" />
+                  <span>Buy</span>
+                  <span className="px-2 py-0.5 rounded-md bg-white/20 backdrop-blur-sm border border-white/30 text-[10px] sm:text-[11px] font-bold">{buyOdds.toFixed(2)}x</span>
+                </button>
+              </div>
+
+              <div 
+                className="text-center flex-1"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowLiquidityModal(true);
+                  }}
+                  disabled={pool.settled || (pool.bettingEndTime ? Date.now() / 1000 > pool.bettingEndTime : false)}
+                  className="w-full px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold bg-gradient-to-r from-rose-500 to-pink-500 text-white hover:from-rose-600 hover:to-pink-600 transition-all transform hover:scale-105 shadow-lg shadow-rose-500/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
+                >
+                  <PlusCircleIcon className="w-3.5 h-3.5" />
+                  <span>Sell</span>
+                  <span className="px-2 py-0.5 rounded-md bg-white/20 backdrop-blur-sm border border-white/30 text-[10px] sm:text-[11px] font-bold">{sellOdds.toFixed(2)}x</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1006,15 +1040,16 @@ export default function EnhancedPoolCard({
               )}
               {localSocialStats.likes}
             </button>
-            <Link
-              href={`/bet/${pool.id}#comments`}
-              prefetch={true}
-              onClick={(e) => e.stopPropagation()}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                router.push(`/bet/${pool.id}#comments`);
+              }}
               className="flex items-center gap-1 hover:text-blue-400 transition-colors cursor-pointer text-xs sm:text-sm"
             >
               <ChatBubbleLeftIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               {localSocialStats.comments}
-            </Link>
+            </button>
             <div className="flex items-center gap-1 text-xs sm:text-sm">
               <EyeIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               {localSocialStats.views}
@@ -1122,7 +1157,6 @@ export default function EnhancedPoolCard({
         isOpen={showLiquidityModal}
         onClose={() => setShowLiquidityModal(false)}
       />
-      </motion.div>
-    </Link>
+    </motion.div>
   );
 } 
