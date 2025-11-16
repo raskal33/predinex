@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import { 
   TrophyIcon, 
@@ -10,6 +10,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { optimizedPoolService } from "@/services/optimizedPoolService";
 import { getPoolIcon } from "@/services/crypto-icons";
+import websocketClient from "@/services/websocket-client";
 
 interface RecentBet {
   id: number;
@@ -173,57 +174,92 @@ export default function RecentBetsLane({ className = "" }: RecentBetsLaneProps) 
 
   const [apiData, setApiData] = useState<RecentBet[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Transform API data to component format
+  const transformBets = (bets: any[]): RecentBet[] => {
+    return bets.map((bet, index) => ({
+      id: index + 1,
+      poolId: bet.poolId.toString(),
+      bettorAddress: bet.bettor,
+      amount: bet.amount,
+      amountFormatted: parseFloat(bet.amount).toFixed(2),
+      isForOutcome: bet.isForOutcome,
+      eventType: bet.eventType || 'bet', // Default to 'bet' if not provided
+      action: bet.action || (bet.eventType === 'liquidity_added' ? 'Added liquidity' : 'Placed bet'),
+      icon: bet.icon || (bet.eventType === 'liquidity_added' ? '💧' : '🎯'),
+      odds: bet.odds,
+      currency: bet.currency || 'BNB',
+      createdAt: new Date(bet.timestamp * 1000).toISOString(),
+      timeAgo: `${Math.floor((Date.now() - bet.timestamp * 1000) / 60000)}m ago`,
+      pool: {
+        predictedOutcome: '',
+        league: bet.league || 'Unknown',
+        category: bet.category,
+        homeTeam: '',
+        awayTeam: '',
+        title: bet.poolTitle,
+        usePrix: false,
+        odds: bet.odds || 0,
+        creatorAddress: ''
+      }
+    }));
+  };
 
   // Fetch recent bets using optimized API service
-  useEffect(() => {
-    const fetchRecentBets = async () => {
-      try {
-        setIsLoading(true);
-        const bets = await optimizedPoolService.getRecentBets(20);
-        
-        // Transform API data to component format
-        const transformedBets: RecentBet[] = bets.map((bet, index) => ({
-          id: index + 1,
-          poolId: bet.poolId.toString(),
-          bettorAddress: bet.bettor,
-          amount: bet.amount,
-          amountFormatted: parseFloat(bet.amount).toFixed(2),
-          isForOutcome: bet.isForOutcome,
-          eventType: bet.eventType || 'bet', // Default to 'bet' if not provided
-          action: bet.action || (bet.eventType === 'liquidity_added' ? 'Added liquidity' : 'Placed bet'),
-          icon: bet.icon || (bet.eventType === 'liquidity_added' ? '💧' : '🎯'),
-          odds: bet.odds,
-          currency: bet.currency || 'BNB',
-          createdAt: new Date(bet.timestamp * 1000).toISOString(),
-          timeAgo: `${Math.floor((Date.now() - bet.timestamp * 1000) / 60000)}m ago`,
-          pool: {
-            predictedOutcome: '',
-            league: bet.league || 'Unknown',
-            category: bet.category,
-            homeTeam: '',
-            awayTeam: '',
-            title: bet.poolTitle,
-            usePrix: false,
-            odds: bet.odds || 0,
-            creatorAddress: ''
-          }
-        }));
-        
-        setApiData(transformedBets);
-      } catch (error) {
-        console.error('Failed to fetch recent bets:', error);
-        setApiData([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const fetchRecentBets = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const bets = await optimizedPoolService.getRecentBets(20);
+      const transformedBets = transformBets(bets);
+      setApiData(transformedBets);
+    } catch (error) {
+      console.error('Failed to fetch recent bets:', error);
+      setApiData([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
+  // ✅ FIX: Use WebSocket for real-time updates + fallback polling
+  useEffect(() => {
+    // Initial fetch
     fetchRecentBets();
     
-    // Set up polling interval
-    const interval = setInterval(fetchRecentBets, 60000); // 1 minute
-    return () => clearInterval(interval);
-  }, []);
+    // ✅ Subscribe to WebSocket updates for instant bet placement notifications
+    const unsubscribe = websocketClient.subscribeToRecentBets((data: any) => {
+      console.log('📡 Received recent bets WebSocket update:', data);
+      
+      // If we get a bet_placed event, refresh immediately
+      if (data.type === 'bet_placed') {
+        // Debounce rapid updates (max once per 2 seconds)
+        if (fetchTimeoutRef.current) {
+          clearTimeout(fetchTimeoutRef.current);
+        }
+        fetchTimeoutRef.current = setTimeout(() => {
+          fetchRecentBets();
+        }, 2000);
+      } else if (data.bets) {
+        // If we get full bets array, use it directly
+        const transformedBets = transformBets(data.bets);
+        setApiData(transformedBets);
+      } else {
+        // Otherwise, refresh from API
+        fetchRecentBets();
+      }
+    });
+    
+    // Fallback polling every 30 seconds (reduced from 60s since we have WebSocket)
+    const interval = setInterval(fetchRecentBets, 30000);
+    
+    return () => {
+      unsubscribe();
+      clearInterval(interval);
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
+      }
+    };
+  }, [fetchRecentBets]);
 
   // Use API data or fallback to demo data
   const bets = apiData || demoBets;
