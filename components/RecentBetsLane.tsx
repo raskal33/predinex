@@ -230,8 +230,8 @@ export default function RecentBetsLane({ className = "" }: RecentBetsLaneProps) 
     const unsubscribe = websocketClient.subscribeToRecentBets((data: any) => {
       console.log('📡 Received recent bets WebSocket update:', data);
       
-      // If we get a bet_placed event, refresh immediately
-      if (data.type === 'bet_placed') {
+      // If we get a bet_placed or liquidity_added event, refresh immediately
+      if (data.type === 'bet_placed' || data.type === 'liquidity_added') {
         // Debounce rapid updates (max once per 2 seconds)
         if (fetchTimeoutRef.current) {
           clearTimeout(fetchTimeoutRef.current);
