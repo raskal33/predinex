@@ -14,14 +14,19 @@ export function useWebSocket({ channel, onMessage, enabled = true }: UseWebSocke
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectAttemptsRef = useRef(0);
   const isMountedRef = useRef(true);
-  const MAX_RECONNECT_ATTEMPTS = 5;
-  const RECONNECT_DELAY = 3000;
+  const isConnectingRef = useRef(false);
+  const MAX_RECONNECT_ATTEMPTS = 10; // ✅ FIX: Increase max attempts
+  const INITIAL_RECONNECT_DELAY = 1000; // ✅ FIX: Start with 1s delay
+  const MAX_RECONNECT_DELAY = 30000; // ✅ FIX: Max 30s delay (exponential backoff)
 
   const connect = useCallback(() => {
     if (!enabled || !channel) return;
     if (wsRef.current?.readyState === WebSocket.OPEN) return;
+    if (isConnectingRef.current) return; // ✅ FIX: Prevent multiple simultaneous connections
 
     try {
+      isConnectingRef.current = true;
+      
       // Build WebSocket URL - ensure we don't duplicate /ws
       let wsUrl = WS_URL;
       
@@ -38,6 +43,7 @@ export function useWebSocket({ channel, onMessage, enabled = true }: UseWebSocke
 
       ws.onopen = () => {
         console.log('✅ WebSocket connected successfully');
+        isConnectingRef.current = false;
         if (isMountedRef.current) {
           setIsConnected(true);
         }
@@ -46,10 +52,14 @@ export function useWebSocket({ channel, onMessage, enabled = true }: UseWebSocke
         // Subscribe to channel immediately after connection
         if (channel) {
           console.log(`📡 Subscribing to channel: ${channel}`);
-          ws.send(JSON.stringify({
-            type: 'subscribe',
-            channel
-          }));
+          try {
+            ws.send(JSON.stringify({
+              type: 'subscribe',
+              channel
+            }));
+          } catch (error) {
+            console.error('❌ Error subscribing to channel:', error);
+          }
         } else {
           console.warn('⚠️ No channel provided for WebSocket subscription');
         }
@@ -64,35 +74,76 @@ export function useWebSocket({ channel, onMessage, enabled = true }: UseWebSocke
         }
       };
 
-      ws.onerror = (error) => {
-        console.error('WebSocket error:', error);
+      ws.onerror = (_error) => {
+        isConnectingRef.current = false;
+        // ✅ FIX: Don't log generic error events (they're handled in onclose)
+        // Only log if it's a meaningful error
+        if (ws.readyState === WebSocket.CLOSED) {
+          console.warn('⚠️ WebSocket connection error (connection closed)');
+        }
       };
 
       ws.onclose = (event) => {
-        console.log('🔌 WebSocket disconnected', event.code, event.reason || 'No reason');
+        isConnectingRef.current = false;
+        const reason = event.reason || 'No reason';
+        console.log(`🔌 WebSocket disconnected (code: ${event.code}, reason: ${reason})`);
+        
         if (isMountedRef.current) {
           setIsConnected(false);
         }
         wsRef.current = null;
 
-        // Attempt reconnection (unless it was a clean close)
-        if (enabled && event.code !== 1000 && reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS && isMountedRef.current) {
+        // ✅ FIX: Don't reconnect on clean close (1000) or going away (1001)
+        const shouldReconnect = enabled && 
+          event.code !== 1000 && 
+          event.code !== 1001 && 
+          reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS && 
+          isMountedRef.current;
+
+        if (shouldReconnect) {
           reconnectAttemptsRef.current++;
-          console.log(`🔄 Reconnecting... (attempt ${reconnectAttemptsRef.current}/${MAX_RECONNECT_ATTEMPTS})`);
+          
+          // ✅ FIX: Exponential backoff with jitter
+          const baseDelay = Math.min(
+            INITIAL_RECONNECT_DELAY * Math.pow(2, reconnectAttemptsRef.current - 1),
+            MAX_RECONNECT_DELAY
+          );
+          const jitter = Math.random() * 1000; // Add up to 1s jitter
+          const delay = baseDelay + jitter;
+          
+          console.log(`🔄 Reconnecting in ${Math.round(delay)}ms... (attempt ${reconnectAttemptsRef.current}/${MAX_RECONNECT_ATTEMPTS})`);
           
           reconnectTimeoutRef.current = setTimeout(() => {
-            if (isMountedRef.current && channel) {
+            if (isMountedRef.current && channel && !isConnectingRef.current) {
               connect();
             }
-          }, RECONNECT_DELAY);
+          }, delay);
         } else if (reconnectAttemptsRef.current >= MAX_RECONNECT_ATTEMPTS) {
           console.error('❌ Max reconnection attempts reached. WebSocket will not reconnect.');
+        } else if (event.code === 1000 || event.code === 1001) {
+          console.log('✅ WebSocket closed cleanly, not reconnecting');
         }
       };
 
       wsRef.current = ws;
     } catch (error) {
-      console.error('Error creating WebSocket connection:', error);
+      isConnectingRef.current = false;
+      console.error('❌ Error creating WebSocket connection:', error);
+      
+      // ✅ FIX: Attempt reconnection on connection error
+      if (enabled && reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS && isMountedRef.current) {
+        reconnectAttemptsRef.current++;
+        const delay = Math.min(
+          INITIAL_RECONNECT_DELAY * Math.pow(2, reconnectAttemptsRef.current - 1),
+          MAX_RECONNECT_DELAY
+        );
+        
+        reconnectTimeoutRef.current = setTimeout(() => {
+          if (isMountedRef.current && channel && !isConnectingRef.current) {
+            connect();
+          }
+        }, delay);
+      }
     }
   }, [channel, enabled, onMessage]);
 
