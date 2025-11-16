@@ -185,7 +185,7 @@ export const TransactionFeedback: React.FC<TransactionFeedbackProps> = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+          className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
           onClick={handleClose}
         >
           <motion.div
@@ -339,13 +339,13 @@ export const TransactionFeedback: React.FC<TransactionFeedbackProps> = ({
             <div className="px-6 py-4 border-t border-border-card/30 bg-bg-overlay/20 space-y-2">
               {status.hash && status.type === 'success' && (
                 <a
-                  href={`https://sepolia.etherscan.io/tx/${status.hash}`}
+                  href={`https://bscscan.com/tx/${status.hash}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl block"
                 >
                   <FaExternalLinkAlt className="h-4 w-4" />
-                  View on Etherscan
+                  View on BscScan
                 </a>
               )}
               <button

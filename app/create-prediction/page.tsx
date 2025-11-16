@@ -21,6 +21,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { toast } from "react-hot-toast";
 import { useTransactionFeedback, TransactionFeedback } from "@/components/TransactionFeedback";
+import { scrollToTop } from "@/hooks/useScrollToTop";
 import Button from "@/components/button";
 import AmountInput from "@/components/AmountInput";
 import Textarea from "@/components/textarea";
@@ -398,6 +399,11 @@ function CreateMarketPageContent() {
     searchCryptos();
   }, [cryptoSearchQuery]);
 
+  // Effect to scroll to top when step changes
+  useEffect(() => {
+    scrollToTop('smooth');
+  }, [step]);
+
   // Handle transaction results
   useEffect(() => {
     if (writeError) {
@@ -480,6 +486,9 @@ function CreateMarketPageContent() {
       showSuccess('Market Created Successfully!', 'Your market has been created and is now live on the blockchain', hash);
       setDeploymentHash(hash);
       setIsLoading(false);
+      
+      // Scroll to top to show success message
+      scrollToTop('smooth');
       
       // Add reputation points for market creation
       if (address) {

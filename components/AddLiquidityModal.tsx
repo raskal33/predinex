@@ -153,7 +153,7 @@ export default function AddLiquidityModal({ pool, isOpen, onClose }: AddLiquidit
               e.stopPropagation();
               handleClose();
             }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]"
           />
           
           {/* Modal - Bottom Sheet Style (matching PlaceBetModal) */}
@@ -167,7 +167,7 @@ export default function AddLiquidityModal({ pool, isOpen, onClose }: AddLiquidit
               stiffness: 400
             }}
             onClick={(e) => e.stopPropagation()}
-            className="fixed inset-x-0 bottom-0 z-50 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 border-t-2 border-rose-500/30 rounded-t-3xl shadow-2xl max-h-[85vh] overflow-hidden"
+            className="fixed inset-x-0 bottom-0 z-[110] bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 border-t-2 border-rose-500/30 rounded-t-3xl shadow-2xl max-h-[85vh] overflow-hidden"
           >
             {/* Drag Handle */}
             <div className="w-full flex justify-center pt-3 pb-2">
@@ -207,7 +207,7 @@ export default function AddLiquidityModal({ pool, isOpen, onClose }: AddLiquidit
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.8 }}
-                  className="absolute inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-green-500/20 via-rose-500/20 to-pink-500/20 backdrop-blur-sm rounded-t-3xl"
+                  className="absolute inset-0 z-[120] flex items-center justify-center bg-gradient-to-br from-green-500/20 via-rose-500/20 to-pink-500/20 backdrop-blur-sm rounded-t-3xl"
                 >
                   <motion.div
                     initial={{ scale: 0 }}

@@ -131,9 +131,9 @@ export function usePoolCore() {
         : poolData.marketId; // For custom markets, use as-is
 
       // Calculate total required amount (creation fee + creator stake + boost cost)
-      // ✅ FIX: Match contract values - PRIX = 70e18, BNB = 1e18
-      const creationFeePRIX = 70n * 10n**18n; // 70 PRIX in wei (contract uses 70e18, not 50e18!)
-      const creationFeeBNB = 1n * 10n**18n; // 1 BNB in wei
+      // ✅ FIX: Match contract values - PRIX = 50e18, BNB = 1e16 (with discounts applied)
+      const creationFeePRIX = 50n * 10n**18n; // 50 PRIX base fee (contract constant)
+      const creationFeeBNB = 1n * 10n**16n; // 0.01 BNB base fee (contract constant)
       
       // ✅ FIX: Calculate boost cost (always in BNB, even for PRIX pools)
       // Boost costs: BRONZE = 2 BNB, SILVER = 3 BNB, GOLD = 5 BNB
@@ -166,7 +166,7 @@ export function usePoolCore() {
       // The contract will handle the token transfer internally
       if (poolData.usePrix) {
         console.log(`💰 PRIX Pool Creation Flow Started`);
-        console.log(`   Creation Fee: ${creationFeePRIX / BigInt(10**18)} PRIX`);
+        console.log(`   Base Creation Fee: ${creationFeePRIX / BigInt(10**18)} PRIX (discounts may apply on-chain)`);
         console.log(`   Creator Stake: ${poolData.creatorStake / BigInt(10**18)} PRIX`);
         console.log(`   Total Required: ${totalRequired / BigInt(10**18)} PRIX`);
         if (boostCost > 0n) {

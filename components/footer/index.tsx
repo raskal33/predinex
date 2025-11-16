@@ -37,7 +37,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="relative">
+    <footer className="relative mt-auto">
       {/* Background with gradient overlay */}
       <div className="absolute inset-0 bg-gradient-somnia opacity-5" />
       

@@ -44,7 +44,7 @@ export function useComboPools() {
       }));
       
       // Calculate total required payment
-      const creationFeePRIX = 70n * 10n**18n; // 70 PRIX
+      const creationFeePRIX = 50n * 10n**18n; // 50 PRIX base fee (contract constant)
       const creationFeeBNB = 1n * 10n**18n;   // 1 BNB
       const totalRequired = poolData.usePrix 
         ? creationFeePRIX + poolData.creatorStake
