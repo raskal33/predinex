@@ -2,10 +2,11 @@
  * Pool Progress Hook for BSC
  * 
  * Subscribes to pool progress updates via WebSocket
+ * ✅ FIX: Using singleton WebSocket client to prevent connection explosion
  */
 
-import { useEffect, useRef } from 'react';
-import { useWebSocket } from './useWebSocket';
+import { useEffect, useRef, useState } from 'react';
+import websocketClient from '@/services/websocket-client';
 
 export interface PoolProgressData {
   poolId: string;
@@ -26,37 +27,44 @@ export function usePoolProgress(
   enabled = true
 ) {
   const callbackRef = useRef(callback);
+  const [isConnected, setIsConnected] = useState(false);
   
   // Keep callback ref up to date
   useEffect(() => {
     callbackRef.current = callback;
   }, [callback]);
   
-  // Subscribe to pool progress updates via WebSocket
-  const { isConnected } = useWebSocket({
-    channel: `pool:${poolId}:progress`,
-    enabled,
-    onMessage: (message: Record<string, unknown>) => {
+  // Subscribe to pool progress updates via singleton WebSocket client
+  useEffect(() => {
+    if (!enabled || !poolId) return;
+
+    // Update connection status (optimistic)
+    setIsConnected(true);
+
+    const unsubscribe = websocketClient.subscribeToPoolProgress(poolId, (data: any) => {
       // Handle different message formats from backend
-      const data = (message.data as Record<string, unknown>) || message;
+      const messageData = data || {};
       
-      if ((data.poolId as string) === poolId || (data.poolId as string) === String(poolId) || (message.channel as string) === `pool:${poolId}:progress`) {
-        const progressData: PoolProgressData = {
-          poolId: (data.poolId as string) || poolId,
-          fillPercentage: (data.fillPercentage as number) || 0,
-          totalBettorStake: (data.totalBettorStake as string) || "0",
-          totalCreatorSideStake: (data.totalCreatorSideStake as string) || "0",
-          maxPoolSize: (data.maxPoolSize as string) || "0",
-          participantCount: (data.participantCount as number) || 0,
-          betCount: (data.betCount as number) || 0,
-          currentMaxBettorStake: (data.currentMaxBettorStake as string) || (data.maxPoolSize as string) || "0",
-          effectiveCreatorSideStake: (data.effectiveCreatorSideStake as string) || (data.totalCreatorSideStake as string) || "0",
-          timestamp: (data.timestamp as number) || Date.now()
-        };
-        callbackRef.current(progressData);
-      }
-    }
-  });
+      const progressData: PoolProgressData = {
+        poolId: messageData.poolId || poolId,
+        fillPercentage: messageData.fillPercentage || 0,
+        totalBettorStake: messageData.totalBettorStake || "0",
+        totalCreatorSideStake: messageData.totalCreatorSideStake || "0",
+        maxPoolSize: messageData.maxPoolSize || "0",
+        participantCount: messageData.participantCount || 0,
+        betCount: messageData.betCount || 0,
+        currentMaxBettorStake: messageData.currentMaxBettorStake || messageData.maxPoolSize || "0",
+        effectiveCreatorSideStake: messageData.effectiveCreatorSideStake || messageData.totalCreatorSideStake || "0",
+        timestamp: messageData.timestamp || Date.now()
+      };
+      callbackRef.current(progressData);
+    });
+
+    return () => {
+      unsubscribe();
+      setIsConnected(false);
+    };
+  }, [poolId, enabled]);
   
   return { isConnected };
 }
