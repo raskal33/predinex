@@ -15,7 +15,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { formatEther } from "viem";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAccount } from "wagmi";
 import { calculatePoolFill } from "../utils/poolCalculations";
 import { getPoolStatusDisplay, getStatusBadgeProps } from "../utils/poolStatus";
@@ -132,7 +132,6 @@ export default function EnhancedPoolCard({
   showBoostButton = false,
   onBoostPool
 }: EnhancedPoolCardProps) {
-  const router = useRouter();
   const { address } = useAccount();
   const [indexedData, setIndexedData] = useState(pool.indexedData);
   const [showBoostModal, setShowBoostModal] = useState(false);
@@ -181,14 +180,14 @@ export default function EnhancedPoolCard({
     }
   }, [socialStats]);
   
-  // ✅ FIX: Poll for pool progress updates (especially for crypto pools)
+  // ✅ OPTIMIZED: Reduced polling frequency for better performance
   useEffect(() => {
     // Only poll if pool is not settled and we don't have indexedData or need updates
     if (pool.settled) return;
     
     let intervalId: NodeJS.Timeout | null = null;
     
-    // Poll every 10 seconds for active pools
+    // Poll every 15 seconds for active pools (reduced from 10s)
     const pollProgress = async () => {
       try {
         const response = await fetch(`/api/optimized-pools/pools/${pool.id}/progress`);
@@ -214,9 +213,9 @@ export default function EnhancedPoolCard({
       }
     };
     
-    // Poll immediately on mount, then every 10 seconds
+    // Poll immediately on mount, then every 15 seconds
     pollProgress();
-    intervalId = setInterval(pollProgress, 10000);
+    intervalId = setInterval(pollProgress, 15000);
     
     return () => {
       if (intervalId) clearInterval(intervalId);
@@ -386,11 +385,7 @@ export default function EnhancedPoolCard({
     }
   };
 
-  const handleClick = () => {
-    // Navigate to the specific bet page for this pool
-    console.log('Navigating to pool:', pool.id);
-    router.push(`/bet/${pool.id}`);
-  };
+  // Navigation is handled by Link component for prefetching
 
   const getProgressColor = (percentage: number) => {
     if (percentage >= 80) return 'bg-green-500';
@@ -441,21 +436,25 @@ export default function EnhancedPoolCard({
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 30, scale: 0.9 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.6, delay: index * 0.1 }}
-      whileHover={{ y: -4, scale: 1.01 }}
-      onClick={handleClick}
-      className={`
-        relative overflow-hidden group cursor-pointer min-h-[420px] md:min-h-[450px] flex flex-col
-        glass-card ${theme.glow} ${theme.hoverGlow}
-        ${pool.boostTier && pool.boostTier !== 'NONE' ? getBoostGlow(pool.boostTier) : ''}
-        transition-all duration-500 backdrop-blur-card
-        w-full
-        ${className}
-      `}
+    <Link 
+      href={`/bet/${pool.id}`}
+      prefetch={true}
+      className="block"
     >
+      <motion.div
+        initial={{ opacity: 0, y: 20, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.2, delay: index * 0.02, ease: "easeOut" }}
+        whileHover={{ y: -2, scale: 1.005 }}
+        className={`
+          relative overflow-hidden group cursor-pointer min-h-[420px] md:min-h-[450px] flex flex-col
+          glass-card ${theme.glow} ${theme.hoverGlow}
+          ${pool.boostTier && pool.boostTier !== 'NONE' ? getBoostGlow(pool.boostTier) : ''}
+          transition-all duration-200 backdrop-blur-card
+          w-full
+          ${className}
+        `}
+      >
       {/* Badge Container - Organized and Clean */}
       <div className="absolute top-2 left-2 right-2 sm:top-3 sm:left-3 sm:right-3 z-10 flex justify-between items-start pointer-events-none">
         {/* Left side badges */}
@@ -1007,16 +1006,15 @@ export default function EnhancedPoolCard({
               )}
               {localSocialStats.likes}
             </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                router.push(`/bet/${pool.id}#comments`);
-              }}
+            <Link
+              href={`/bet/${pool.id}#comments`}
+              prefetch={true}
+              onClick={(e) => e.stopPropagation()}
               className="flex items-center gap-1 hover:text-blue-400 transition-colors cursor-pointer text-xs sm:text-sm"
             >
               <ChatBubbleLeftIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               {localSocialStats.comments}
-            </button>
+            </Link>
             <div className="flex items-center gap-1 text-xs sm:text-sm">
               <EyeIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               {localSocialStats.views}
@@ -1124,6 +1122,7 @@ export default function EnhancedPoolCard({
         isOpen={showLiquidityModal}
         onClose={() => setShowLiquidityModal(false)}
       />
-    </motion.div>
+      </motion.div>
+    </Link>
   );
 } 

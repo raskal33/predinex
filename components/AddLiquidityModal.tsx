@@ -163,8 +163,8 @@ export default function AddLiquidityModal({ pool, isOpen, onClose }: AddLiquidit
             exit={{ y: "100%" }}
             transition={{ 
               type: "spring",
-              damping: 30,
-              stiffness: 300
+              damping: 35,
+              stiffness: 400
             }}
             onClick={(e) => e.stopPropagation()}
             className="fixed inset-x-0 bottom-0 z-50 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 border-t-2 border-rose-500/30 rounded-t-3xl shadow-2xl max-h-[85vh] overflow-hidden"

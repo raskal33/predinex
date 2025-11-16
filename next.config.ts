@@ -7,6 +7,16 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ['@heroicons/react', '@reown/appkit', 'framer-motion'],
   },
   
+  // Performance optimizations
+  compress: true,
+  poweredByHeader: false,
+  
+  // Optimize production builds
+  swcMinify: true,
+  
+  // Enable static page generation where possible
+  output: 'standalone',
+  
   images: {
     remotePatterns: [
       {

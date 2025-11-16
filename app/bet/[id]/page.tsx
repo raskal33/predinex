@@ -186,7 +186,10 @@ export default function BetPage() {
     setLastFetchTime(now);
     
     try {
-      setLoading(true);
+      // ✅ OPTIMIZED: Don't block UI - show content as it loads
+      if (!pool) {
+        setLoading(true);
+      }
       
       // Fetch pool data from optimized backend API with caching
       
@@ -471,12 +474,21 @@ export default function BetPage() {
         console.error('Error checking bet status:', error);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [poolId, address]);
 
+  // ✅ OPTIMIZED: Parallel data fetching for faster loading
   useEffect(() => {
-    fetchPoolData();
-    checkUserBetStatus();
-    fetchComments(); // ✅ FIX: Fetch comments when pool loads
+    if (!poolId) return;
+    
+    // Fetch all data in parallel for faster page load
+    Promise.all([
+      fetchPoolData(),
+      checkUserBetStatus(),
+      fetchComments()
+    ]).catch(err => {
+      console.error('Error loading pool data:', err);
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
    }, [poolId]); // Only run when poolId changes
   
