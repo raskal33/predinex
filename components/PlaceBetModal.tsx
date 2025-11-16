@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { usePools } from "@/hooks/usePools";
 import { toast } from "react-hot-toast";
 import { EnhancedPool } from "./EnhancedPoolCard";
+import { usePoolProgress } from "../hooks/usePoolProgress";
 
 interface PlaceBetModalProps {
   pool: EnhancedPool;
@@ -23,79 +24,97 @@ interface PlaceBetModalProps {
 export default function PlaceBetModal({ pool, isOpen, onClose }: PlaceBetModalProps) {
   const { address } = useAccount();
   const router = useRouter();
-  const { placeBet } = usePools();
+  const { placeBet, isConfirmed, isPending, hash } = usePools();
   
   const [betAmount, setBetAmount] = useState<string>("");
   const [isPlacing, setIsPlacing] = useState(false);
   const [waitingForApproval, setWaitingForApproval] = useState(false);
   const [betSuccess, setBetSuccess] = useState(false);
-  const [initialStake, setInitialStake] = useState<number | null>(null);
   
-  // ✅ FIX: Poll for transaction success since usePools doesn't expose hash directly
+  // ✅ CRITICAL: Use real-time pool progress updates to get latest max bettor stake
+  const [currentPoolData, setCurrentPoolData] = useState({
+    totalCreatorSideStake: parseFloat(pool.totalCreatorSideStake || pool.creatorStake || "0"),
+    totalBettorStake: parseFloat(pool.totalBettorStake || "0"),
+    maxBettorStake: parseFloat(pool.maxBettorStake || "0")
+  });
+  
+  usePoolProgress(pool.id.toString(), (progressData) => {
+    // ✅ CRITICAL: Update pool data when progress changes (e.g., LP added)
+    // Progress data comes in token amounts (already divided by 1e18), but we need to handle both formats
+    const effectiveCreatorSideStake = progressData.effectiveCreatorSideStake || progressData.totalCreatorSideStake || "0";
+    const totalBettorStake = progressData.totalBettorStake || "0";
+    const currentMaxBettorStake = progressData.currentMaxBettorStake || "0";
+    
+    // Convert to numbers (handle both wei and token formats)
+    let totalCreatorSideStakeNum = parseFloat(effectiveCreatorSideStake);
+    let totalBettorStakeNum = parseFloat(totalBettorStake);
+    let maxBettorStakeNum = parseFloat(currentMaxBettorStake);
+    
+    // If values are very large (> 1e15), they're likely in wei - convert to token
+    if (totalCreatorSideStakeNum > 1e15) {
+      totalCreatorSideStakeNum = totalCreatorSideStakeNum / 1e18;
+    }
+    if (totalBettorStakeNum > 1e15) {
+      totalBettorStakeNum = totalBettorStakeNum / 1e18;
+    }
+    if (maxBettorStakeNum > 1e15) {
+      maxBettorStakeNum = maxBettorStakeNum / 1e18;
+    }
+    
+    setCurrentPoolData(prev => ({
+      ...prev,
+      totalCreatorSideStake: totalCreatorSideStakeNum,
+      totalBettorStake: totalBettorStakeNum,
+      maxBettorStake: maxBettorStakeNum
+    }));
+    
+    console.log(`📊 PlaceBetModal: Pool progress updated for pool ${pool.id}:`, {
+      totalCreatorSideStake: totalCreatorSideStakeNum,
+      totalBettorStake: totalBettorStakeNum,
+      maxBettorStake: maxBettorStakeNum
+    });
+  });
+  
+  // ✅ FIX: Auto-close modal when transaction is confirmed
   useEffect(() => {
-    if (!isPlacing || betSuccess || initialStake === null) return;
-    
-    const betAmountNum = parseFloat(betAmount) || 0;
-    if (betAmountNum === 0) return;
-    
-    // Poll for transaction completion every 2 seconds
-    const pollInterval = setInterval(async () => {
-      try {
-        // Refetch pool data to check if bet was placed
-        // If totalBettorStake increased by at least our bet amount, transaction succeeded
-        const response = await fetch(`/api/optimized-pools/pools/${pool.id}`);
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success && data.data) {
-            const newTotalBettorStake = parseFloat(data.data.pool.totalBettorStake || "0");
-            
-            // If bet stake increased by at least our bet amount (with small tolerance), transaction succeeded
-            const stakeIncrease = newTotalBettorStake - initialStake;
-            if (stakeIncrease >= betAmountNum * 0.95) { // Allow 5% tolerance for rounding
-              setBetSuccess(true);
-              setIsPlacing(false);
-              setWaitingForApproval(false);
-              toast.success("Bet placed successfully! 🎉", { id: 'bet-tx' });
-              
-              clearInterval(pollInterval);
-              
-              // Close after success animation
-              setTimeout(() => {
-                onClose();
-                setBetAmount("");
-                setBetSuccess(false);
-                setInitialStake(null);
-              }, 2500);
-            }
-          }
-        }
-      } catch (error) {
-        console.warn('Error polling for bet confirmation:', error);
-      }
-    }, 2000);
-    
-    // Stop polling after 60 seconds (timeout)
-    const timeout = setTimeout(() => {
-      clearInterval(pollInterval);
-      if (isPlacing && !betSuccess) {
-        // Still waiting - don't error, just stop polling
-        // The usePools hook will show error if transaction failed
-        setIsPlacing(false);
-        setWaitingForApproval(false);
-        setInitialStake(null);
-      }
-    }, 60000);
-    
-    return () => {
-      clearInterval(pollInterval);
-      clearTimeout(timeout);
-    };
-  }, [isPlacing, betSuccess, pool.id, initialStake, betAmount, onClose]);
+    if (isConfirmed && hash) {
+      console.log('✅ Transaction confirmed, closing modal');
+      setBetSuccess(true);
+      setIsPlacing(false);
+      setWaitingForApproval(false);
+      toast.success("Bet placed successfully! 🎉", { id: 'bet-tx' });
+      
+      // Close after brief success animation
+      setTimeout(() => {
+        onClose();
+        setBetAmount("");
+        setBetSuccess(false);
+      }, 1500);
+    }
+  }, [isConfirmed, hash, onClose]);
+  
+  // ✅ FIX: Track isPending state from usePools
+  useEffect(() => {
+    if (isPending) {
+      setWaitingForApproval(false);
+      setIsPlacing(true);
+    }
+  }, [isPending]);
+  
+  // Reset states when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setBetAmount("");
+      setBetSuccess(false);
+      setIsPlacing(false);
+      setWaitingForApproval(false);
+    }
+  }, [isOpen]);
   
   // Currency-sensitive quick amounts
   const quickAmounts = pool.usesPrix 
     ? [100, 500, 1000, 2500, 5000, 10000] // PRIX amounts
-    : [1, 5, 10, 25, 50, 100]; // BNB amounts
+    : [1, 5, 10, 25, 50, 100]; // tBNB amounts
   
   // Calculate potential win
   const calculatePotentialWin = (amount: number): number => {
@@ -104,15 +123,54 @@ export default function PlaceBetModal({ pool, isOpen, onClose }: PlaceBetModalPr
     return amount * oddsDecimal;
   };
   
-  // Calculate remaining capacity
+  // ✅ FIX: Calculate REMAINING capacity (not max pool size!)
+  // Remaining = maxBettorStake - totalBettorStake (what's left to bet)
+  // CRITICAL: maxBettorStake is the MAX BETTOR STAKE, NOT the total pool size!
   const getRemainingCapacity = (): number => {
-    const creatorStake = parseFloat(pool.creatorStake || "0");
-    const totalBettorStake = parseFloat(pool.totalBettorStake || "0");
-    const oddsDecimal = pool.odds / 100;
+    // Get total bettor stake (already bet)
+    let totalBettorStake = currentPoolData.totalBettorStake;
+    if (!totalBettorStake || totalBettorStake === 0) {
+      let stake = parseFloat(pool.totalBettorStake || "0");
+      if (stake > 1e15) stake = stake / 1e18;
+      totalBettorStake = stake;
+    }
     
-    // Max bettor stake = (creator stake / (odds - 1))
-    const maxBettorStake = creatorStake / (oddsDecimal - 1);
+    // Get max bettor stake (capacity limit) - THIS IS THE KEY!
+    // maxBettorStake = (effectiveCreatorSideStake * 100) / (odds - 100)
+    // This is the MAXIMUM that bettors can bet, NOT the total pool size
+    let maxBettorStake = currentPoolData.maxBettorStake;
+    if (!maxBettorStake || maxBettorStake === 0) {
+      let stake = parseFloat(pool.maxBettorStake || "0");
+      if (stake > 1e15) stake = stake / 1e18;
+      maxBettorStake = stake;
+      
+      // ✅ FALLBACK: If maxBettorStake is still 0 or invalid, calculate it
+      if (!maxBettorStake || maxBettorStake === 0) {
+        const effectiveCreatorSideStake = currentPoolData.totalCreatorSideStake || parseFloat(pool.totalCreatorSideStake || pool.creatorStake || "0");
+        const odds = pool.odds || 130; // Default to 1.30x if not set
+        const denominator = odds - 100;
+        if (denominator > 0) {
+          maxBettorStake = (effectiveCreatorSideStake * 100) / denominator;
+          console.log(`🔧 PlaceBetModal: Calculated maxBettorStake from formula:`, {
+            effectiveCreatorSideStake,
+            odds,
+            denominator,
+            maxBettorStake
+          });
+        }
+      }
+    }
+    
+    // REMAINING = maxBettorStake - totalBettorStake (NOT maxPoolSize!)
     const remaining = Math.max(0, maxBettorStake - totalBettorStake);
+    
+    console.log(`🔍 PlaceBetModal REMAINING capacity for pool ${pool.id}:`, {
+      maxBettorStake,
+      totalBettorStake,
+      remaining,
+      poolMaxBettorStake: pool.maxBettorStake,
+      currentPoolData
+    });
     
     return remaining;
   };
@@ -132,6 +190,13 @@ export default function PlaceBetModal({ pool, isOpen, onClose }: PlaceBetModalPr
       return;
     }
     
+    // ✅ FIX: Add validation for exceeding remaining capacity
+    if (betAmountNum > remainingCapacity) {
+      const currencySymbol = pool.usesPrix ? 'PRIX' : 'tBNB';
+      toast.error(`Bet amount exceeds remaining capacity of ${remainingCapacity.toFixed(2)} ${currencySymbol}`);
+      return;
+    }
+    
     if (!canPlaceBet) {
       toast.error("Invalid bet amount");
       return;
@@ -143,40 +208,22 @@ export default function PlaceBetModal({ pool, isOpen, onClose }: PlaceBetModalPr
     }
     
     try {
-      // Store initial stake before placing bet
-      const currentStake = parseFloat(pool.totalBettorStake || "0");
-      setInitialStake(currentStake);
+      setWaitingForApproval(true);
+      setIsPlacing(false);
+      setBetSuccess(false);
       
-      setIsPlacing(true);
-      
-      // Show initial loading toast
-      toast.loading("Preparing transaction...", { id: 'bet-tx' });
-      
-      // Call placeBet - it expects human-readable amount string (e.g., "50"), NOT wei
-      // The placeBet function in usePools will convert to wei internally using parseUnits
-      // For PRIX pools, this may return early if approval is needed
-      // The usePools hook handles approval flow and transaction feedback automatically
+      // ✅ FIX: Call placeBet and let wagmi hooks handle the rest
       await placeBet(pool.id, betAmountNum.toString(), pool.usesPrix);
       
-      // ✅ FIX: For both PRIX and BNB pools, poll for transaction success
-      // The useEffect above will detect when the bet is placed by checking pool progress
-      if (pool.usesPrix) {
-        // For PRIX pools, might need approval - wait for approval confirmation
-        setWaitingForApproval(true);
-        toast.loading("Approval may be required. Please confirm in your wallet...", { id: 'bet-tx' });
-      } else {
-        // For BNB pools, transaction should be immediate
-        // Poll for success via useEffect above
-        toast.loading("Waiting for transaction confirmation...", { id: 'bet-tx' });
-      }
+      console.log('🎯 Bet transaction initiated');
       
+      // Let the useEffect handle the rest based on wagmi hooks
     } catch (error: unknown) {
       console.error("Error placing bet:", error);
       const errorMessage = error instanceof Error ? error.message : "Failed to place bet";
       toast.error(errorMessage, { id: 'bet-tx' });
       setIsPlacing(false);
       setWaitingForApproval(false);
-      setInitialStake(null);
     }
   };
   
@@ -323,7 +370,7 @@ export default function PlaceBetModal({ pool, isOpen, onClose }: PlaceBetModalPr
                       transition={{ delay: 0.4 }}
                       className="text-gray-300 text-sm mt-2"
                     >
-                      Potential win: {potentialWin.toFixed(2)} {pool.usesPrix ? 'PRIX' : 'BNB'}
+                      Potential win: {potentialWin.toFixed(2)} {pool.usesPrix ? 'PRIX' : 'tBNB'}
                     </motion.p>
                   </motion.div>
                 </motion.div>
@@ -361,7 +408,7 @@ export default function PlaceBetModal({ pool, isOpen, onClose }: PlaceBetModalPr
                   <div>
                     <p className="text-[10px] text-gray-400 mb-0.5">Potential Win</p>
                     <p className="text-base font-bold text-green-400">
-                      {potentialWin.toFixed(2)} {pool.usesPrix ? 'PRIX' : 'BNB'}
+                      {potentialWin.toFixed(2)} {pool.usesPrix ? 'PRIX' : 'tBNB'}
                     </p>
                   </div>
                 </div>
@@ -370,7 +417,7 @@ export default function PlaceBetModal({ pool, isOpen, onClose }: PlaceBetModalPr
               {/* Bet Amount Input */}
               <div className="mb-3">
                 <label className="block text-xs font-medium text-gray-300 mb-1.5">
-                  Bet Amount ({pool.usesPrix ? 'PRIX' : 'BNB'})
+                  Bet Amount ({pool.usesPrix ? 'PRIX' : 'tBNB'})
                 </label>
                 <div className="relative">
                   <input
@@ -379,12 +426,12 @@ export default function PlaceBetModal({ pool, isOpen, onClose }: PlaceBetModalPr
                     onChange={(e) => setBetAmount(e.target.value)}
                     onClick={(e) => e.stopPropagation()}
                     onFocus={(e) => e.stopPropagation()}
-                    placeholder="0.00"
+                    placeholder="0"
                     disabled={isPlacing || !isBettingOpen || betSuccess}
-                    className="w-full px-3 py-2.5 text-lg font-bold text-white bg-gray-800/50 border-2 border-gray-700 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full px-3 py-2.5 pr-16 text-lg font-bold text-white bg-gray-800/50 border-2 border-gray-700 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
-                    {pool.usesPrix ? 'PRIX' : 'BNB'}
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">
+                    {pool.usesPrix ? 'PRIX' : 'tBNB'}
                   </div>
                 </div>
                 
@@ -399,7 +446,7 @@ export default function PlaceBetModal({ pool, isOpen, onClose }: PlaceBetModalPr
                       }}
                       disabled={isPlacing || !isBettingOpen || amount > remainingCapacity || betSuccess}
                       className="px-1.5 py-1.5 text-[10px] font-medium bg-gray-800/50 hover:bg-gray-700/50 border border-gray-700 rounded-md text-gray-300 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                      title={`${amount} ${pool.usesPrix ? 'PRIX' : 'BNB'}`}
+                      title={`${amount} ${pool.usesPrix ? 'PRIX' : 'tBNB'}`}
                     >
                       {formatQuickAmount(amount)}
                     </button>
@@ -410,7 +457,7 @@ export default function PlaceBetModal({ pool, isOpen, onClose }: PlaceBetModalPr
                 <div className="mt-1.5 flex items-center justify-between text-[10px]">
                   <span className="text-gray-400">Remaining</span>
                   <span className="text-gray-300 font-medium">
-                    {remainingCapacity.toFixed(2)} {pool.usesPrix ? 'PRIX' : 'BNB'}
+                    {remainingCapacity.toFixed(2)} {pool.usesPrix ? 'PRIX' : 'tBNB'}
                   </span>
                 </div>
               </div>
@@ -459,7 +506,7 @@ export default function PlaceBetModal({ pool, isOpen, onClose }: PlaceBetModalPr
                 <div className="flex items-center gap-1.5 p-2 bg-orange-500/10 border border-orange-500/30 rounded-lg mb-2">
                   <ExclamationCircleIcon className="w-4 h-4 text-orange-400 flex-shrink-0" />
                   <p className="text-xs text-orange-400">
-                    Max: {remainingCapacity.toFixed(2)} {pool.usesPrix ? 'PRIX' : 'BNB'}
+                    Max: {remainingCapacity.toFixed(2)} {pool.usesPrix ? 'PRIX' : 'tBNB'}
                   </p>
                 </div>
               )}
@@ -521,4 +568,3 @@ export default function PlaceBetModal({ pool, isOpen, onClose }: PlaceBetModalPr
     </AnimatePresence>
   );
 }
-

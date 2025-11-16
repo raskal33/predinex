@@ -1,0 +1,219 @@
+/* Predinex Custom Styles - BSC/Binance Theme Override */
+
+:root {
+  /* BSC/Binance Brand Colors */
+  --predinex-yellow: #FFC107;
+  --predinex-gold: #F7B600;
+  --predinex-green: #10B981;
+  --predinex-emerald: #059669;
+  --predinex-dark: #0F1419;
+  --predinex-bg: #0a0a1a;
+  --predinex-surface: rgba(31, 41, 55, 0.5);
+  --predinex-border: rgba(255, 193, 7, 0.08);
+  --predinex-text-primary: #FFFFFF;
+  --predinex-text-secondary: #E5E7EB;
+  --predinex-text-muted: #9CA3AF;
+}
+
+/* Override primary colors to BSC Yellow */
+:root {
+  --ifm-color-primary: var(--predinex-yellow);
+  --ifm-color-primary-dark: var(--predinex-gold);
+  --ifm-color-primary-darker: #E6A000;
+  --ifm-color-primary-darkest: #CC8F00;
+  --ifm-color-primary-light: #FFD54F;
+  --ifm-color-primary-lighter: #FFE082;
+  --ifm-color-primary-lightest: #FFECB3;
+  --ifm-color-primary-contrast-background: rgba(255, 193, 7, 0.1);
+  --ifm-color-primary-contrast-foreground: #000000;
+}
+
+/* Override success colors to Emerald Green */
+:root {
+  --ifm-color-success: var(--predinex-green);
+  --ifm-color-success-dark: var(--predinex-emerald);
+  --ifm-color-success-darker: #047857;
+  --ifm-color-success-darkest: #065F46;
+  --ifm-color-success-light: #34D399;
+  --ifm-color-success-lighter: #6EE7B7;
+  --ifm-color-success-lightest: #A7F3D0;
+}
+
+/* Background colors */
+:root {
+  --ifm-background-color: var(--predinex-bg);
+  --ifm-background-surface-color: var(--predinex-surface);
+  --ifm-navbar-background-color: rgba(15, 20, 25, 0.95);
+  --ifm-footer-background-color: rgba(15, 20, 25, 0.95);
+}
+
+/* Text colors */
+:root {
+  --ifm-font-color-base: var(--predinex-text-secondary);
+  --ifm-heading-color: var(--predinex-text-primary);
+  --ifm-color-content: var(--predinex-text-secondary);
+  --ifm-color-content-secondary: var(--predinex-text-muted);
+}
+
+/* Border colors */
+:root {
+  --ifm-toc-border-color: var(--predinex-border);
+  --ifm-color-emphasis-300: rgba(255, 193, 7, 0.12);
+  --ifm-color-emphasis-200: rgba(255, 193, 7, 0.08);
+}
+
+/* Link colors */
+:root {
+  --ifm-link-color: var(--predinex-yellow);
+  --ifm-link-hover-color: var(--predinex-gold);
+}
+
+/* Button colors */
+.button--primary {
+  background: linear-gradient(135deg, var(--predinex-yellow) 0%, var(--predinex-gold) 100%);
+  color: #000000;
+  border-color: var(--predinex-yellow);
+}
+
+.button--primary:hover {
+  background: linear-gradient(135deg, var(--predinex-gold) 0%, #E6A000 100%);
+  border-color: var(--predinex-gold);
+}
+
+.button--secondary {
+  background: linear-gradient(135deg, var(--predinex-green) 0%, var(--predinex-emerald) 100%);
+  color: #FFFFFF;
+  border-color: var(--predinex-green);
+}
+
+.button--secondary:hover {
+  background: linear-gradient(135deg, var(--predinex-emerald) 0%, #047857 100%);
+  border-color: var(--predinex-emerald);
+}
+
+/* Navbar gradient text */
+.navbar__link:hover,
+.footer__link-item:hover,
+.theme-doc-markdown h1 {
+  background: linear-gradient(135deg, var(--predinex-yellow) 0%, var(--predinex-green) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Gradient text class */
+.gradient-text {
+  background: linear-gradient(135deg, var(--predinex-yellow) 0%, var(--predinex-green) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Code blocks */
+.theme-code-block {
+  background: rgba(15, 20, 25, 0.8) !important;
+  border: 1px solid var(--predinex-border) !important;
+}
+
+code {
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid var(--predinex-border);
+  color: var(--predinex-yellow);
+}
+
+/* Cards */
+.card {
+  background: var(--predinex-surface);
+  border: 1px solid var(--predinex-border);
+  backdrop-filter: blur(8px);
+}
+
+.card:hover {
+  border-color: rgba(255, 193, 7, 0.2);
+  box-shadow: 0 12px 40px rgba(255, 193, 7, 0.15);
+}
+
+/* Menu active state */
+.menu__link--active {
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%);
+  color: var(--predinex-yellow);
+}
+
+/* Breadcrumbs */
+.breadcrumbs__link:hover,
+.breadcrumbs__item--active .breadcrumbs__link {
+  color: var(--predinex-yellow);
+}
+
+/* Tabs */
+.tabs__item--active {
+  color: var(--predinex-yellow);
+  border-bottom-color: var(--predinex-yellow);
+}
+
+/* Badges */
+.badge--primary {
+  background-color: var(--predinex-yellow);
+  color: #000000;
+}
+
+.badge--success {
+  background-color: var(--predinex-green);
+  color: #FFFFFF;
+}
+
+/* Alerts */
+.alert--primary {
+  --ifm-alert-background-color: rgba(255, 193, 7, 0.1);
+  --ifm-alert-border-color: var(--predinex-yellow);
+  --ifm-alert-foreground-color: var(--predinex-yellow);
+}
+
+.alert--success {
+  --ifm-alert-background-color: rgba(16, 185, 129, 0.1);
+  --ifm-alert-border-color: var(--predinex-green);
+  --ifm-alert-foreground-color: var(--predinex-green);
+}
+
+/* Table of contents */
+.table-of-contents__link--active,
+.table-of-contents__link:hover {
+  color: var(--predinex-yellow);
+}
+
+/* Pagination */
+.pagination__item--active .pagination__link {
+  color: var(--predinex-yellow);
+}
+
+/* Hero section */
+.hero--primary {
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%);
+}
+
+/* Footer */
+.footer--dark {
+  background-color: rgba(15, 20, 25, 0.95);
+  border-top: 1px solid var(--predinex-border);
+}
+
+/* Sidebar */
+.theme-doc-sidebar-container {
+  background: rgba(15, 20, 25, 0.5);
+  border-right: 1px solid var(--predinex-border) !important;
+}
+
+/* Dark theme overrides */
+html[data-theme=dark] {
+  --ifm-background-color: var(--predinex-bg);
+  --ifm-background-surface-color: var(--predinex-surface);
+  --ifm-color-emphasis-200: rgba(255, 193, 7, 0.08);
+  --ifm-color-emphasis-300: rgba(255, 193, 7, 0.12);
+}
+
+/* Body background */
+body {
+  background: linear-gradient(135deg, #0F1419 0%, #1F2937 50%, #111827 100%);
+  background-image: radial-gradient(circle at top left, rgba(255, 193, 7, 0.05), rgba(16, 185, 129, 0.05));
+}
+

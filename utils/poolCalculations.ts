@@ -118,6 +118,18 @@ export function calculateProfit(
 }
 
 /**
+ * Calculate sell odds (liquidity provider odds)
+ * Formula: buyOdds / (buyOdds - 1)
+ * 
+ * @param buyOdds - Buy odds (e.g., 1.65)
+ * @returns Sell odds
+ */
+export function calculateSellOdds(buyOdds: number): number {
+  if (buyOdds <= 1) return 2.0; // Default fallback
+  return buyOdds / (buyOdds - 1);
+}
+
+/**
  * Example calculation for your scenario:
  * - Creator stake: 600 PRIX
  * - Odds: 1.65

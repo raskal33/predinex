@@ -22,9 +22,11 @@ import { getPoolStatusDisplay, getStatusBadgeProps } from "../utils/poolStatus";
 import { getPoolIcon } from "../services/crypto-icons";
 import { titleTemplatesService } from "../services/title-templates";
 import PlaceBetModal from "./PlaceBetModal";
+import AddLiquidityModal from "./AddLiquidityModal";
 import { usePoolSocialStats } from "../hooks/usePoolSocialStats";
 import { HeartIcon as HeartIconSolid } from "@heroicons/react/24/solid";
 import UserAddressLink from "./UserAddressLink";
+import { usePoolProgress } from "../hooks/usePoolProgress";
 
   // Enhanced Pool interface with indexed data
 export interface EnhancedPool {
@@ -66,6 +68,7 @@ export interface EnhancedPool {
   homeTeamLogo?: string;
   awayTeamLogo?: string;
   leagueLogo?: string;
+  cryptoLogo?: string;
   
   // Optional fields for enhanced display
   boostTier: 'NONE' | 'BRONZE' | 'SILVER' | 'GOLD';
@@ -134,7 +137,27 @@ export default function EnhancedPoolCard({
   const [indexedData, setIndexedData] = useState(pool.indexedData);
   const [showBoostModal, setShowBoostModal] = useState(false);
   const [showBetModal, setShowBetModal] = useState(false);
+  const [showLiquidityModal, setShowLiquidityModal] = useState(false);
   
+  // ✅ CRITICAL: Use real-time pool progress updates to get latest pool data
+  const [currentPoolData, setCurrentPoolData] = useState({
+    totalCreatorSideStake: parseFloat(pool.totalCreatorSideStake || pool.creatorStake || "0"),
+    totalBettorStake: parseFloat(pool.totalBettorStake || "0"),
+    maxBettorStake: parseFloat(pool.maxBettorStake || "0"),
+    fillPercentage: indexedData?.fillPercentage || 0
+  });
+  
+  usePoolProgress(pool.id.toString(), (progressData) => {
+    // Update pool data when progress changes (e.g., LP added, bets placed)
+    setCurrentPoolData(prev => ({
+      ...prev,
+      totalCreatorSideStake: parseFloat(progressData.effectiveCreatorSideStake || progressData.totalCreatorSideStake || "0"),
+      totalBettorStake: parseFloat(progressData.totalBettorStake || "0"),
+      maxBettorStake: parseFloat(progressData.currentMaxBettorStake || "0"),
+      fillPercentage: progressData.fillPercentage
+    }));
+  });
+
   // ✅ Social stats hook
   const { socialStats, isLiked, isLoading, trackView, toggleLike, fetchStats } = usePoolSocialStats(pool.id);
   
@@ -702,7 +725,7 @@ export default function EnhancedPoolCard({
               
               // Show precise number to avoid confusion
               return totalFilled.toFixed(2);
-            })()} {pool.usesPrix ? 'PRIX' : 'BNB'} Filled
+            })()} {pool.usesPrix ? 'PRIX' : 'tBNB'} Filled
           </span>
           <span>
             {(() => {
@@ -732,7 +755,7 @@ export default function EnhancedPoolCard({
               
               // Show precise number to avoid confusion and reverted transactions
               return totalCapacity.toFixed(2);
-            })()} {pool.usesPrix ? 'PRIX' : 'BNB'} Capacity
+            })()} {pool.usesPrix ? 'PRIX' : 'tBNB'} Capacity
           </span>
         </div>
       </div>
@@ -855,7 +878,7 @@ export default function EnhancedPoolCard({
             <CurrencyDollarIcon className="w-3 h-3" />
             Creator Stake
           </div>
-          <div className="text-sm font-bold text-white">{formatStake(pool.creatorStake)} {pool.usesPrix ? 'PRIX' : 'BNB'}</div>
+          <div className="text-sm font-bold text-white">{formatStake(pool.creatorStake)} {pool.usesPrix ? 'PRIX' : 'tBNB'}</div>
         </div>
         <div>
           <div className="text-xs text-gray-400 flex items-center justify-center gap-1">
@@ -958,7 +981,7 @@ export default function EnhancedPoolCard({
               if (avgBet >= 1000000) return `${(avgBet / 1000000).toFixed(1)}M`;
               if (avgBet >= 1000) return `${(avgBet / 1000).toFixed(1)}K`;
               return avgBet > 0 ? avgBet.toFixed(2) : '0.00';
-            })()} {pool.usesPrix ? 'PRIX' : 'BNB'}
+            })()} {pool.usesPrix ? 'PRIX' : 'tBNB'}
           </div>
         </div>
       </div>
@@ -1081,9 +1104,25 @@ export default function EnhancedPoolCard({
       
       {/* Place Bet Modal */}
       <PlaceBetModal
-        pool={pool}
+        pool={{
+          ...pool,
+          // ✅ CRITICAL: Pass real-time updated pool data
+          totalCreatorSideStake: currentPoolData.totalCreatorSideStake.toString(),
+          totalBettorStake: currentPoolData.totalBettorStake.toString(),
+          maxBettorStake: currentPoolData.maxBettorStake.toString()
+        }}
         isOpen={showBetModal}
         onClose={() => setShowBetModal(false)}
+      />
+      <AddLiquidityModal
+        pool={{
+          ...pool,
+          // ✅ CRITICAL: Pass real-time updated pool data
+          totalCreatorSideStake: currentPoolData.totalCreatorSideStake.toString(),
+          maxBettorStake: currentPoolData.maxBettorStake.toString()
+        }}
+        isOpen={showLiquidityModal}
+        onClose={() => setShowLiquidityModal(false)}
       />
     </motion.div>
   );
