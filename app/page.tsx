@@ -212,9 +212,12 @@ export default function HomePage() {
     fetchPools();
   }, [fetchPlatformStats, fetchPools]);
 
-  const filteredPools = enhancedPools.filter(pool => 
-    activeCategory === "" || pool.category === activeCategory
-  );
+  const filteredPools = enhancedPools.filter(pool => {
+    if (activeCategory === "" || activeCategory === "All") {
+      return true;
+    }
+    return pool.category === activeCategory;
+  });
 
   const categories = ["All", "football", "crypto", "basketball", "other"];
 

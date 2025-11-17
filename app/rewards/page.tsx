@@ -7,10 +7,16 @@ import {
   TrophyIcon, 
   SparklesIcon,
   CheckCircleIcon,
-  CurrencyDollarIcon
+  CurrencyDollarIcon,
+  ChartBarIcon,
+  ClockIcon,
+  FireIcon
 } from '@heroicons/react/24/outline';
+import { FaChartLine, FaSearch } from 'react-icons/fa';
 import PrizeClaimModal from '@/components/PrizeClaimModal';
 import { toast } from 'react-hot-toast';
+import Button from '@/components/button';
+import RecentBetsLane from '@/components/RecentBetsLane';
 
 interface Reward {
   type: 'pool' | 'combo' | 'oddyssey';
@@ -51,12 +57,32 @@ interface RewardsData {
   };
 }
 
+interface PlatformClaim {
+  id: string;
+  type: 'pool' | 'combo' | 'oddyssey';
+  poolId: string;
+  userAddress: string;
+  amount: number;
+  currency: string;
+  claimedAt: string;
+  txHash?: string;
+  league?: string;
+  category?: string;
+  outcome?: string;
+}
+
+type FilterType = 'all' | 'pool' | 'combo' | 'oddyssey';
+
 export default function RewardsPage() {
   const { address, isConnected } = useAccount();
   const [rewards, setRewards] = useState<RewardsData | null>(null);
+  const [platformClaims, setPlatformClaims] = useState<PlatformClaim[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'pool' | 'combo' | 'oddyssey'>('all');
+  const [isLoadingEvents, setIsLoadingEvents] = useState(true);
+  const [filter, setFilter] = useState<FilterType>('all');
+  const [searchTerm, setSearchTerm] = useState('');
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
+  const [showEvents, setShowEvents] = useState(false);
   
   const fetchRewards = useCallback(async () => {
     if (!address) return;
@@ -78,12 +104,30 @@ export default function RewardsPage() {
     }
   }, [address]);
   
+  const fetchPlatformClaims = useCallback(async () => {
+    try {
+      setIsLoadingEvents(true);
+      const response = await fetch('/api/rewards/events/all?limit=100');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setPlatformClaims(data.data.claims);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching platform claims:', error);
+    } finally {
+      setIsLoadingEvents(false);
+    }
+  }, []);
+  
   // Initial fetch
   useEffect(() => {
     if (isConnected && address) {
       fetchRewards();
     }
-  }, [isConnected, address, fetchRewards]);
+    fetchPlatformClaims();
+  }, [isConnected, address, fetchRewards, fetchPlatformClaims]);
   
   // Poll for updates every 10 seconds
   useEffect(() => {
@@ -91,241 +135,487 @@ export default function RewardsPage() {
     
     const interval = setInterval(() => {
       fetchRewards();
-    }, 10000); // Poll every 10 seconds
+      fetchPlatformClaims();
+    }, 10000);
     
     return () => clearInterval(interval);
-  }, [address, isConnected, fetchRewards]);
+  }, [address, isConnected, fetchRewards, fetchPlatformClaims]);
   
   const filteredRewards = rewards?.rewards.all.filter(reward => {
-    if (filter === 'all') return true;
-    return reward.type === filter;
+    if (filter !== 'all' && reward.type !== filter) return false;
+    if (searchTerm) {
+      const search = searchTerm.toLowerCase();
+      return (
+        reward.league?.toLowerCase().includes(search) ||
+        reward.category?.toLowerCase().includes(search) ||
+        reward.title?.toLowerCase().includes(search) ||
+        reward.predictedOutcome?.toLowerCase().includes(search)
+      );
+    }
+    return true;
   }) || [];
   
+  const filteredClaims = platformClaims.filter(claim => {
+    if (searchTerm) {
+      const search = searchTerm.toLowerCase();
+      return (
+        claim.userAddress.toLowerCase().includes(search) ||
+        claim.league?.toLowerCase().includes(search) ||
+        claim.category?.toLowerCase().includes(search) ||
+        claim.outcome?.toLowerCase().includes(search)
+      );
+    }
+    return true;
+  });
+  
   const formatAmount = (amount: number, currency: string) => {
+    if (amount >= 1000) {
+      return `${(amount / 1000).toFixed(2)}K ${currency}`;
+    }
     return `${amount.toFixed(4)} ${currency}`;
   };
   
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     });
+  };
+  
+  const formatAddress = (address: string) => {
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
   
   if (!isConnected || !address) {
     return (
-      <div className="container-nav section-padding min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
         <div className="text-center">
           <TrophyIcon className="h-16 w-16 text-gray-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-text-primary mb-2">Connect Your Wallet</h2>
-          <p className="text-text-secondary">Please connect your wallet to view your rewards</p>
+          <h2 className="text-2xl font-bold text-white mb-2">Connect Your Wallet</h2>
+          <p className="text-gray-400">Please connect your wallet to view your rewards</p>
         </div>
       </div>
     );
   }
   
   return (
-    <div className="container-nav section-padding min-h-screen">
-      {/* Header */}
-      <div className="mb-8">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-3 mb-4"
-        >
-          <TrophyIcon className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl font-bold text-text-primary">Rewards</h1>
-        </motion.div>
-        <p className="text-text-secondary">View and claim your winnings from pools and Oddyssey</p>
-      </div>
-      
-      {/* Summary Cards */}
-      {rewards && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8"
-        >
-          <div className="glass-card p-6 border border-border-card">
-            <div className="flex items-center gap-3 mb-2">
-              <CurrencyDollarIcon className="h-6 w-6 text-green-400" />
-              <span className="text-text-secondary text-sm">Total Claimable</span>
-            </div>
-            <div className="text-2xl font-bold text-text-primary">
-              {formatAmount(rewards.summary.totalClaimable, 'BNB')}
-            </div>
-          </div>
-          
-          <div className="glass-card p-6 border border-border-card">
-            <div className="flex items-center gap-3 mb-2">
-              <TrophyIcon className="h-6 w-6 text-primary" />
-              <span className="text-text-secondary text-sm">Pool Rewards</span>
-            </div>
-            <div className="text-2xl font-bold text-text-primary">
-              {rewards.summary.poolCount}
-            </div>
-          </div>
-          
-          <div className="glass-card p-6 border border-border-card">
-            <div className="flex items-center gap-3 mb-2">
-              <SparklesIcon className="h-6 w-6 text-secondary" />
-              <span className="text-text-secondary text-sm">Combo Rewards</span>
-            </div>
-            <div className="text-2xl font-bold text-text-primary">
-              {rewards.summary.comboCount}
-            </div>
-          </div>
-          
-          <div className="glass-card p-6 border border-border-card">
-            <div className="flex items-center gap-3 mb-2">
-              <TrophyIcon className="h-6 w-6 text-accent" />
-              <span className="text-text-secondary text-sm">Oddyssey Prizes</span>
-            </div>
-            <div className="text-2xl font-bold text-text-primary">
-              {rewards.summary.oddysseyCount}
-            </div>
-          </div>
-        </motion.div>
-      )}
-      
-      {/* Filters */}
-      <div className="flex gap-2 mb-6">
-        {(['all', 'pool', 'combo', 'oddyssey'] as const).map((filterType) => (
-          <button
-            key={filterType}
-            onClick={() => setFilter(filterType)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              filter === filterType
-                ? 'bg-gradient-primary text-black'
-                : 'bg-bg-card text-text-secondary hover:text-text-primary hover:bg-bg-card-hover'
-            }`}
-          >
-            {filterType.charAt(0).toUpperCase() + filterType.slice(1)}
-          </button>
-        ))}
-      </div>
-      
-      {/* Rewards List */}
-      {isLoading ? (
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <SparklesIcon className="h-12 w-12 text-primary animate-spin mx-auto mb-2" />
-            <span className="text-text-secondary">Loading rewards...</span>
-          </div>
-        </div>
-      ) : filteredRewards.length === 0 ? (
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <TrophyIcon className="h-16 w-16 text-gray-500 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-text-primary mb-2">No Rewards Yet</h3>
-            <p className="text-text-secondary">Start betting to earn rewards!</p>
-          </div>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          <AnimatePresence>
-            {filteredRewards.map((reward) => (
-              <motion.div
-                key={`${reward.type}-${reward.id}`}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="glass-card p-6 border border-border-card hover:border-primary/50 transition-colors"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      {reward.type === 'pool' && (
-                        <TrophyIcon className="h-5 w-5 text-primary" />
-                      )}
-                      {reward.type === 'combo' && (
-                        <SparklesIcon className="h-5 w-5 text-secondary" />
-                      )}
-                      {reward.type === 'oddyssey' && (
-                        <TrophyIcon className="h-5 w-5 text-accent" />
-                      )}
-                      <h3 className="text-lg font-bold text-text-primary">
-                        {reward.type === 'pool' && `${reward.league} - ${reward.category}`}
-                        {reward.type === 'combo' && reward.title}
-                        {reward.type === 'oddyssey' && `Cycle ${reward.cycleId} - Slip ${reward.slipId}`}
-                      </h3>
-                      {reward.claimed && (
-                        <CheckCircleIcon className="h-5 w-5 text-green-400" />
-                      )}
-                    </div>
-                    
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                      <div>
-                        <span className="text-text-secondary">Stake:</span>
-                        <div className="font-semibold text-text-primary">
-                          {formatAmount(reward.stakeAmount, reward.currency)}
-                        </div>
-                      </div>
-                      <div>
-                        <span className="text-text-secondary">Reward:</span>
-                        <div className="font-semibold text-green-400">
-                          {formatAmount(reward.claimableAmount || reward.prizeAmount || 0, reward.currency)}
-                        </div>
-                      </div>
-                      {reward.type === 'oddyssey' && (
-                        <>
-                          <div>
-                            <span className="text-text-secondary">Correct:</span>
-                            <div className="font-semibold text-text-primary">
-                              {reward.correctCount}/10
-                            </div>
-                          </div>
-                          <div>
-                            <span className="text-text-secondary">Rank:</span>
-                            <div className="font-semibold text-text-primary">
-                              #{reward.leaderboardRank}
-                            </div>
-                          </div>
-                        </>
-                      )}
-                      {reward.settledAt && (
-                        <div>
-                          <span className="text-text-secondary">Settled:</span>
-                          <div className="font-semibold text-text-primary">
-                            {formatDate(reward.settledAt)}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="ml-4">
-                    {reward.claimed ? (
-                      <div className="flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/30 rounded-lg">
-                        <CheckCircleIcon className="h-5 w-5 text-green-400" />
-                        <span className="text-green-400 font-medium">Claimed</span>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => setIsClaimModalOpen(true)}
-                        className="px-6 py-2 bg-gradient-primary text-black font-semibold rounded-lg hover:opacity-90 transition-opacity"
-                      >
-                        Claim
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
-      )}
-      
-      {/* Claim Modal */}
-      <PrizeClaimModal
-        isOpen={isClaimModalOpen}
-        onClose={() => setIsClaimModalOpen(false)}
-        userAddress={address}
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      {/* Subtle grid pattern background */}
+      <div 
+        className="fixed inset-0 opacity-[0.02] pointer-events-none"
+        style={{
+          backgroundImage: `
+            linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
+          `,
+          backgroundSize: '40px 40px',
+        }}
       />
+      
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative space-y-4 max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6"
+      >
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+          <div>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-1 flex items-center gap-2 sm:gap-3">
+              <TrophyIcon className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+              Rewards
+            </h1>
+            <p className="text-xs sm:text-sm text-gray-400">
+              View and claim your winnings from pools and Oddyssey
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => setIsClaimModalOpen(true)}
+              variant="primary"
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <TrophyIcon className="h-4 w-4" />
+              Claim Rewards
+            </Button>
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+              <span>{rewards?.summary.totalCount || 0} claimable</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Recent Bets Lane */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="mb-4"
+        >
+          <RecentBetsLane className="!p-3" />
+        </motion.div>
+
+        {/* Summary Cards */}
+        {rewards && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4"
+          >
+            <div className="bg-slate-800/30 backdrop-blur-xl border border-slate-700/50 rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <CurrencyDollarIcon className="h-5 w-5 text-green-400" />
+                <span className="text-gray-400 text-xs">Total Claimable</span>
+              </div>
+              <div className="text-xl font-bold text-white">
+                {formatAmount(rewards.summary.totalClaimable, 'BNB')}
+              </div>
+            </div>
+            
+            <div className="bg-slate-800/30 backdrop-blur-xl border border-slate-700/50 rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <TrophyIcon className="h-5 w-5 text-primary" />
+                <span className="text-gray-400 text-xs">Pool Rewards</span>
+              </div>
+              <div className="text-xl font-bold text-white">
+                {rewards.summary.poolCount}
+              </div>
+            </div>
+            
+            <div className="bg-slate-800/30 backdrop-blur-xl border border-slate-700/50 rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <SparklesIcon className="h-5 w-5 text-secondary" />
+                <span className="text-gray-400 text-xs">Combo Rewards</span>
+              </div>
+              <div className="text-xl font-bold text-white">
+                {rewards.summary.comboCount}
+              </div>
+            </div>
+            
+            <div className="bg-slate-800/30 backdrop-blur-xl border border-slate-700/50 rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <TrophyIcon className="h-5 w-5 text-accent" />
+                <span className="text-gray-400 text-xs">Oddyssey Prizes</span>
+              </div>
+              <div className="text-xl font-bold text-white">
+                {rewards.summary.oddysseyCount}
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Filters & Search */}
+        <div className="bg-slate-800/30 backdrop-blur-xl border border-slate-700/50 rounded-xl p-3 mb-4">
+          <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+            {/* Filter Buttons */}
+            <div className="flex flex-wrap gap-1.5 flex-1 min-w-0">
+              {(['all', 'pool', 'combo', 'oddyssey'] as FilterType[]).map((filterType) => (
+                <button
+                  key={filterType}
+                  onClick={() => setFilter(filterType)}
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-medium transition-all text-xs whitespace-nowrap ${
+                    filter === filterType
+                      ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-md shadow-cyan-500/20"
+                      : "bg-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-700/70"
+                  }`}
+                >
+                  {filterType === 'all' && <FaChartLine className="h-3 w-3" />}
+                  {filterType === 'pool' && <TrophyIcon className="h-3 w-3" />}
+                  {filterType === 'combo' && <SparklesIcon className="h-3 w-3" />}
+                  {filterType === 'oddyssey' && <FireIcon className="h-3 w-3" />}
+                  <span className="capitalize">{filterType}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Search */}
+            <div className="relative flex-1 sm:flex-initial sm:w-48 min-w-[120px]">
+              <FaSearch className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-400 h-3.5 w-3.5" />
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-8 pr-3 py-1.5 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white text-xs placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30"
+              />
+            </div>
+
+            {/* Toggle Events */}
+            <button
+              onClick={() => setShowEvents(!showEvents)}
+              className={`px-3 py-1.5 rounded-lg font-medium transition-all text-xs ${
+                showEvents
+                  ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+                  : "bg-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-700/70"
+              }`}
+            >
+              {showEvents ? 'Hide' : 'Show'} Events
+            </button>
+          </div>
+        </div>
+
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 sm:gap-4">
+          {/* Rewards List */}
+          <div className="lg:col-span-3">
+            <div className="bg-slate-800/30 backdrop-blur-xl border border-slate-700/50 rounded-xl p-4">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold text-white">
+                  My Rewards
+                </h2>
+                <span className="text-xs text-gray-400 bg-slate-700/50 px-2 py-0.5 rounded">
+                  {isLoading ? "..." : filteredRewards.length}
+                </span>
+              </div>
+              
+              {isLoading ? (
+                <div className="text-center py-16">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-500 mx-auto mb-4"></div>
+                  <p className="text-gray-400 text-sm">Loading rewards...</p>
+                </div>
+              ) : filteredRewards.length === 0 ? (
+                <div className="text-center py-16">
+                  <TrophyIcon className="h-10 w-10 text-gray-500 mx-auto mb-3" />
+                  <h3 className="text-lg font-bold text-white mb-2">No Rewards Found</h3>
+                  <p className="text-gray-400 text-sm">
+                    {searchTerm ? 'No rewards match your search.' : 'Start betting to earn rewards!'}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <AnimatePresence>
+                    {filteredRewards.map((reward) => (
+                      <motion.div
+                        key={`${reward.type}-${reward.id}`}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        className="bg-slate-700/30 border border-slate-600/50 rounded-lg p-4 hover:border-cyan-500/50 transition-colors"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-2">
+                              {reward.type === 'pool' && <TrophyIcon className="h-4 w-4 text-primary flex-shrink-0" />}
+                              {reward.type === 'combo' && <SparklesIcon className="h-4 w-4 text-secondary flex-shrink-0" />}
+                              {reward.type === 'oddyssey' && <FireIcon className="h-4 w-4 text-accent flex-shrink-0" />}
+                              <h3 className="text-sm font-bold text-white truncate">
+                                {reward.type === 'pool' && `${reward.league} - ${reward.category}`}
+                                {reward.type === 'combo' && reward.title}
+                                {reward.type === 'oddyssey' && `Cycle ${reward.cycleId} - Slip ${reward.slipId}`}
+                              </h3>
+                              {reward.claimed && <CheckCircleIcon className="h-4 w-4 text-green-400 flex-shrink-0" />}
+                            </div>
+                            
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                              <div>
+                                <span className="text-gray-400">Stake:</span>
+                                <div className="font-semibold text-white">
+                                  {formatAmount(reward.stakeAmount, reward.currency)}
+                                </div>
+                              </div>
+                              <div>
+                                <span className="text-gray-400">Reward:</span>
+                                <div className="font-semibold text-green-400">
+                                  {formatAmount(reward.claimableAmount || reward.prizeAmount || 0, reward.currency)}
+                                </div>
+                              </div>
+                              {reward.type === 'oddyssey' && (
+                                <>
+                                  <div>
+                                    <span className="text-gray-400">Correct:</span>
+                                    <div className="font-semibold text-white">
+                                      {reward.correctCount}/10
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <span className="text-gray-400">Rank:</span>
+                                    <div className="font-semibold text-white">
+                                      #{reward.leaderboardRank}
+                                    </div>
+                                  </div>
+                                </>
+                              )}
+                              {reward.settledAt && (
+                                <div>
+                                  <span className="text-gray-400">Settled:</span>
+                                  <div className="font-semibold text-white text-[10px]">
+                                    {formatDate(reward.settledAt)}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          
+                          <div className="ml-4 flex-shrink-0">
+                            {reward.claimed ? (
+                              <div className="flex items-center gap-2 px-3 py-1.5 bg-green-500/10 border border-green-500/30 rounded-lg">
+                                <CheckCircleIcon className="h-4 w-4 text-green-400" />
+                                <span className="text-green-400 font-medium text-xs">Claimed</span>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => setIsClaimModalOpen(true)}
+                                className="px-4 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-semibold rounded-lg hover:opacity-90 transition-opacity text-xs"
+                              >
+                                Claim
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Sidebar */}
+          <div className="lg:col-span-1 space-y-3">
+            {/* Quick Stats */}
+            <div className="bg-slate-800/30 backdrop-blur-xl border border-slate-700/50 rounded-xl p-4">
+              <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                <ChartBarIcon className="h-4 w-4 text-cyan-400" />
+                Summary
+              </h3>
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Total Claimable</span>
+                  <span className="text-white font-semibold">
+                    {rewards ? formatAmount(rewards.summary.totalClaimable, 'BNB') : '0 BNB'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Pool Rewards</span>
+                  <span className="text-white font-semibold">{rewards?.summary.poolCount || 0}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Combo Rewards</span>
+                  <span className="text-white font-semibold">{rewards?.summary.comboCount || 0}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Oddyssey Prizes</span>
+                  <span className="text-white font-semibold">{rewards?.summary.oddysseyCount || 0}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Claim Button */}
+            <div className="bg-slate-800/30 backdrop-blur-xl border border-slate-700/50 rounded-xl p-4">
+              <Button
+                onClick={() => setIsClaimModalOpen(true)}
+                variant="primary"
+                fullWidth
+                className="flex items-center justify-center gap-2"
+              >
+                <TrophyIcon className="h-4 w-4" />
+                Claim All Rewards
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Events Table */}
+        {showEvents && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-slate-800/30 backdrop-blur-xl border border-slate-700/50 rounded-xl p-4 mt-4"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <ClockIcon className="h-5 w-5 text-cyan-400" />
+                Platform Claims Events
+              </h2>
+              <span className="text-xs text-gray-400 bg-slate-700/50 px-2 py-0.5 rounded">
+                {isLoadingEvents ? "..." : filteredClaims.length}
+              </span>
+            </div>
+            
+            {isLoadingEvents ? (
+              <div className="text-center py-16">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-500 mx-auto mb-4"></div>
+                <p className="text-gray-400 text-sm">Loading events...</p>
+              </div>
+            ) : filteredClaims.length === 0 ? (
+              <div className="text-center py-16">
+                <ClockIcon className="h-10 w-10 text-gray-500 mx-auto mb-3" />
+                <h3 className="text-lg font-bold text-white mb-2">No Claims Yet</h3>
+                <p className="text-gray-400 text-sm">Platform claims will appear here</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-700/50">
+                      <th className="text-left py-3 px-4 text-gray-400 font-medium">Type</th>
+                      <th className="text-left py-3 px-4 text-gray-400 font-medium">User</th>
+                      <th className="text-left py-3 px-4 text-gray-400 font-medium">Amount</th>
+                      <th className="text-left py-3 px-4 text-gray-400 font-medium">Category</th>
+                      <th className="text-left py-3 px-4 text-gray-400 font-medium">Time</th>
+                      <th className="text-left py-3 px-4 text-gray-400 font-medium">TX</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredClaims.map((claim) => (
+                      <tr key={claim.id} className="border-b border-slate-700/30 hover:bg-slate-700/20 transition-colors">
+                        <td className="py-3 px-4">
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${
+                            claim.type === 'pool' ? 'bg-cyan-500/20 text-cyan-400' :
+                            claim.type === 'combo' ? 'bg-purple-500/20 text-purple-400' :
+                            'bg-orange-500/20 text-orange-400'
+                          }`}>
+                            {claim.type}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-white font-mono text-xs">
+                          {formatAddress(claim.userAddress)}
+                        </td>
+                        <td className="py-3 px-4 text-green-400 font-semibold">
+                          {formatAmount(claim.amount, claim.currency)}
+                        </td>
+                        <td className="py-3 px-4 text-gray-300 text-xs">
+                          {claim.category || 'N/A'}
+                        </td>
+                        <td className="py-3 px-4 text-gray-400 text-xs">
+                          {formatDate(claim.claimedAt)}
+                        </td>
+                        <td className="py-3 px-4">
+                          {claim.txHash ? (
+                            <a
+                              href={`https://bscscan.com/tx/${claim.txHash}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-cyan-400 hover:text-cyan-300 text-xs"
+                            >
+                              View
+                            </a>
+                          ) : (
+                            <span className="text-gray-500 text-xs">N/A</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </motion.div>
+        )}
+
+        {/* Claim Modal */}
+        <PrizeClaimModal
+          isOpen={isClaimModalOpen}
+          onClose={() => setIsClaimModalOpen(false)}
+          userAddress={address}
+        />
+      </motion.div>
     </div>
   );
 }
-

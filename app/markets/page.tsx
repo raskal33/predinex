@@ -50,6 +50,7 @@ export default function MarketsPage() {
     trendingPools: 0
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [mobileTab, setMobileTab] = useState<'pools' | 'stats'>('pools');
 
   // Convert OptimizedPool to EnhancedPool
   const convertToEnhancedPool = (pool: OptimizedPool & { isSettled?: boolean; creatorSideWon?: boolean }): EnhancedPool => {
@@ -493,10 +494,36 @@ export default function MarketsPage() {
           </div>
         </div>
 
+        {/* Mobile Tabs */}
+        <div className="lg:hidden mb-4">
+          <div className="bg-slate-800/30 backdrop-blur-xl border border-slate-700/50 rounded-xl p-1 flex gap-1">
+            <button
+              onClick={() => setMobileTab('pools')}
+              className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all text-sm ${
+                mobileTab === 'pools'
+                  ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-md"
+                  : "text-gray-400 hover:text-white"
+              }`}
+            >
+              Pools
+            </button>
+            <button
+              onClick={() => setMobileTab('stats')}
+              className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all text-sm ${
+                mobileTab === 'stats'
+                  ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-md"
+                  : "text-gray-400 hover:text-white"
+              }`}
+            >
+              Stats
+            </button>
+          </div>
+        </div>
+
         {/* Markets Grid - Compact Layout - Fully Responsive */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 sm:gap-4">
           {/* Markets List */}
-          <div className="lg:col-span-3 order-2 lg:order-1">
+          <div className={`lg:col-span-3 ${mobileTab === 'pools' ? 'block' : 'hidden lg:block'} order-2 lg:order-1`}>
             <div className="bg-slate-800/30 backdrop-blur-xl border border-slate-700/50 rounded-xl p-4">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
@@ -546,7 +573,7 @@ export default function MarketsPage() {
           </div>
 
           {/* Compact Sidebar - Responsive */}
-          <div className="lg:col-span-1 space-y-3 order-1 lg:order-2">
+          <div className={`lg:col-span-1 space-y-3 ${mobileTab === 'stats' ? 'block' : 'hidden lg:block'} order-1 lg:order-2`}>
             {/* Quick Stats - Compact */}
             <div className="bg-slate-800/30 backdrop-blur-xl border border-slate-700/50 rounded-xl p-4">
               <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">

@@ -50,7 +50,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Predinex - Decentralized Prediction Markets",
     description: "Trade on real-world outcomes with transparent, blockchain-powered markets",
-    creator: "@predinex",
+    creator: "@predinex_",
     images: ["/logo.png"],
   },
 };

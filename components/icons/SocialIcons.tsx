@@ -56,7 +56,7 @@ export function SocialIcons() {
   return (
     <div className="flex items-center gap-4">
       <a 
-        href="https://twitter.com/predinex" 
+        href="https://x.com/predinex_" 
         target="_blank" 
         rel="noopener noreferrer"
         className="p-2 rounded-button bg-bg-card border border-border-card text-text-muted hover:text-primary hover:bg-[rgba(255,255,255,0.05)] hover:border-primary/30 hover:shadow-glow-cyan transition-all duration-200"
