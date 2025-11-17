@@ -68,27 +68,27 @@
   --ifm-link-hover-color: var(--predinex-gold);
 }
 
-/* Button colors */
+/* Button colors - Updated to Predinex palette (cyan/blue) */
 .button--primary {
-  background: linear-gradient(135deg, var(--predinex-yellow) 0%, var(--predinex-gold) 100%);
-  color: #000000;
-  border-color: var(--predinex-yellow);
+  background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+  color: #FFFFFF;
+  border-color: #06b6d4;
 }
 
 .button--primary:hover {
-  background: linear-gradient(135deg, var(--predinex-gold) 0%, #E6A000 100%);
-  border-color: var(--predinex-gold);
+  background: linear-gradient(135deg, #0891b2 0%, #2563eb 100%);
+  border-color: #0891b2;
 }
 
 .button--secondary {
-  background: linear-gradient(135deg, var(--predinex-green) 0%, var(--predinex-emerald) 100%);
+  background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
   color: #FFFFFF;
-  border-color: var(--predinex-green);
+  border-color: #06b6d4;
 }
 
 .button--secondary:hover {
-  background: linear-gradient(135deg, var(--predinex-emerald) 0%, #047857 100%);
-  border-color: var(--predinex-emerald);
+  background: linear-gradient(135deg, #0891b2 0%, #2563eb 100%);
+  border-color: #0891b2;
 }
 
 /* Navbar gradient text */
