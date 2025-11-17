@@ -77,10 +77,14 @@ const FixtureSelector: React.FC<FixtureSelectorProps> = ({
   const [expandedFixture, setExpandedFixture] = useState<number | null>(null);
 
   // ✅ OPTIMIZATION: Debounce search term to reduce filtering operations
+  // Reduced to 50ms for near-instant response while still preventing excessive filtering
   useEffect(() => {
+    // For very short terms (1-2 chars), use shorter debounce for instant feedback
+    const delay = searchTerm.length <= 2 ? 50 : 100;
+    
     const timer = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
-    }, 150); // 150ms debounce delay
+    }, delay);
 
     return () => clearTimeout(timer);
   }, [searchTerm]);
@@ -92,10 +96,18 @@ const FixtureSelector: React.FC<FixtureSelectorProps> = ({
   );
 
   // ✅ OPTIMIZATION: Use useMemo for filtered fixtures to avoid unnecessary recalculations
+  // Pre-compute lowercase search term for better performance
+  const lowerSearchTerm = debouncedSearchTerm.toLowerCase();
+  
   const filteredFixtures = useMemo(() => {
+    // Early return if no filters applied
+    if (leagueFilter === 'all' && timeFilter === 'all' && !debouncedSearchTerm) {
+      return fixtures;
+    }
+
     let filtered = fixtures;
 
-    // League filter
+    // League filter (fastest - apply first)
     if (leagueFilter !== 'all') {
       filtered = filtered.filter(f => f.league?.name === leagueFilter);
     }
@@ -128,18 +140,22 @@ const FixtureSelector: React.FC<FixtureSelectorProps> = ({
       });
     }
 
-    // Search filter (using debounced term)
+    // Search filter (using debounced term) - optimized with pre-computed lowercase
     if (debouncedSearchTerm) {
-      const lowerSearch = debouncedSearchTerm.toLowerCase();
-      filtered = filtered.filter(f => 
-        f.homeTeam?.name?.toLowerCase().includes(lowerSearch) ||
-        f.awayTeam?.name?.toLowerCase().includes(lowerSearch) ||
-        f.league?.name?.toLowerCase().includes(lowerSearch)
-      );
+      // Pre-compute team/league names to lowercase for faster comparison
+      filtered = filtered.filter(f => {
+        const homeName = f.homeTeam?.name?.toLowerCase() || '';
+        const awayName = f.awayTeam?.name?.toLowerCase() || '';
+        const leagueName = f.league?.name?.toLowerCase() || '';
+        
+        return homeName.includes(lowerSearchTerm) ||
+               awayName.includes(lowerSearchTerm) ||
+               leagueName.includes(lowerSearchTerm);
+      });
     }
 
     return filtered;
-  }, [fixtures, leagueFilter, timeFilter, debouncedSearchTerm]);
+  }, [fixtures, leagueFilter, timeFilter, debouncedSearchTerm, lowerSearchTerm]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -395,7 +411,11 @@ const FixtureSelector: React.FC<FixtureSelectorProps> = ({
             type="text"
             placeholder="Search teams or leagues..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              // ✅ CRITICAL: Update immediately for instant visual feedback
+              // The input value updates instantly, filtering happens with debounce
+              setSearchTerm(e.target.value);
+            }}
             className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all"
           />
           <svg className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
