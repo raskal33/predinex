@@ -157,7 +157,7 @@ function CreateMarketPageContent() {
   const [data, setData] = useState<GuidedMarketData>({
     category: '',
     odds: 200, // 2.0x default
-    creatorStake: 20, // Minimum for guided markets (20 tokens)
+    creatorStake: 1, // Default to minimum BNB stake (1 BNB)
     description: ''
   });
 
@@ -1003,7 +1003,7 @@ function CreateMarketPageContent() {
         
         if (txHash) {
           // Calculate total cost for display
-          const creationFee = usePrix ? '70 PRIX' : '1 BNB'; // ✅ FIX: Contract uses 70 PRIX, not 50
+          const creationFee = usePrix ? '50 PRIX' : '0.01 BNB'; // Contract: creationFeePrix = 50 PRIX, creationFeeBNB = 0.01 BNB
         // ✅ FIX: Boost cost is always in BNB (not PRIX), regardless of pool currency
         const boostCost = data.boostTier && data.boostTier !== 'NONE' 
           ? `${data.boostTier === 'BRONZE' ? '2' : data.boostTier === 'SILVER' ? '3' : '5'} BNB`
@@ -1107,7 +1107,7 @@ function CreateMarketPageContent() {
         
         if (txHash) {
         // Calculate total cost for display
-        const creationFee = usePrix ? '50 PRIX' : '1 BNB';
+        const creationFee = usePrix ? '50 PRIX' : '0.01 BNB'; // Contract: creationFeePrix = 50 PRIX, creationFeeBNB = 0.01 BNB
         // ✅ FIX: Boost cost is always in BNB (not PRIX), regardless of pool currency
         const boostCost = data.boostTier && data.boostTier !== 'NONE' 
           ? `${data.boostTier === 'BRONZE' ? '2' : data.boostTier === 'SILVER' ? '3' : '5'} BNB`
@@ -1548,28 +1548,63 @@ function CreateMarketPageContent() {
               value={data.creatorStake.toString()}
               onChange={(value) => {
                 const numValue = parseFloat(value);
-                const minStake = usePrix ? 20 : 20; // Both BNB and PRIX have same minimum
+                const minStakeBNB = 1; // 1 BNB minimum from contract
+                const minStakePRIX = 1000; // 1000 PRIX minimum from contract
+                const minStake = usePrix ? minStakePRIX : minStakeBNB;
                 if (!isNaN(numValue) && numValue >= minStake && numValue <= 1000000) {
                   handleInputChange('creatorStake', numValue);
+                  // Clear error when valid amount is entered
+                  if (errors.creatorStake) {
+                    setErrors(prev => {
+                      const newErrors = { ...prev };
+                      delete newErrors.creatorStake;
+                      return newErrors;
+                    });
+                  }
+                } else if (!isNaN(numValue) && numValue < minStake) {
+                  // Show warning for amounts below minimum
+                  handleInputChange('creatorStake', numValue);
+                  setErrors(prev => ({
+                    ...prev,
+                    creatorStake: `⚠️ Minimum stake is ${minStake} ${usePrix ? 'PRIX' : 'BNB'}. You entered ${numValue} ${usePrix ? 'PRIX' : 'BNB'}.`
+                  }));
                 }
               }}
               onValueChange={(numValue) => {
-                const minStake = usePrix ? 20 : 20;
+                const minStakeBNB = 1;
+                const minStakePRIX = 1000;
+                const minStake = usePrix ? minStakePRIX : minStakeBNB;
                 if (numValue >= minStake && numValue <= 1000000) {
                   handleInputChange('creatorStake', numValue);
+                  // Clear error when valid amount is entered
+                  if (errors.creatorStake) {
+                    setErrors(prev => {
+                      const newErrors = { ...prev };
+                      delete newErrors.creatorStake;
+                      return newErrors;
+                    });
+                  }
+                } else if (numValue < minStake) {
+                  // Show warning for amounts below minimum
+                  setErrors(prev => ({
+                    ...prev,
+                    creatorStake: `⚠️ Minimum stake is ${minStake} ${usePrix ? 'PRIX' : 'BNB'}. You entered ${numValue} ${usePrix ? 'PRIX' : 'BNB'}.`
+                  }));
                 }
               }}
-              placeholder="20.0"
-              min={20}
+              placeholder={usePrix ? "1000.0" : "1.0"}
+              min={usePrix ? 1000 : 1}
               max={1000000}
               step={0.1}
               allowDecimals={true}
               decimals={2}
               currency={usePrix ? 'PRIX' : 'BNB'}
-              help={`Your stake that acts as liquidity for the market. Minimum: 20 ${usePrix ? 'PRIX' : 'BNB'}`}
+              help={`Your stake that acts as liquidity for the market. Minimum: ${usePrix ? '1000 PRIX' : '1 BNB'}`}
             />
             {errors.creatorStake && (
-              <p className="text-red-400 text-sm">{errors.creatorStake}</p>
+              <p className={`text-sm ${errors.creatorStake.includes('⚠️') ? 'text-yellow-400' : 'text-red-400'}`}>
+                {errors.creatorStake}
+              </p>
             )}
           </div>
 
@@ -1579,7 +1614,13 @@ function CreateMarketPageContent() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <motion.button
                 whileHover={{ scale: 1.02 }}
-                onClick={() => setUsePrix(false)}
+                onClick={() => {
+                  setUsePrix(false);
+                  // Update stake to minimum BNB if current stake is below BNB minimum
+                  if (data.creatorStake < 1) {
+                    handleInputChange('creatorStake', 1);
+                  }
+                }}
                 className={`p-3 rounded-lg border text-center transition-all ${
                   !usePrix
                     ? 'border-cyan-500 bg-cyan-500/10 text-cyan-400'
@@ -1591,7 +1632,13 @@ function CreateMarketPageContent() {
               </motion.button>
               <motion.button
                 whileHover={{ scale: 1.02 }}
-                onClick={() => setUsePrix(true)}
+                onClick={() => {
+                  setUsePrix(true);
+                  // Update stake to minimum PRIX if current stake is below PRIX minimum
+                  if (data.creatorStake < 1000) {
+                    handleInputChange('creatorStake', 1000);
+                  }
+                }}
                 className={`p-3 rounded-lg border text-center transition-all ${
                   usePrix
                     ? 'border-cyan-500 bg-cyan-500/10 text-cyan-400'
@@ -2077,7 +2124,7 @@ function CreateMarketPageContent() {
             <div className="space-y-1 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-300">Creation Fee:</span>
-                <span className="text-white">{usePrix ? '50 PRIX' : '1 BNB'}</span>
+                <span className="text-white">{usePrix ? '50 PRIX' : '0.01 BNB'}</span>
               </div>
               {data.boostTier && data.boostTier !== 'NONE' && (
                 <div className="flex justify-between">
@@ -2093,12 +2140,15 @@ function CreateMarketPageContent() {
                   {data.boostTier && data.boostTier !== 'NONE' 
                     ? `${(() => {
                         const boostAmount = data.boostTier === 'BRONZE' ? 2 : data.boostTier === 'SILVER' ? 3 : 5;
-                        const creationAmount = usePrix ? 70 : 1;
-                        const total = boostAmount + creationAmount;
-                        return `${boostAmount} BNB + ${creationAmount} ${usePrix ? 'PRIX' : 'BNB'} = ${usePrix ? `${creationAmount} PRIX + ${boostAmount} BNB` : `${total} BNB`}`;
+                        const creationAmount = usePrix ? 50 : 0.01;
+                        return `${boostAmount} BNB + ${creationAmount} ${usePrix ? 'PRIX' : 'BNB'}`;
                       })()}`
-                    : `${usePrix ? '70 PRIX' : '1 BNB'}`}
+                    : `${usePrix ? '50 PRIX' : '0.01 BNB'}`}
                 </span>
+              </div>
+              <div className="flex justify-between mt-2 pt-2 border-t border-gray-600">
+                <span className="text-gray-300 text-xs">Platform Fee (on winnings):</span>
+                <span className="text-white text-xs font-medium">5%</span>
               </div>
             </div>
           </div>
