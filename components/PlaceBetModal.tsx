@@ -24,12 +24,14 @@ interface PlaceBetModalProps {
 export default function PlaceBetModal({ pool, isOpen, onClose }: PlaceBetModalProps) {
   const { address } = useAccount();
   const router = useRouter();
-  const { placeBet, isConfirmed, isPending, hash } = usePools();
+  const { placeBet, isConfirmed, isPending, hash, isConfirming } = usePools();
   
   const [betAmount, setBetAmount] = useState<string>("");
   const [isPlacing, setIsPlacing] = useState(false);
   const [waitingForApproval, setWaitingForApproval] = useState(false);
   const [betSuccess, setBetSuccess] = useState(false);
+  const [approvalConfirmed, setApprovalConfirmed] = useState(false);
+  const [betHash, setBetHash] = useState<string | null>(null);
   
   // ✅ CRITICAL: Use real-time pool progress updates to get latest max bettor stake
   const [currentPoolData, setCurrentPoolData] = useState({
@@ -75,10 +77,47 @@ export default function PlaceBetModal({ pool, isOpen, onClose }: PlaceBetModalPr
     });
   });
   
-  // ✅ FIX: Auto-close modal when transaction is confirmed
+  // ✅ CRITICAL FIX: Track approval vs bet transaction states separately
+  // Track when approval is confirmed (but don't show success yet)
   useEffect(() => {
-    if (isConfirmed && hash) {
-      console.log('✅ Transaction confirmed, closing modal');
+    if (isConfirmed && hash && !approvalConfirmed && !betHash) {
+      // This is likely an approval transaction
+      console.log('✅ Approval confirmed, waiting for bet transaction');
+      setApprovalConfirmed(true);
+      setWaitingForApproval(false);
+      // Don't show success yet - wait for bet transaction
+    }
+  }, [isConfirmed, hash, approvalConfirmed, betHash]);
+  
+  // Track bet transaction hash (separate from approval)
+  useEffect(() => {
+    if (hash && approvalConfirmed && !betHash) {
+      // Approval is confirmed, and we have a new hash - this is the bet transaction
+      console.log('🎯 Bet transaction hash received:', hash);
+      setBetHash(hash);
+      setIsPlacing(true);
+      setWaitingForApproval(false);
+    } else if (hash && !approvalConfirmed && !betHash) {
+      // First transaction - could be approval or bet (if no approval needed)
+      if (pool.usesPrix) {
+        // For PRIX, first transaction is always approval
+        console.log('🔄 Approval transaction pending');
+        setWaitingForApproval(true);
+        setIsPlacing(false);
+      } else {
+        // For tBNB, first transaction is the bet
+        console.log('🎯 Bet transaction hash received (tBNB):', hash);
+        setBetHash(hash);
+        setIsPlacing(true);
+        setWaitingForApproval(false);
+      }
+    }
+  }, [hash, approvalConfirmed, betHash, pool.usesPrix]);
+  
+  // ✅ CRITICAL FIX: Only show success after BET transaction is confirmed (not approval)
+  useEffect(() => {
+    if (isConfirmed && betHash && hash === betHash) {
+      console.log('✅ Bet transaction confirmed, showing success');
       setBetSuccess(true);
       setIsPlacing(false);
       setWaitingForApproval(false);
@@ -89,17 +128,41 @@ export default function PlaceBetModal({ pool, isOpen, onClose }: PlaceBetModalPr
         onClose();
         setBetAmount("");
         setBetSuccess(false);
+        setApprovalConfirmed(false);
+        setBetHash(null);
       }, 1500);
     }
-  }, [isConfirmed, hash, onClose]);
+  }, [isConfirmed, betHash, hash, onClose]);
   
-  // ✅ FIX: Track isPending state from usePools
+  // ✅ FIX: Track isPending state from usePools - distinguish approval vs bet
   useEffect(() => {
     if (isPending) {
-      setWaitingForApproval(false);
-      setIsPlacing(true);
+      if (approvalConfirmed || !pool.usesPrix) {
+        // Bet transaction is pending
+        setIsPlacing(true);
+        setWaitingForApproval(false);
+      } else {
+        // Approval is pending
+        setWaitingForApproval(true);
+        setIsPlacing(false);
+      }
     }
-  }, [isPending]);
+  }, [isPending, approvalConfirmed, pool.usesPrix]);
+  
+  // Track confirming state
+  useEffect(() => {
+    if (isConfirming) {
+      if (approvalConfirmed || !pool.usesPrix) {
+        // Bet transaction is confirming
+        setIsPlacing(true);
+        setWaitingForApproval(false);
+      } else {
+        // Approval is confirming
+        setWaitingForApproval(true);
+        setIsPlacing(false);
+      }
+    }
+  }, [isConfirming, approvalConfirmed, pool.usesPrix]);
   
   // Reset states when modal closes
   useEffect(() => {
@@ -108,6 +171,8 @@ export default function PlaceBetModal({ pool, isOpen, onClose }: PlaceBetModalPr
       setBetSuccess(false);
       setIsPlacing(false);
       setWaitingForApproval(false);
+      setApprovalConfirmed(false);
+      setBetHash(null);
     }
   }, [isOpen]);
   
@@ -126,6 +191,7 @@ export default function PlaceBetModal({ pool, isOpen, onClose }: PlaceBetModalPr
   // ✅ FIX: Calculate REMAINING capacity (not max pool size!)
   // Remaining = maxBettorStake - totalBettorStake (what's left to bet)
   // CRITICAL: maxBettorStake is the MAX BETTOR STAKE, NOT the total pool size!
+  // ✅ CRITICAL FIX: Subtract creatorStake from remaining to show real bettor stake amount
   const getRemainingCapacity = (): number => {
     // Get total bettor stake (already bet)
     let totalBettorStake = currentPoolData.totalBettorStake;
@@ -134,6 +200,10 @@ export default function PlaceBetModal({ pool, isOpen, onClose }: PlaceBetModalPr
       if (stake > 1e15) stake = stake / 1e18;
       totalBettorStake = stake;
     }
+    
+    // Get creator stake (to subtract from remaining)
+    let creatorStake = parseFloat(pool.creatorStake || "0");
+    if (creatorStake > 1e15) creatorStake = creatorStake / 1e18;
     
     // Get max bettor stake (capacity limit) - THIS IS THE KEY!
     // maxBettorStake = (effectiveCreatorSideStake * 100) / (odds - 100)
@@ -161,12 +231,14 @@ export default function PlaceBetModal({ pool, isOpen, onClose }: PlaceBetModalPr
       }
     }
     
-    // REMAINING = maxBettorStake - totalBettorStake (NOT maxPoolSize!)
-    const remaining = Math.max(0, maxBettorStake - totalBettorStake);
+    // ✅ CRITICAL FIX: REMAINING = maxBettorStake - totalBettorStake - creatorStake
+    // This shows the real remaining bettor stake amount (excluding creator stake)
+    const remaining = Math.max(0, maxBettorStake - totalBettorStake - creatorStake);
     
     console.log(`🔍 PlaceBetModal REMAINING capacity for pool ${pool.id}:`, {
       maxBettorStake,
       totalBettorStake,
+      creatorStake,
       remaining,
       poolMaxBettorStake: pool.maxBettorStake,
       currentPoolData

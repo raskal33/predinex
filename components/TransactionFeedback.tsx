@@ -87,6 +87,14 @@ export const TransactionFeedback: React.FC<TransactionFeedbackProps> = ({
     if (status && !isClosing) {
       setIsVisible(true);
       
+      // ✅ FIX: Scroll to top and prevent scroll jump
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      const scrollY = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
+      document.body.style.overflow = 'hidden';
+      
       // Auto-close for success/error messages (but not for pending transactions)
       if (autoClose && (status.type === 'success' || status.type === 'error')) {
         const timer = setTimeout(() => {
@@ -99,6 +107,16 @@ export const TransactionFeedback: React.FC<TransactionFeedbackProps> = ({
       // Immediately hide when status is cleared to prevent persistence
       setIsVisible(false);
       setIsClosing(false); // Reset closing state when status is cleared
+      
+      // ✅ FIX: Restore scroll position
+      const scrollY = document.body.style.top;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      document.body.style.overflow = '';
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY || '0') * -1);
+      }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, autoClose, autoCloseDelay, isClosing]);

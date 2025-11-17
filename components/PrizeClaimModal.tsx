@@ -189,55 +189,55 @@ export default function PrizeClaimModal({ isOpen, onClose, userAddress }: PrizeC
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
-          className="bg-gray-800 rounded-2xl border border-gray-600 w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl"
+          className="glass-card rounded-2xl border border-border-card w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-600">
+          <div className="flex items-center justify-between p-6 border-b border-border-card">
             <div className="flex items-center gap-3">
-              <TrophyIcon className="h-6 w-6 text-purple-400" />
-              <h2 className="text-xl font-bold text-white">Odyssey Prizes</h2>
+              <TrophyIcon className="h-6 w-6 text-primary" />
+              <h2 className="text-xl font-bold text-text-primary">Claim Prizes</h2>
             </div>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-white transition-colors"
+              className="text-text-secondary hover:text-text-primary transition-colors"
             >
               <XMarkIcon className="h-6 w-6" />
             </button>
           </div>
 
           {/* Summary - Odyssey Only */}
-          <div className="p-6 border-b border-gray-600 bg-gray-700/30">
+          <div className="p-6 border-b border-border-card bg-bg-card/50">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="text-center">
                 <div className="text-2xl font-bold text-green-400">
                   {totalClaimableAmount.toFixed(2)}
                 </div>
-                <div className="text-sm text-gray-400">Total Claimable</div>
+                <div className="text-sm text-text-secondary">Total Claimable</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-cyan-400">
+                <div className="text-2xl font-bold text-secondary">
                   {odysseyPositions.filter(p => !p.claimed && p.claimStatus === 'eligible').length}
                 </div>
-                <div className="text-sm text-gray-400">Unclaimed Positions</div>
+                <div className="text-sm text-text-secondary">Unclaimed Positions</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-yellow-400">
+                <div className="text-2xl font-bold text-accent">
                   {selectedAmount.toFixed(2)}
                 </div>
-                <div className="text-sm text-gray-400">Selected Amount</div>
+                <div className="text-sm text-text-secondary">Selected Amount</div>
               </div>
             </div>
           </div>
 
           {/* Controls */}
-          <div className="p-6 border-b border-gray-600">
+          <div className="p-6 border-b border-border-card">
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
               {/* Filter */}
               <div className="flex gap-2">
@@ -247,8 +247,8 @@ export default function PrizeClaimModal({ isOpen, onClose, userAddress }: PrizeC
                     onClick={() => setFilter(filterType)}
                     className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
                       filter === filterType
-                        ? 'bg-cyan-500 text-white'
-                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                        ? 'bg-gradient-primary text-black'
+                        : 'bg-bg-card text-text-secondary hover:text-text-primary hover:bg-bg-card-hover'
                     }`}
                   >
                     {filterType.charAt(0).toUpperCase() + filterType.slice(1)}
@@ -279,20 +279,20 @@ export default function PrizeClaimModal({ isOpen, onClose, userAddress }: PrizeC
           </div>
 
           {/* Positions List */}
-          <div className="flex-1 overflow-y-auto min-h-96 max-h-96 bg-gray-900/20">
+          <div className="flex-1 overflow-y-auto min-h-96 max-h-96 bg-bg-dark/20">
             {isLoading ? (
               <div className="flex items-center justify-center h-96">
                 <div className="text-center">
-                  <SparklesIcon className="h-12 w-12 text-purple-400 animate-spin mx-auto mb-2" />
-                  <span className="text-gray-400">Loading positions...</span>
+                  <SparklesIcon className="h-12 w-12 text-primary animate-spin mx-auto mb-2" />
+                  <span className="text-text-secondary">Loading positions...</span>
                 </div>
               </div>
             ) : (
               odysseyPositions.length === 0 ? (
                 <div className="flex items-center justify-center h-96">
                   <div className="text-center">
-                    <TrophyIcon className="h-12 w-12 text-gray-500 mx-auto mb-4" />
-                    <p className="text-gray-400">No Odyssey positions found</p>
+                    <TrophyIcon className="h-12 w-12 text-text-muted mx-auto mb-4" />
+                    <p className="text-text-secondary">No claimable positions found</p>
                   </div>
                 </div>
               ) : (
@@ -302,13 +302,13 @@ export default function PrizeClaimModal({ isOpen, onClose, userAddress }: PrizeC
                       key={`${position.cycleId}-${position.slipId}`}
                       className={`p-4 rounded-lg border transition-all ${
                         position.claimed
-                          ? 'bg-gray-700/30 border-gray-600'
+                          ? 'bg-bg-card/30 border-border-card'
                           : position.claimStatus === 'eligible'
-                          ? 'bg-green-900/20 border-green-600/30'
-                          : 'bg-red-900/20 border-red-600/30'
+                          ? 'bg-green-500/10 border-green-500/30'
+                          : 'bg-red-500/10 border-red-500/30'
                       } ${
                         selectedOdysseyPositions.has(`${position.cycleId}-${position.slipId}`) && !position.claimed
-                          ? 'ring-2 ring-purple-400'
+                          ? 'ring-2 ring-primary'
                           : ''
                       }`}
                     >
@@ -319,15 +319,15 @@ export default function PrizeClaimModal({ isOpen, onClose, userAddress }: PrizeC
                               type="checkbox"
                               checked={selectedOdysseyPositions.has(`${position.cycleId}-${position.slipId}`)}
                               onChange={() => toggleOdysseyPositionSelection(position.cycleId, position.slipId)}
-                              className="w-4 h-4 text-purple-400 bg-gray-700 border-gray-600 rounded focus:ring-purple-400"
+                              className="w-4 h-4 text-primary bg-bg-card border-border-input rounded focus:ring-primary"
                             />
                           )}
                           
                           <div>
-                            <h4 className="font-medium text-white">
+                            <h4 className="font-medium text-text-primary">
                               Cycle {position.cycleId} - Slip {position.slipId}
                             </h4>
-                            <div className="flex items-center gap-4 text-sm text-gray-400">
+                            <div className="flex items-center gap-4 text-sm text-text-secondary">
                               <span>Correct: {position.correctCount}/10</span>
                               <span>Placed: {position.placedAt.toLocaleDateString()}</span>
                               {position.evaluatedAt && (
@@ -344,7 +344,7 @@ export default function PrizeClaimModal({ isOpen, onClose, userAddress }: PrizeC
                             }`}>
                               {position.claimStatus === 'eligible' ? '+' : ''}{parseFloat(position.prizeAmount).toFixed(2)} BNB
                             </div>
-                            <div className="text-xs text-gray-400">
+                            <div className="text-xs text-text-secondary">
                               {position.claimStatus === 'eligible' ? 'Prize' : position.reason || 'Not Eligible'}
                             </div>
                           </div>
@@ -374,9 +374,9 @@ export default function PrizeClaimModal({ isOpen, onClose, userAddress }: PrizeC
           </div>
 
           {/* Footer */}
-          <div className="p-6 border-t border-gray-600 bg-gray-700/30">
+          <div className="p-6 border-t border-border-card bg-bg-card/50">
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-              <div className="text-sm text-gray-400">
+              <div className="text-sm text-text-secondary">
                 {isClaiming && claimProgress.total > 0 && (
                   <span>
                     Claiming {claimProgress.completed} of {claimProgress.total}...

@@ -18,7 +18,6 @@ import {
   ChevronDownIcon,
   CubeTransparentIcon,
   WalletIcon,
-  BeakerIcon,
   DocumentTextIcon,
   BoltIcon,
   ArrowTrendingUpIcon,
@@ -757,10 +756,10 @@ const links = [
     icon: CurrencyDollarIcon,
   },
   {
-    label: "Faucet",
-    href: "/faucet",
-    segment: "faucet",
-    icon: BeakerIcon,
+    label: "Rewards",
+    href: "/rewards",
+    segment: "rewards",
+    icon: TrophyIcon,
   },
   {
     label: "Docs",

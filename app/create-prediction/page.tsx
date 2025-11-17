@@ -230,6 +230,9 @@ function CreateMarketPageContent() {
     const newUrl = new URL(window.location.href);
     newUrl.searchParams.set('type', type);
     window.history.replaceState({}, '', newUrl.toString());
+    
+    // ✅ FIX: Scroll to top after selecting market type (both guided and combo)
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleBack = () => {
