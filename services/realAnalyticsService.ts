@@ -5,7 +5,10 @@
  * Properly handles BigInt serialization and data types
  */
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://predinex.fly.dev';
+// Use relative URL in browser (goes through Vercel proxy), full URL on server
+const BACKEND_URL = typeof window !== 'undefined' 
+  ? ''  // Relative URL - goes through Vercel proxy
+  : (process.env.NEXT_PUBLIC_BACKEND_URL || 'https://predinex.fly.dev');
 
 // Helper to safely parse BigInt values
 function _parseBigIntSafe(value: any): string {

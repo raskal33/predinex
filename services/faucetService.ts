@@ -84,7 +84,10 @@ export interface FaucetClaimResponse {
 }
 
 export class FaucetService {
-  private static baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://predinex.fly.dev';
+  // Use relative URL in browser (goes through Vercel proxy), full URL on server
+  private static baseUrl = typeof window !== 'undefined' 
+    ? ''  // Relative URL - goes through Vercel proxy
+    : (process.env.NEXT_PUBLIC_BACKEND_URL || 'https://predinex.fly.dev');
 
   // Retry configuration
   private static retryConfig = {

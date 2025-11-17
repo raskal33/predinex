@@ -199,7 +199,9 @@ export default function UserSlipsDisplay({ userAddress, className = "" }: UserSl
 
     const connectWebSocket = () => {
       try {
-        ws = new WebSocket('wss://predinex.fly.dev/ws');
+        // WebSocket must use direct connection (Vercel doesn't proxy WebSockets)
+        const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'wss://predinex.fly.dev/ws';
+        ws = new WebSocket(wsUrl);
 
         ws.onopen = () => {
           console.log('✅ WebSocket connected for slip updates');

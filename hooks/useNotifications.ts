@@ -2,7 +2,10 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAccount } from 'wagmi';
 import { useWebSocket } from './useWebSocket';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://predinex.fly.dev';
+// Use relative URL in browser (goes through Vercel proxy), full URL on server
+const BACKEND_URL = typeof window !== 'undefined' 
+  ? ''  // Relative URL - goes through Vercel proxy
+  : (process.env.NEXT_PUBLIC_BACKEND_URL || 'https://predinex.fly.dev');
 
 export interface Notification {
   id: number;

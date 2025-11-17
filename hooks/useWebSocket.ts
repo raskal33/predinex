@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'wss://predinex.fly.dev';
+// Use relative WebSocket URL in browser (goes through Vercel proxy), full URL on server
+// Note: Vercel doesn't support WebSocket proxying, so we need to use the full URL
+// But we can make it work by using wss:// protocol with the backend URL
+const WS_URL = typeof window !== 'undefined'
+  ? (process.env.NEXT_PUBLIC_WS_URL || 'wss://predinex.fly.dev')
+  : (process.env.NEXT_PUBLIC_WS_URL || 'wss://predinex.fly.dev');
 
 interface UseWebSocketOptions {
   channel: string | null;

@@ -125,8 +125,8 @@ export interface PoolsResponse {
 
 class OptimizedPoolService {
   private baseUrl = typeof window !== 'undefined' 
-    ? 'https://predinex.fly.dev/api/optimized-pools'
-    : process.env.NEXT_PUBLIC_API_URL + '/api/optimized-pools' || 'https://predinex.fly.dev/api/optimized-pools';
+    ? '/api/optimized-pools'  // Use relative URL to go through Vercel proxy
+    : (process.env.NEXT_PUBLIC_API_URL || 'https://predinex.fly.dev') + '/api/optimized-pools';
 
   /**
    * Get all pools with comprehensive data for the markets page
