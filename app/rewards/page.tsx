@@ -129,13 +129,13 @@ export default function RewardsPage() {
     fetchPlatformClaims();
   }, [isConnected, address, fetchRewards, fetchPlatformClaims]);
   
-  // Poll for updates every 10 seconds
+  // Poll for updates every 10 seconds - Always poll platform claims (rewards feed)
   useEffect(() => {
-    if (!address || !isConnected) return;
-    
     const interval = setInterval(() => {
-      fetchRewards();
-      fetchPlatformClaims();
+      fetchPlatformClaims(); // Always fetch platform claims for the feed
+      if (address && isConnected) {
+        fetchRewards(); // Only fetch user rewards if connected
+      }
     }, 10000);
     
     return () => clearInterval(interval);
@@ -156,6 +156,10 @@ export default function RewardsPage() {
   }) || [];
   
   const filteredClaims = platformClaims.filter(claim => {
+    // Apply type filter
+    if (filter !== 'all' && claim.type !== filter) return false;
+    
+    // Apply search filter
     if (searchTerm) {
       const search = searchTerm.toLowerCase();
       return (
@@ -230,7 +234,7 @@ export default function RewardsPage() {
               Rewards
             </h1>
             <p className="text-xs sm:text-sm text-gray-400">
-              View and claim your winnings from pools and Oddyssey
+              Real-time feed of all claimed rewards across the platform
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -346,7 +350,7 @@ export default function RewardsPage() {
               />
             </div>
 
-            {/* Toggle Events */}
+            {/* Toggle My Rewards */}
             <button
               onClick={() => setShowEvents(!showEvents)}
               className={`px-3 py-1.5 rounded-lg font-medium transition-all text-xs ${
@@ -355,44 +359,47 @@ export default function RewardsPage() {
                   : "bg-slate-700/50 text-gray-300 hover:text-white hover:bg-slate-700/70"
               }`}
             >
-              {showEvents ? 'Hide' : 'Show'} Events
+              {showEvents ? 'Hide' : 'Show'} My Rewards
             </button>
           </div>
         </div>
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 sm:gap-4">
-          {/* Rewards List */}
+          {/* Rewards Feed - All Platform Claims */}
           <div className="lg:col-span-3">
             <div className="bg-slate-800/30 backdrop-blur-xl border border-slate-700/50 rounded-xl p-4">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold text-white">
-                  My Rewards
-                </h2>
+                <div className="flex items-center gap-2">
+                  <ClockIcon className="h-5 w-5 text-cyan-400" />
+                  <h2 className="text-lg font-bold text-white">
+                    Rewards Feed
+                  </h2>
+                </div>
                 <span className="text-xs text-gray-400 bg-slate-700/50 px-2 py-0.5 rounded">
-                  {isLoading ? "..." : filteredRewards.length}
+                  {isLoadingEvents ? "..." : filteredClaims.length}
                 </span>
               </div>
               
-              {isLoading ? (
+              {isLoadingEvents ? (
                 <div className="text-center py-16">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-500 mx-auto mb-4"></div>
-                  <p className="text-gray-400 text-sm">Loading rewards...</p>
+                  <p className="text-gray-400 text-sm">Loading rewards feed...</p>
                 </div>
-              ) : filteredRewards.length === 0 ? (
+              ) : filteredClaims.length === 0 ? (
                 <div className="text-center py-16">
                   <TrophyIcon className="h-10 w-10 text-gray-500 mx-auto mb-3" />
-                  <h3 className="text-lg font-bold text-white mb-2">No Rewards Found</h3>
+                  <h3 className="text-lg font-bold text-white mb-2">No Claims Yet</h3>
                   <p className="text-gray-400 text-sm">
-                    {searchTerm ? 'No rewards match your search.' : 'Start betting to earn rewards!'}
+                    {searchTerm ? 'No claims match your search.' : 'Platform claims will appear here in real-time'}
                   </p>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-3 max-h-[600px] overflow-y-auto">
                   <AnimatePresence>
-                    {filteredRewards.map((reward) => (
+                    {filteredClaims.map((claim) => (
                       <motion.div
-                        key={`${reward.type}-${reward.id}`}
+                        key={claim.id}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
@@ -401,70 +408,58 @@ export default function RewardsPage() {
                         <div className="flex items-center justify-between">
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-2">
-                              {reward.type === 'pool' && <TrophyIcon className="h-4 w-4 text-primary flex-shrink-0" />}
-                              {reward.type === 'combo' && <SparklesIcon className="h-4 w-4 text-secondary flex-shrink-0" />}
-                              {reward.type === 'oddyssey' && <FireIcon className="h-4 w-4 text-accent flex-shrink-0" />}
+                              {claim.type === 'pool' && <TrophyIcon className="h-4 w-4 text-primary flex-shrink-0" />}
+                              {claim.type === 'combo' && <SparklesIcon className="h-4 w-4 text-secondary flex-shrink-0" />}
+                              {claim.type === 'oddyssey' && <FireIcon className="h-4 w-4 text-accent flex-shrink-0" />}
                               <h3 className="text-sm font-bold text-white truncate">
-                                {reward.type === 'pool' && `${reward.league} - ${reward.category}`}
-                                {reward.type === 'combo' && reward.title}
-                                {reward.type === 'oddyssey' && `Cycle ${reward.cycleId} - Slip ${reward.slipId}`}
+                                {claim.league || claim.category || 'Reward Claim'}
                               </h3>
-                              {reward.claimed && <CheckCircleIcon className="h-4 w-4 text-green-400 flex-shrink-0" />}
+                              <CheckCircleIcon className="h-4 w-4 text-green-400 flex-shrink-0" />
                             </div>
                             
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
                               <div>
-                                <span className="text-gray-400">Stake:</span>
-                                <div className="font-semibold text-white">
-                                  {formatAmount(reward.stakeAmount, reward.currency)}
+                                <span className="text-gray-400">User:</span>
+                                <div className="font-semibold text-white font-mono">
+                                  {formatAddress(claim.userAddress)}
                                 </div>
                               </div>
                               <div>
-                                <span className="text-gray-400">Reward:</span>
+                                <span className="text-gray-400">Amount:</span>
                                 <div className="font-semibold text-green-400">
-                                  {formatAmount(reward.claimableAmount || reward.prizeAmount || 0, reward.currency)}
+                                  {formatAmount(claim.amount, claim.currency)}
                                 </div>
                               </div>
-                              {reward.type === 'oddyssey' && (
-                                <>
-                                  <div>
-                                    <span className="text-gray-400">Correct:</span>
-                                    <div className="font-semibold text-white">
-                                      {reward.correctCount}/10
-                                    </div>
-                                  </div>
-                                  <div>
-                                    <span className="text-gray-400">Rank:</span>
-                                    <div className="font-semibold text-white">
-                                      #{reward.leaderboardRank}
-                                    </div>
-                                  </div>
-                                </>
-                              )}
-                              {reward.settledAt && (
-                                <div>
-                                  <span className="text-gray-400">Settled:</span>
-                                  <div className="font-semibold text-white text-[10px]">
-                                    {formatDate(reward.settledAt)}
-                                  </div>
+                              <div>
+                                <span className="text-gray-400">Type:</span>
+                                <div className="font-semibold text-white capitalize">
+                                  {claim.type}
                                 </div>
-                              )}
+                              </div>
+                              <div>
+                                <span className="text-gray-400">Time:</span>
+                                <div className="font-semibold text-white text-[10px]">
+                                  {formatDate(claim.claimedAt)}
+                                </div>
+                              </div>
                             </div>
                           </div>
                           
                           <div className="ml-4 flex-shrink-0">
-                            {reward.claimed ? (
+                            {claim.txHash ? (
+                              <a
+                                href={`https://bscscan.com/tx/${claim.txHash}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-3 py-1.5 bg-cyan-500/10 border border-cyan-500/30 rounded-lg hover:bg-cyan-500/20 transition-colors text-xs text-cyan-400"
+                              >
+                                View TX
+                              </a>
+                            ) : (
                               <div className="flex items-center gap-2 px-3 py-1.5 bg-green-500/10 border border-green-500/30 rounded-lg">
                                 <CheckCircleIcon className="h-4 w-4 text-green-400" />
                                 <span className="text-green-400 font-medium text-xs">Claimed</span>
                               </div>
-                            ) : (
-                              <button
-                                onClick={() => setIsClaimModalOpen(true)}
-                                className="px-4 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-semibold rounded-lg hover:opacity-90 transition-opacity text-xs"
-                              >
-                                Claim
-                              </button>
                             )}
                           </div>
                         </div>
@@ -521,7 +516,7 @@ export default function RewardsPage() {
           </div>
         </div>
 
-        {/* Events Table */}
+        {/* My Rewards Section */}
         {showEvents && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -530,80 +525,109 @@ export default function RewardsPage() {
           >
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                <ClockIcon className="h-5 w-5 text-cyan-400" />
-                Platform Claims Events
+                <TrophyIcon className="h-5 w-5 text-primary" />
+                My Claimable Rewards
               </h2>
               <span className="text-xs text-gray-400 bg-slate-700/50 px-2 py-0.5 rounded">
-                {isLoadingEvents ? "..." : filteredClaims.length}
+                {isLoading ? "..." : filteredRewards.length}
               </span>
             </div>
             
-            {isLoadingEvents ? (
+            {isLoading ? (
               <div className="text-center py-16">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-500 mx-auto mb-4"></div>
-                <p className="text-gray-400 text-sm">Loading events...</p>
+                <p className="text-gray-400 text-sm">Loading your rewards...</p>
               </div>
-            ) : filteredClaims.length === 0 ? (
+            ) : filteredRewards.length === 0 ? (
               <div className="text-center py-16">
-                <ClockIcon className="h-10 w-10 text-gray-500 mx-auto mb-3" />
-                <h3 className="text-lg font-bold text-white mb-2">No Claims Yet</h3>
-                <p className="text-gray-400 text-sm">Platform claims will appear here</p>
+                <TrophyIcon className="h-10 w-10 text-gray-500 mx-auto mb-3" />
+                <h3 className="text-lg font-bold text-white mb-2">No Claimable Rewards</h3>
+                <p className="text-gray-400 text-sm">Start betting to earn rewards!</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-slate-700/50">
-                      <th className="text-left py-3 px-4 text-gray-400 font-medium">Type</th>
-                      <th className="text-left py-3 px-4 text-gray-400 font-medium">User</th>
-                      <th className="text-left py-3 px-4 text-gray-400 font-medium">Amount</th>
-                      <th className="text-left py-3 px-4 text-gray-400 font-medium">Category</th>
-                      <th className="text-left py-3 px-4 text-gray-400 font-medium">Time</th>
-                      <th className="text-left py-3 px-4 text-gray-400 font-medium">TX</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredClaims.map((claim) => (
-                      <tr key={claim.id} className="border-b border-slate-700/30 hover:bg-slate-700/20 transition-colors">
-                        <td className="py-3 px-4">
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${
-                            claim.type === 'pool' ? 'bg-cyan-500/20 text-cyan-400' :
-                            claim.type === 'combo' ? 'bg-purple-500/20 text-purple-400' :
-                            'bg-orange-500/20 text-orange-400'
-                          }`}>
-                            {claim.type}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-white font-mono text-xs">
-                          {formatAddress(claim.userAddress)}
-                        </td>
-                        <td className="py-3 px-4 text-green-400 font-semibold">
-                          {formatAmount(claim.amount, claim.currency)}
-                        </td>
-                        <td className="py-3 px-4 text-gray-300 text-xs">
-                          {claim.category || 'N/A'}
-                        </td>
-                        <td className="py-3 px-4 text-gray-400 text-xs">
-                          {formatDate(claim.claimedAt)}
-                        </td>
-                        <td className="py-3 px-4">
-                          {claim.txHash ? (
-                            <a
-                              href={`https://bscscan.com/tx/${claim.txHash}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-cyan-400 hover:text-cyan-300 text-xs"
-                            >
-                              View
-                            </a>
+              <div className="space-y-3 max-h-[600px] overflow-y-auto">
+                <AnimatePresence>
+                  {filteredRewards.map((reward) => (
+                    <motion.div
+                      key={`${reward.type}-${reward.id}`}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      className="bg-slate-700/30 border border-slate-600/50 rounded-lg p-4 hover:border-cyan-500/50 transition-colors"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-2">
+                            {reward.type === 'pool' && <TrophyIcon className="h-4 w-4 text-primary flex-shrink-0" />}
+                            {reward.type === 'combo' && <SparklesIcon className="h-4 w-4 text-secondary flex-shrink-0" />}
+                            {reward.type === 'oddyssey' && <FireIcon className="h-4 w-4 text-accent flex-shrink-0" />}
+                            <h3 className="text-sm font-bold text-white truncate">
+                              {reward.type === 'pool' && `${reward.league} - ${reward.category}`}
+                              {reward.type === 'combo' && reward.title}
+                              {reward.type === 'oddyssey' && `Cycle ${reward.cycleId} - Slip ${reward.slipId}`}
+                            </h3>
+                            {reward.claimed && <CheckCircleIcon className="h-4 w-4 text-green-400 flex-shrink-0" />}
+                          </div>
+                          
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                            <div>
+                              <span className="text-gray-400">Stake:</span>
+                              <div className="font-semibold text-white">
+                                {formatAmount(reward.stakeAmount, reward.currency)}
+                              </div>
+                            </div>
+                            <div>
+                              <span className="text-gray-400">Reward:</span>
+                              <div className="font-semibold text-green-400">
+                                {formatAmount(reward.claimableAmount || reward.prizeAmount || 0, reward.currency)}
+                              </div>
+                            </div>
+                            {reward.type === 'oddyssey' && (
+                              <>
+                                <div>
+                                  <span className="text-gray-400">Correct:</span>
+                                  <div className="font-semibold text-white">
+                                    {reward.correctCount}/10
+                                  </div>
+                                </div>
+                                <div>
+                                  <span className="text-gray-400">Rank:</span>
+                                  <div className="font-semibold text-white">
+                                    #{reward.leaderboardRank}
+                                  </div>
+                                </div>
+                              </>
+                            )}
+                            {reward.settledAt && (
+                              <div>
+                                <span className="text-gray-400">Settled:</span>
+                                <div className="font-semibold text-white text-[10px]">
+                                  {formatDate(reward.settledAt)}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="ml-4 flex-shrink-0">
+                          {reward.claimed ? (
+                            <div className="flex items-center gap-2 px-3 py-1.5 bg-green-500/10 border border-green-500/30 rounded-lg">
+                              <CheckCircleIcon className="h-4 w-4 text-green-400" />
+                              <span className="text-green-400 font-medium text-xs">Claimed</span>
+                            </div>
                           ) : (
-                            <span className="text-gray-500 text-xs">N/A</span>
+                            <button
+                              onClick={() => setIsClaimModalOpen(true)}
+                              className="px-4 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-semibold rounded-lg hover:opacity-90 transition-opacity text-xs"
+                            >
+                              Claim
+                            </button>
                           )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
               </div>
             )}
           </motion.div>

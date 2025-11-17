@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   XMarkIcon,
@@ -27,6 +27,10 @@ export default function PrizeClaimModal({ isOpen, onClose, userAddress }: PrizeC
   const [claimProgress, setClaimProgress] = useState({ completed: 0, total: 0 });
   const [filter, setFilter] = useState<'all' | 'unclaimed' | 'claimed'>('unclaimed');
   
+  // ✅ FIX: Use refs to prevent infinite loops
+  const isLoadingRef = useRef(false);
+  const hasLoadedRef = useRef(false);
+  
   const {
     claimOdysseyPrize,
     batchClaimOdysseyPrizes,
@@ -37,13 +41,19 @@ export default function PrizeClaimModal({ isOpen, onClose, userAddress }: PrizeC
   const { connectWallet } = useWalletConnection();
 
   const loadPositions = useCallback(async () => {
-    if (!userAddress) return;
+    // ✅ FIX: Prevent multiple simultaneous loads
+    if (!userAddress || isLoadingRef.current) {
+      return;
+    }
     
+    isLoadingRef.current = true;
     setIsLoading(true);
+    
     try {
       // Load new Odyssey positions
       const odysseyPrizes = await getAllClaimableOdysseyPrizes();
       setOdysseyPositions(odysseyPrizes);
+      hasLoadedRef.current = true;
       
       // Auto-select unclaimed winning Odyssey positions
       const unclaimedOdysseyWinning = odysseyPrizes
@@ -54,17 +64,32 @@ export default function PrizeClaimModal({ isOpen, onClose, userAddress }: PrizeC
     } catch (error) {
       console.error('Error loading positions:', error);
       toast.error('Failed to load claimable positions');
+      hasLoadedRef.current = false;
     } finally {
       setIsLoading(false);
+      isLoadingRef.current = false;
     }
   }, [userAddress, getAllClaimableOdysseyPrizes]);
 
-  // Load claimable positions
+  // ✅ FIX: Load claimable positions only when modal opens and userAddress is available
   useEffect(() => {
-    if (isOpen && userAddress) {
+    if (isOpen && userAddress && !hasLoadedRef.current && !isLoadingRef.current) {
       loadPositions();
     }
-  }, [isOpen, userAddress, loadPositions]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, userAddress]); // loadPositions is stable via useCallback, but we guard with refs to prevent loops
+
+  // ✅ FIX: Reset state when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      // Reset refs and state when modal closes
+      hasLoadedRef.current = false;
+      isLoadingRef.current = false;
+      setOdysseyPositions([]);
+      setSelectedOdysseyPositions(new Set());
+      setIsLoading(false);
+    }
+  }, [isOpen]);
 
   const handleClaimOdysseySingle = async (position: OdysseyClaimablePosition) => {
     if (!isNewConnected) {
