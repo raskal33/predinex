@@ -39,7 +39,7 @@ export default function Footer() {
   return (
     <footer className="relative mt-auto z-10">
       {/* Background with gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-somnia opacity-5" />
+      <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/5 via-amber-500/5 to-yellow-500/5" />
       
       <div className="relative z-10 glass-card" style={{ borderRadius: "0px" }}>
         <div className="container-nav section-padding">
@@ -67,7 +67,7 @@ export default function Footer() {
                 {/* Description */}
                 <p className="text-text-secondary max-w-sm leading-relaxed">
                   The future of decentralized prediction markets. Trade on real-world outcomes 
-                  with transparent, blockchain-powered markets on the Somnia Network.
+                  with transparent, blockchain-powered markets on Binance Smart Chain.
                 </p>
 
                 {/* Social Links */}
@@ -205,7 +205,24 @@ export default function Footer() {
               
               <div className="flex items-center gap-2 text-sm">
                 <span className="text-text-muted">Powered by</span>
-                <span className="gradient-text font-semibold">Somnia Network</span>
+                <a
+                  href="https://www.bnbchain.org"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 font-semibold text-yellow-400 hover:text-yellow-300 transition-colors duration-200 group"
+                >
+                  <span className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-amber-400 bg-clip-text text-transparent">
+                    Binance Smart Chain
+                  </span>
+                  <svg 
+                    className="w-4 h-4 text-yellow-400 group-hover:text-yellow-300 transition-colors" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
               </div>
             </div>
           </motion.div>

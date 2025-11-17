@@ -1628,7 +1628,7 @@ function CreateMarketPageContent() {
                 }`}
               >
                 <div className="font-semibold text-sm sm:text-base">BNB</div>
-                <div className="text-xs mt-1">Somnia Network Currency</div>
+                <div className="text-xs mt-1">Binance Smart Chain Currency</div>
               </motion.button>
               <motion.button
                 whileHover={{ scale: 1.02 }}
