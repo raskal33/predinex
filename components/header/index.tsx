@@ -656,7 +656,7 @@ export default function Header() {
                     <div className="text-center">
                       <p className="text-xs text-text-muted">
                         Powered by{" "}
-                        <span className="gradient-text font-medium">Somnia Network</span>
+                        <span className="gradient-text font-medium">BNB Chain</span>
                       </p>
                     </div>
                   </div>
