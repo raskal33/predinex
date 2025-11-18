@@ -672,17 +672,28 @@ function CreateMarketPageContent() {
     // Set the selected fixture
     handleInputChange('selectedFixture', fixture);
     
-    // Set the market type enum
     const marketTypeEnum = getMarketTypeEnum(marketType);
+    let normalizedOutcome = outcome;
+
+    if (marketType === 'btts') {
+      if (outcome === 'yes') {
+        normalizedOutcome = 'bttsYes';
+      } else if (outcome === 'no') {
+        normalizedOutcome = 'bttsNo';
+      }
+    }
+
     console.log('🔍 Market Selection Debug:', {
       selectedMarketType: marketType,
       mappedEnum: marketTypeEnum,
-      outcome: outcome
+      outcome,
+      normalizedOutcome
     });
+
     handleInputChange('marketType', marketTypeEnum);
     
     // Set the outcome based on market type and outcome
-    handleInputChange('outcome', outcome as 'home' | 'away' | 'draw' | 'over15' | 'under15' | 'over25' | 'under25' | 'over35' | 'under35' | 'bttsYes' | 'bttsNo' | 'htHome' | 'htDraw' | 'htAway' | 'ht_over_05' | 'ht_under_05' | 'ht_over_15' | 'ht_under_15');
+    handleInputChange('outcome', normalizedOutcome as 'home' | 'away' | 'draw' | 'over15' | 'under15' | 'over25' | 'under25' | 'over35' | 'under35' | 'bttsYes' | 'bttsNo' | 'htHome' | 'htDraw' | 'htAway' | 'ht_over_05' | 'ht_under_05' | 'ht_over_15' | 'ht_under_15');
     
     // Auto-populate odds based on the selected market
     if (fixture.odds) {
