@@ -761,8 +761,26 @@ function CreateMarketPageContent() {
   };
 
   const handleNextStep = () => {
+    console.log('🔍 handleNextStep called - Current step:', step);
+    console.log('📋 Current data:', data);
+    console.log('❌ Current errors:', errors);
+    
     if (validateStep(step)) {
+      console.log('✅ Validation passed, moving to step', step + 1);
       setStep(step + 1);
+    } else {
+      console.log('❌ Validation failed for step', step);
+      console.log('Validation errors:', errors);
+      
+      // Show toast with validation errors
+      const errorMessages = Object.values(errors).join(', ');
+      toast.error(`Please fix the following: ${errorMessages}`, {
+        duration: 5000,
+        style: {
+          background: '#EF4444',
+          color: '#fff',
+        },
+      });
     }
   };
 

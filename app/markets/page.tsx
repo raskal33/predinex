@@ -383,7 +383,7 @@ export default function MarketsPage() {
               Markets
             </h1>
             <p className="text-xs sm:text-sm text-gray-400">
-              The pump.fun of prediction markets
+              The Uniswap of prediction markets
             </p>
           </div>
           <div className="flex items-center gap-2 text-xs text-gray-500">
