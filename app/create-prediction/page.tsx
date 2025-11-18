@@ -2072,7 +2072,7 @@ function CreateMarketPageContent() {
               </div>
               <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                 <span className="text-gray-300">Your Stake:</span>
-                <span className="text-white">{data.creatorStake} {usePrix ? 'PRIX' : 'BNB'}</span>
+                <span className="text-white">{data.creatorStake} {usePrix ? 'PRIX' : getCurrencyName()}</span>
               </div>
             </div>
           </div>
@@ -2265,11 +2265,11 @@ function CreateMarketPageContent() {
               </div>
               <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                 <span className="text-gray-300">Your Stake:</span>
-                <span className="text-white font-medium">{data.creatorStake} {usePrix ? 'PRIX' : 'BNB'}</span>
+                <span className="text-white font-medium">{data.creatorStake} {usePrix ? 'PRIX' : getCurrencyName()}</span>
               </div>
               <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                 <span className="text-gray-300">Payment Token:</span>
-                <span className="text-white font-medium">{usePrix ? 'PRIX' : 'BNB'}</span>
+                <span className="text-white font-medium">{usePrix ? 'PRIX' : getCurrencyName()}</span>
               </div>
               {data.description && (
                 <div className="flex flex-col gap-1">
@@ -2322,11 +2322,11 @@ function CreateMarketPageContent() {
               </div>
               <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                 <span className="text-gray-300">Your Stake:</span>
-                <span className="text-white font-medium">{data.creatorStake} {usePrix ? 'PRIX' : 'BNB'}</span>
+                <span className="text-white font-medium">{data.creatorStake} {usePrix ? 'PRIX' : getCurrencyName()}</span>
               </div>
               <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                 <span className="text-gray-300">Payment Token:</span>
-                <span className="text-white font-medium">{usePrix ? 'PRIX' : 'BNB'}</span>
+                <span className="text-white font-medium">{usePrix ? 'PRIX' : getCurrencyName()}</span>
               </div>
               {data.description && (
                 <div className="flex flex-col gap-1">
