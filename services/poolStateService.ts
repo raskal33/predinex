@@ -4,7 +4,7 @@
  */
 
 import { readContract } from 'wagmi/actions';
-import { config } from '@/config/wagmi';
+import { config, CONTRACT_ADDRESSES } from '@/config/wagmi';
 import PredinexPoolCoreArtifact from '@/contracts/abis/PredinexPoolCore.json';
 
 // Extract ABI array from artifact (ABI files are arrays directly)
@@ -21,7 +21,7 @@ interface PoolStateCache {
 class PoolStateService {
   private cache: PoolStateCache = {};
   private readonly CACHE_DURATION = 30000; // 30 seconds cache
-  private readonly CONTRACT_ADDRESS = "0xf6C56Ef095d88a04a3C594ECA30F6e275EEbe3db";
+  private readonly CONTRACT_ADDRESS = CONTRACT_ADDRESSES.POOL_CORE;
 
   /**
    * Get pool settlement status with smart caching
