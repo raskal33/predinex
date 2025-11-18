@@ -80,17 +80,25 @@ export class GuidedMarketService {
   // Football Methods - Updated to use backend API with current date + 7 days
   static async getFootballMatches(_days: number = 7, limit: number = 500): Promise<FootballMatch[]> {
     try {
-      // Call the upcoming fixtures endpoint (original endpoint for guided markets)
-      const response = await fetch(`${API_BASE_URL}/fixtures/upcoming?limit=${limit}`);
+      // Use frontend API route that proxies to backend (avoids CORS and URL issues)
+      const apiUrl = typeof window !== 'undefined' 
+        ? '/api/fixtures/upcoming'  // Use Next.js API route on client
+        : `${API_BASE_URL}/fixtures/upcoming`; // Use direct backend URL on server
+      const response = await fetch(`${apiUrl}?limit=${limit}`);
       const data = await response.json();
       
-      if (!data.success) {
+      // Handle both frontend API route format (matches) and backend format (data.fixtures)
+      let fixtures = [];
+      if (data.matches && Array.isArray(data.matches)) {
+        // Frontend API route format
+        fixtures = data.matches;
+      } else if (data.success && data.data?.fixtures) {
+        // Backend format
+        fixtures = data.data.fixtures;
+      } else if (!data.success) {
         console.error('Failed to fetch fixtures:', data.error);
         return [];
       }
-      
-      // The /upcoming endpoint returns data.fixtures, not data.matches
-      const fixtures = data.data?.fixtures || [];
       
       // Transform the fixtures data to match our interface - FILTER OUT MATCHES WITHOUT REAL ODDS
       return fixtures.map((match: any) => ({
@@ -154,7 +162,14 @@ export class GuidedMarketService {
   // Get matches by date range for guided markets with pagination
   static async getFootballMatchesByDateRange(startDate: string, endDate: string, limit: number = 50, page: number = 1): Promise<FootballMatch[]> {
     try {
-      const response = await fetch(`${API_BASE_URL}/fixtures/date-range?start_date=${startDate}&end_date=${endDate}&limit=${limit}&page=${page}`);
+      // Use frontend API route that proxies to backend
+      const apiUrl = typeof window !== 'undefined' 
+        ? '/api/fixtures/upcoming'  // Use Next.js API route on client
+        : `${API_BASE_URL}/fixtures/date-range`; // Use direct backend URL on server
+      const queryParams = typeof window !== 'undefined'
+        ? `?days=7&limit=${limit}` // Frontend route uses days param
+        : `?start_date=${startDate}&end_date=${endDate}&limit=${limit}&page=${page}`; // Backend route
+      const response = await fetch(`${apiUrl}${queryParams}`);
       const data = await response.json();
       
       if (!data.success) {
@@ -320,18 +335,25 @@ export class GuidedMarketService {
   // Cryptocurrency Methods - Updated to use backend API
   static async getCryptocurrencies(limit: number = 500): Promise<Cryptocurrency[]> {
     try {
-      // Try to get all coins with higher limit
-      const response = await fetch(`${API_BASE_URL}/crypto/all?limit=${limit}&page=1`);
+      // Use frontend API route that proxies to backend (avoids CORS and URL issues)
+      const apiUrl = typeof window !== 'undefined' 
+        ? '/api/crypto/all'  // Use Next.js API route on client
+        : `${API_BASE_URL}/crypto/all`; // Use direct backend URL on server
+      const response = await fetch(`${apiUrl}?limit=${limit}&page=1`);
       const data = await response.json();
       
-      if (!data.success) {
+      // Handle both frontend API route format and backend format
+      let coins = [];
+      if (data.success && data.data) {
+        coins = Array.isArray(data.data) ? data.data : [];
+      } else if (!data.success) {
         console.error('Failed to fetch cryptocurrencies:', data.error);
         // Fallback to popular coins if all coins fails
         return this.getPopularCryptocurrencies();
       }
       
       // Filter out coins with no price data and sort by rank
-      const validCoins = data.data
+      const validCoins = coins
         .filter((crypto: any) => crypto.price_usd && crypto.price_usd > 0)
         .sort((a: any, b: any) => (a.rank || 999) - (b.rank || 999))
         .slice(0, limit);
@@ -355,7 +377,11 @@ export class GuidedMarketService {
   // Get popular cryptocurrencies as fallback
   static async getPopularCryptocurrencies(): Promise<Cryptocurrency[]> {
     try {
-      const response = await fetch(`${API_BASE_URL}/crypto/popular`);
+      // Use frontend API route that proxies to backend
+      const apiUrl = typeof window !== 'undefined' 
+        ? '/api/crypto/popular'  // Use Next.js API route on client
+        : `${API_BASE_URL}/crypto/popular`; // Use direct backend URL on server
+      const response = await fetch(apiUrl);
       const data = await response.json();
       
       if (!data.success) {

@@ -150,9 +150,9 @@ export function useWalletConnection() {
     }
   }, [disconnect, clearAllTimers]);
 
-  // Handle successful wallet connection
+  // Handle successful wallet connection - auto-close modal
   useEffect(() => {
-    if (isConnected && address && isConnecting) {
+    if (isConnected && address) {
       console.log('✅ Wallet connected successfully');
       clearAllTimers();
       setIsConnecting(false);
@@ -167,12 +167,15 @@ export function useWalletConnection() {
         },
       });
       
-      // Auto-close AppKit modal after successful connection
-      setTimeout(() => {
-        close();
-      }, 1000);
+      // Auto-close AppKit modal after successful connection (check if modal is open)
+      if (isModalOpen) {
+        setTimeout(() => {
+          close();
+          console.log('✅ AppKit modal closed automatically after wallet connection');
+        }, 500); // Reduced delay for faster close
+      }
     }
-  }, [isConnected, address, isConnecting, clearAllTimers, close]);
+  }, [isConnected, address, isModalOpen, clearAllTimers, close]);
 
   // Handle modal state changes
   useEffect(() => {
