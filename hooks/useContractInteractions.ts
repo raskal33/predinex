@@ -162,6 +162,29 @@ export function usePoolCore() {
         ? boostCost  // PRIX pools: only boost cost in BNB via msg.value
         : totalRequired; // BNB pools: everything in BNB via msg.value
 
+      // ✅ FIX: For BNB pools, check BNB balance before attempting transaction
+      if (!poolData.usePrix && address) {
+        console.log(`💰 BNB Pool Creation Flow Started`);
+        console.log(`   Base Creation Fee: ${creationFeeBNB / BigInt(10**18)} BNB`);
+        console.log(`   Creator Stake: ${poolData.creatorStake / BigInt(10**18)} BNB`);
+        console.log(`   Boost Cost: ${boostCost / BigInt(10**18)} BNB`);
+        console.log(`   Total Required: ${totalRequired / BigInt(10**18)} BNB`);
+        
+        // Check BNB balance
+        const bnbBalance = await publicClient?.getBalance({ address });
+        console.log(`🔍 BNB Balance Check: ${bnbBalance ? bnbBalance / BigInt(10**18) : 0} BNB (required: ${totalRequired / BigInt(10**18)} BNB)`);
+        
+        if (!bnbBalance || bnbBalance < totalRequired) {
+          const shortfall = totalRequired - (bnbBalance || 0n);
+          const errorMsg = `Insufficient BNB balance. You have ${bnbBalance ? bnbBalance / BigInt(10**18) : 0} BNB but need ${totalRequired / BigInt(10**18)} BNB (shortfall: ${shortfall / BigInt(10**18)} BNB)`;
+          console.error(`❌ ${errorMsg}`);
+          toast.error(errorMsg);
+          throw new Error(errorMsg);
+        }
+        
+        console.log(`✅ BNB balance check passed: ${bnbBalance / BigInt(10**18)} BNB >= ${totalRequired / BigInt(10**18)} BNB`);
+      }
+
       // For PRIX pools, we need to ensure the contract has sufficient allowance
       // The contract will handle the token transfer internally
       if (poolData.usePrix) {

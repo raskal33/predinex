@@ -3,7 +3,8 @@
 import React, { useState, useEffect, useCallback, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { useAccount, useWriteContract, useWaitForTransactionReceipt, useChainId } from "wagmi";
+import { bscTestnetNetwork } from "@/config/wagmi";
 import { useRouter, useSearchParams } from "next/navigation";
 import { parseUnits, keccak256, toHex } from "viem";
 import { usePoolCore } from "@/hooks/useContractInteractions";
@@ -144,6 +145,7 @@ function CreateMarketPageContent() {
   const reputationCheck = useReputationCheck(address as `0x${string}` | undefined);
   const { data: hash, error: writeError, isPending } = useWriteContract(); // writeContract removed as not currently used
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
+  const chainId = useChainId();
   
   // Transaction feedback system
   const { transactionStatus, showSuccess, showError, showInfo, clearStatus } = useTransactionFeedback();
@@ -153,6 +155,12 @@ function CreateMarketPageContent() {
   
   // Market type selection
   const [selectedType, setSelectedType] = useState<MarketType>(null);
+  
+  // Helper to get currency name (BNB or tBNB based on network)
+  const getCurrencyName = useCallback(() => {
+    const isTestnet = chainId === bscTestnetNetwork.id;
+    return isTestnet ? 'tBNB' : 'BNB';
+  }, [chainId]);
 
   const [data, setData] = useState<GuidedMarketData>({
     category: '',
@@ -737,23 +745,41 @@ function CreateMarketPageContent() {
     }
 
     if (stepNumber === 2) {
+      console.log('🔍 Validating step 2...');
+      console.log('📊 Data being validated:', {
+        odds: data.odds,
+        creatorStake: data.creatorStake,
+        predictionOutcome: data.predictionOutcome,
+        description: data.description?.substring(0, 50),
+        usePrix: usePrix
+      });
+      
       if (!data.odds || data.odds < 101 || data.odds > 10000) {
+        console.log('❌ Odds validation failed:', data.odds);
         newErrors.odds = 'Odds must be between 1.01x and 100.0x';
       }
       
-      // Contract minimum stake requirements
-      const minStake = usePrix ? 20 : 20; // Both BNB and PRIX have same minimum (20 tokens)
+      // Contract minimum stake requirements - match UI expectations
+      const minStakeBNB = 1; // 1 BNB minimum from contract
+      const minStakePRIX = 1000; // 1000 PRIX minimum from contract
+      const minStake = usePrix ? minStakePRIX : minStakeBNB;
+      
       if (!data.creatorStake || data.creatorStake < minStake) {
-        newErrors.creatorStake = `Creator stake must be at least ${minStake} ${usePrix ? 'PRIX' : 'BNB'}`;
+        console.log('❌ Creator stake validation failed:', data.creatorStake, 'min:', minStake);
+        newErrors.creatorStake = `Creator stake must be at least ${minStake} ${usePrix ? 'PRIX' : getCurrencyName()}`;
       }
 
       if (!data.predictionOutcome) {
+        console.log('❌ Prediction outcome validation failed:', data.predictionOutcome);
         newErrors.predictionOutcome = 'Please select your prediction';
       }
 
-      if (!data.description.trim()) {
+      if (!data.description || !data.description.trim()) {
+        console.log('❌ Description validation failed:', data.description);
         newErrors.description = 'Please provide a description';
       }
+      
+      console.log('✅ Step 2 validation result:', Object.keys(newErrors).length === 0 ? 'PASSED' : 'FAILED', newErrors);
     }
 
     setErrors(newErrors);
@@ -1588,7 +1614,7 @@ function CreateMarketPageContent() {
                   handleInputChange('creatorStake', numValue);
                   setErrors(prev => ({
                     ...prev,
-                    creatorStake: `⚠️ Minimum stake is ${minStake} ${usePrix ? 'PRIX' : 'BNB'}. You entered ${numValue} ${usePrix ? 'PRIX' : 'BNB'}.`
+                    creatorStake: `⚠️ Minimum stake is ${minStake} ${usePrix ? 'PRIX' : getCurrencyName()}. You entered ${numValue} ${usePrix ? 'PRIX' : getCurrencyName()}.`
                   }));
                 }
               }}
@@ -1610,7 +1636,7 @@ function CreateMarketPageContent() {
                   // Show warning for amounts below minimum
                   setErrors(prev => ({
                     ...prev,
-                    creatorStake: `⚠️ Minimum stake is ${minStake} ${usePrix ? 'PRIX' : 'BNB'}. You entered ${numValue} ${usePrix ? 'PRIX' : 'BNB'}.`
+                    creatorStake: `⚠️ Minimum stake is ${minStake} ${usePrix ? 'PRIX' : getCurrencyName()}. You entered ${numValue} ${usePrix ? 'PRIX' : getCurrencyName()}.`
                   }));
                 }
               }}
@@ -1620,8 +1646,8 @@ function CreateMarketPageContent() {
               step={0.1}
               allowDecimals={true}
               decimals={2}
-              currency={usePrix ? 'PRIX' : 'BNB'}
-              help={`Your stake that acts as liquidity for the market. Minimum: ${usePrix ? '1000 PRIX' : '1 BNB'}`}
+              currency={usePrix ? 'PRIX' : getCurrencyName()}
+              help={`Your stake that acts as liquidity for the market. Minimum: ${usePrix ? '1000 PRIX' : `1 ${getCurrencyName()}`}`}
             />
             {errors.creatorStake && (
               <p className={`text-sm ${errors.creatorStake.includes('⚠️') ? 'text-yellow-400' : 'text-red-400'}`}>
@@ -1833,7 +1859,7 @@ function CreateMarketPageContent() {
               }`}
             >
               <div className="font-semibold text-sm">🥉 Bronze</div>
-              <div className="text-xs mt-1">2 {usePrix ? 'PRIX' : 'BNB'}</div>
+              <div className="text-xs mt-1">2 {usePrix ? 'PRIX' : getCurrencyName()}</div>
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.02 }}
@@ -1845,7 +1871,7 @@ function CreateMarketPageContent() {
               }`}
             >
               <div className="font-semibold text-sm">🥈 Silver</div>
-              <div className="text-xs mt-1">5 {usePrix ? 'PRIX' : 'BNB'}</div>
+              <div className="text-xs mt-1">5 {usePrix ? 'PRIX' : getCurrencyName()}</div>
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.02 }}
@@ -1857,7 +1883,7 @@ function CreateMarketPageContent() {
               }`}
             >
               <div className="font-semibold text-sm">🥇 Gold</div>
-              <div className="text-xs mt-1">10 {usePrix ? 'PRIX' : 'BNB'}</div>
+              <div className="text-xs mt-1">10 {usePrix ? 'PRIX' : getCurrencyName()}</div>
             </motion.button>
           </div>
 
@@ -1954,7 +1980,7 @@ function CreateMarketPageContent() {
                 className="w-full px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-cyan-500"
               />
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm">
-                {usePrix ? 'PRIX' : 'BNB'}
+                {usePrix ? 'PRIX' : getCurrencyName()}
               </div>
             </div>
             <p className="text-xs text-gray-400">
@@ -2464,8 +2490,14 @@ function CreateMarketPageContent() {
               </Button>
               
               <Button
-                onClick={handleNextStep}
+                onClick={(e) => {
+                  console.log('🖱️ Next button clicked!', e);
+                  e?.preventDefault?.();
+                  e?.stopPropagation?.();
+                  handleNextStep();
+                }}
                 variant="primary"
+                type="button"
               >
                 Next
               </Button>
