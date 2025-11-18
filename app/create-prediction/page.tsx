@@ -163,6 +163,9 @@ function CreateMarketPageContent() {
     hash: currentTxHash 
   });
   
+  // ✅ FIX: Track if we've already processed this success to prevent infinite loops
+  const successProcessedRef = React.useRef<string | null>(null);
+  
   // Helper to get currency name (BNB or tBNB based on network)
   const getCurrencyName = useCallback(() => {
     const isTestnet = chainId === bscTestnetNetwork.id;
@@ -525,30 +528,40 @@ function CreateMarketPageContent() {
   }, [isTxError, currentTxHash, showError]);
 
   useEffect(() => {
-    if (isSuccess && currentTxHash) {
+    // ✅ FIX: Prevent infinite loop by checking if we've already processed this success
+    if (isSuccess && currentTxHash && successProcessedRef.current !== currentTxHash) {
       console.log('✅ Transaction successful - showing feedback with hash:', currentTxHash);
       
+      // Mark this success as processed
+      successProcessedRef.current = currentTxHash;
+      
+      // Capture current values to avoid dependency issues
+      const currentUsePrix = usePrix;
+      const currentBoostTier = data.boostTier;
+      const currentCategory = data.category;
+      const currentTxHashValue = currentTxHash;
+      
       // Calculate total cost for display
-      const creationFee = usePrix ? '50 PRIX' : '0.01 BNB';
-      const boostCost = data.boostTier && data.boostTier !== 'NONE' 
-        ? `${data.boostTier === 'BRONZE' ? '2' : data.boostTier === 'SILVER' ? '3' : '5'} BNB`
+      const creationFee = currentUsePrix ? '50 PRIX' : '0.01 BNB';
+      const boostCost = currentBoostTier && currentBoostTier !== 'NONE' 
+        ? `${currentBoostTier === 'BRONZE' ? '2' : currentBoostTier === 'SILVER' ? '3' : '5'} BNB`
         : '0';
-      const totalCost = data.boostTier && data.boostTier !== 'NONE' 
+      const totalCost = currentBoostTier && currentBoostTier !== 'NONE' 
         ? `${boostCost} + ${creationFee}`
         : creationFee;
       
-      const categoryName = data.category === 'football' ? 'football prediction' : 
-                          data.category === 'cryptocurrency' ? 'cryptocurrency prediction' : 
+      const categoryName = currentCategory === 'football' ? 'football prediction' : 
+                          currentCategory === 'cryptocurrency' ? 'cryptocurrency prediction' : 
                           'prediction';
       
       showSuccess(
         'Market Created Successfully!', 
         `Your ${categoryName} market has been created and is now live on the blockchain!`, 
-        currentTxHash,
-        data.boostTier,
+        currentTxHashValue,
+        currentBoostTier,
         totalCost
       );
-      setDeploymentHash(currentTxHash);
+      setDeploymentHash(currentTxHashValue);
       setIsLoading(false);
       
       // Scroll to top to show success message
@@ -560,7 +573,7 @@ function CreateMarketPageContent() {
           type: 'market_created',
           points: 8,
           description: `Created a ${categoryName} market`,
-          marketId: currentTxHash
+          marketId: currentTxHashValue
         });
       }
 
@@ -571,7 +584,7 @@ function CreateMarketPageContent() {
           // Ensure receipt is available before notifying
           if (receipt && receipt.status === 'success') {
             console.log('📤 Notifying backend about pool creation with confirmed receipt');
-            await notifyPoolCreation(currentTxHash);
+            await notifyPoolCreation(currentTxHashValue);
           } else {
             console.warn('⚠️ Receipt not available yet, skipping notification');
           }
@@ -588,6 +601,8 @@ function CreateMarketPageContent() {
       // Clear transaction hash after a delay to allow modal to show success
       setTimeout(() => {
         setCurrentTxHash(undefined);
+        // Reset the processed ref when hash is cleared
+        successProcessedRef.current = null;
       }, 1000);
       
       // Reset form data for next market creation
@@ -605,7 +620,8 @@ function CreateMarketPageContent() {
         setStep(1);
       }
     }
-  }, [isSuccess, currentTxHash, receipt, address, addReputationAction, notifyPoolCreation, showSuccess, data, usePrix]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSuccess, currentTxHash, receipt, address, addReputationAction, notifyPoolCreation, showSuccess, usePrix]);
 
   // Track approval transaction confirmation
   const { isSuccess: isApprovalSuccess } = useWaitForTransactionReceipt({ 
@@ -1077,14 +1093,14 @@ function CreateMarketPageContent() {
         
         // Validate minimum stake requirements
         const minStakePRIX = parseUnits("1000", 18); // 1000 PRIX minimum
-        const minStakeBNB = parseUnits("5", 18); // 5 BNB minimum
+        const minStakeBNB = parseUnits("1", 18); // ✅ FIX: 1 BNB minimum (matches contract)
         const creatorStake = parseUnits(data.creatorStake.toString(), 18);
         
         if (usePrix && creatorStake < minStakePRIX) {
           throw new Error(`Minimum stake for PRIX pools is 1000 PRIX. You provided ${data.creatorStake} PRIX.`);
         }
         if (!usePrix && creatorStake < minStakeBNB) {
-          throw new Error(`Minimum stake for BNB pools is 5 BNB. You provided ${data.creatorStake} BNB.`);
+          throw new Error(`Minimum stake for BNB pools is 1 BNB. You provided ${data.creatorStake} BNB.`);
         }
         
         // Validate odds (stored as basis points: 101-10000)
@@ -1130,8 +1146,8 @@ function CreateMarketPageContent() {
         });
         console.log('🔍 Stake validation:', {
           creatorStake: poolData.creatorStake.toString(),
-          minRequired: usePrix ? '1000000000000000000000' : '5000000000000000000',
-          meetsMinimum: usePrix ? poolData.creatorStake >= BigInt('1000000000000000000000') : poolData.creatorStake >= BigInt('5000000000000000000')
+          minRequired: usePrix ? '1000000000000000000000' : '1000000000000000000', // ✅ FIX: 1 BNB minimum
+          meetsMinimum: usePrix ? poolData.creatorStake >= BigInt('1000000000000000000000') : poolData.creatorStake >= BigInt('1000000000000000000') // ✅ FIX: 1 BNB minimum
         });
         
         showInfo('Creating Market', 'Preparing market creation transaction...');
@@ -1165,14 +1181,14 @@ function CreateMarketPageContent() {
         
         // Validate minimum stake requirements
         const minStakePRIX = parseUnits("1000", 18); // 1000 PRIX minimum
-        const minStakeBNB = parseUnits("5", 18); // 5 BNB minimum
+        const minStakeBNB = parseUnits("1", 18); // ✅ FIX: 1 BNB minimum (matches contract)
         const creatorStake = parseUnits(data.creatorStake.toString(), 18);
         
         if (usePrix && creatorStake < minStakePRIX) {
           throw new Error(`Minimum stake for PRIX pools is 1000 PRIX. You provided ${data.creatorStake} PRIX.`);
         }
         if (!usePrix && creatorStake < minStakeBNB) {
-          throw new Error(`Minimum stake for BNB pools is 5 BNB. You provided ${data.creatorStake} BNB.`);
+          throw new Error(`Minimum stake for BNB pools is 1 BNB. You provided ${data.creatorStake} BNB.`);
         }
         
         // Validate odds (stored as basis points: 101-10000)
