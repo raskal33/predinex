@@ -384,7 +384,7 @@ export const TransactionFeedback: React.FC<TransactionFeedbackProps> = ({
 export const useTransactionFeedback = () => {
   const [transactionStatus, setTransactionStatus] = useState<TransactionStatus | null>(null);
 
-  const showSuccess = (title: string, message: string, hash?: string, boostTier?: string, totalCost?: string, poolId?: string) => {
+  const showSuccess = useCallback((title: string, message: string, hash?: string, boostTier?: string, totalCost?: string, poolId?: string) => {
     setTransactionStatus({
       type: 'success',
       title,
@@ -394,53 +394,53 @@ export const useTransactionFeedback = () => {
       totalCost,
       poolId
     });
-  };
+  }, []);
 
-  const showError = (title: string, message: string, hash?: string) => {
+  const showError = useCallback((title: string, message: string, hash?: string) => {
     setTransactionStatus({
       type: 'error',
       title,
       message,
       hash
     });
-  };
+  }, []);
 
-  const showWarning = (title: string, message: string) => {
+  const showWarning = useCallback((title: string, message: string) => {
     setTransactionStatus({
       type: 'warning',
       title,
       message
     });
-  };
+  }, []);
 
-  const showInfo = (title: string, message: string) => {
+  const showInfo = useCallback((title: string, message: string) => {
     setTransactionStatus({
       type: 'info',
       title,
       message
     });
-  };
+  }, []);
 
-  const showPending = (title: string, message: string) => {
+  const showPending = useCallback((title: string, message: string) => {
     setTransactionStatus({
       type: 'pending',
       title,
       message
     });
-  };
+  }, []);
 
-  const showConfirming = (title: string, message: string, hash?: string) => {
+  const showConfirming = useCallback((title: string, message: string, hash?: string) => {
     setTransactionStatus({
       type: 'confirming',
       title,
       message,
       hash
     });
-  };
+  }, []);
 
-  const clearStatus = () => {
+  const clearStatus = useCallback(() => {
     setTransactionStatus(null);
-  };
+  }, []);
 
   return {
     transactionStatus,

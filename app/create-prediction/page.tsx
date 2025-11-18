@@ -607,14 +607,14 @@ function CreateMarketPageContent() {
 
   // Track token approval states for transaction feedback
   useEffect(() => {
-    if (token.isPending && token.hash) {
+    if (token.isPending) {
       console.log('🔄 Token approval pending - showing feedback');
       showPending('Approval Pending', 'Please confirm the PRIX token approval in your wallet...');
     }
-  }, [token.isPending, token.hash, showPending]);
+  }, [token.isPending, showPending]);
 
   useEffect(() => {
-    if (token.isConfirming && token.hash) {
+    if (token.isConfirming) {
       console.log('⏳ Token approval confirming - showing feedback');
       showConfirming('Approval Confirming', 'Your PRIX token approval is being processed on the blockchain...', token.hash);
     }
