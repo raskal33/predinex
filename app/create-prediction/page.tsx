@@ -2490,10 +2490,8 @@ function CreateMarketPageContent() {
               </Button>
               
               <Button
-                onClick={(e) => {
-                  console.log('🖱️ Next button clicked!', e);
-                  e?.preventDefault?.();
-                  e?.stopPropagation?.();
+                onClick={() => {
+                  console.log('🖱️ Next button clicked!');
                   handleNextStep();
                 }}
                 variant="primary"
