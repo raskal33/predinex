@@ -159,7 +159,7 @@ function CreateMarketPageContent() {
   const [currentTxHash, setCurrentTxHash] = useState<`0x${string}` | undefined>(undefined);
   
   // Track transaction receipt using manually tracked hash (since createPool uses writeContractAsync)
-  const { isLoading: isConfirming, isSuccess, isError: isTxError } = useWaitForTransactionReceipt({ 
+  const { data: receipt, isLoading: isConfirming, isSuccess, isError: isTxError } = useWaitForTransactionReceipt({ 
     hash: currentTxHash 
   });
   
@@ -565,9 +565,16 @@ function CreateMarketPageContent() {
       }
 
       // Notify backend about the new pool creation for indexing
+      // ✅ FIX: Only notify after receipt is confirmed (isSuccess means receipt is available)
       const notifyBackend = async () => {
         try {
-          await notifyPoolCreation(currentTxHash);
+          // Ensure receipt is available before notifying
+          if (receipt && receipt.status === 'success') {
+            console.log('📤 Notifying backend about pool creation with confirmed receipt');
+            await notifyPoolCreation(currentTxHash);
+          } else {
+            console.warn('⚠️ Receipt not available yet, skipping notification');
+          }
         } catch (error) {
           console.warn('Failed to notify backend about pool creation:', error);
           // Don't fail the entire flow if backend notification fails
@@ -598,7 +605,7 @@ function CreateMarketPageContent() {
         setStep(1);
       }
     }
-  }, [isSuccess, currentTxHash, address, addReputationAction, notifyPoolCreation, showSuccess, data, usePrix]);
+  }, [isSuccess, currentTxHash, receipt, address, addReputationAction, notifyPoolCreation, showSuccess, data, usePrix]);
 
   // Track approval transaction confirmation
   const { isSuccess: isApprovalSuccess } = useWaitForTransactionReceipt({ 
