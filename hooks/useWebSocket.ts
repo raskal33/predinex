@@ -1,11 +1,28 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 
-// Use relative WebSocket URL in browser (goes through Vercel proxy), full URL on server
-// Note: Vercel doesn't support WebSocket proxying, so we need to use the full URL
-// But we can make it work by using wss:// protocol with the backend URL
-const WS_URL = typeof window !== 'undefined'
-  ? (process.env.NEXT_PUBLIC_WS_URL || 'wss://predinex.fly.dev')
-  : (process.env.NEXT_PUBLIC_WS_URL || 'wss://predinex.fly.dev');
+// ✅ FIX: Get WebSocket URL from environment - prioritize WS_URL
+const getWSUrl = () => {
+  let wsUrl = process.env.NEXT_PUBLIC_WS_URL;
+  
+  // If WS_URL is not set, construct from API_URL
+  if (!wsUrl) {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://predinex.fly.dev';
+    // Convert http/https to ws/wss
+    wsUrl = apiUrl.replace('http://', 'ws://').replace('https://', 'wss://');
+  } else {
+    // Ensure WS_URL uses correct protocol
+    wsUrl = wsUrl.replace('http://', 'ws://').replace('https://', 'wss://');
+  }
+  
+  // Append /ws if not already present
+  if (!wsUrl.endsWith('/ws')) {
+    wsUrl = `${wsUrl}/ws`;
+  }
+  
+  return wsUrl;
+};
+
+const WS_URL = getWSUrl();
 
 interface UseWebSocketOptions {
   channel: string | null;
@@ -32,16 +49,8 @@ export function useWebSocket({ channel, onMessage, enabled = true }: UseWebSocke
     try {
       isConnectingRef.current = true;
       
-      // Build WebSocket URL - ensure we don't duplicate /ws
-      let wsUrl = WS_URL;
-      
-      // Convert http/https to ws/wss if needed
-      wsUrl = wsUrl.replace('http://', 'ws://').replace('https://', 'wss://');
-      
-      // Add /ws only if not already present
-      if (!wsUrl.endsWith('/ws')) {
-        wsUrl = `${wsUrl}/ws`;
-      }
+      // ✅ FIX: Use pre-constructed WS_URL (already has /ws appended)
+      const wsUrl = WS_URL;
       
       console.log('🔌 Connecting to WebSocket (useWebSocket hook):', wsUrl);
       const ws = new WebSocket(wsUrl);

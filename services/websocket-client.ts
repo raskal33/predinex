@@ -15,11 +15,14 @@ class WebSocketClient {
   private ws: WebSocket | null = null;
   private subscriptions: Map<string, Subscription[]> = new Map();
   private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
+  private maxReconnectAttempts = 10; // ✅ FIX: Increase max attempts
   private reconnectDelay = 1000;
+  private maxReconnectDelay = 30000; // ✅ FIX: Max 30s delay (exponential backoff)
   private heartbeatInterval: NodeJS.Timeout | null = null;
+  private reconnectTimeout: NodeJS.Timeout | null = null;
   private isConnected = false;
   private isInitialized = false;
+  private isConnecting = false; // ✅ FIX: Prevent multiple simultaneous connections
 
   // Lazy connection - don't auto-connect on construction
   constructor() {
@@ -34,50 +37,96 @@ class WebSocketClient {
   }
 
   private connect() {
+    // ✅ FIX: Prevent multiple simultaneous connections
+    if (this.isConnecting || (this.ws && this.ws.readyState === WebSocket.OPEN)) {
+      return;
+    }
+
     try {
-      // Get WebSocket URL from environment or fallback to backend URL
-      const baseUrl = process.env.NEXT_PUBLIC_WS_URL || process.env.NEXT_PUBLIC_API_URL || 'https://predinex.fly.dev';
+      this.isConnecting = true;
       
-      // Convert http/https to ws/wss
-      let wsUrl = baseUrl.replace('http://', 'ws://').replace('https://', 'wss://');
+      // ✅ FIX: Get WebSocket URL from environment - prioritize WS_URL
+      let wsUrl = process.env.NEXT_PUBLIC_WS_URL;
       
-      // Append /ws if not already present - PREVENT DOUBLE /ws
+      // If WS_URL is not set, construct from API_URL
+      if (!wsUrl) {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://predinex.fly.dev';
+        // Convert http/https to ws/wss
+        wsUrl = apiUrl.replace('http://', 'ws://').replace('https://', 'wss://');
+      } else {
+        // Ensure WS_URL uses correct protocol
+        wsUrl = wsUrl.replace('http://', 'ws://').replace('https://', 'wss://');
+      }
+      
+      // ✅ FIX: Append /ws if not already present - PREVENT DOUBLE /ws
       if (!wsUrl.endsWith('/ws')) {
         wsUrl = `${wsUrl}/ws`;
       }
       
       console.log('🔌 Connecting to WebSocket (websocket-client singleton):', wsUrl);
       
+      // ✅ FIX: Close existing connection if any
+      if (this.ws) {
+        try {
+          this.ws.close();
+        } catch (_e) {
+          // Ignore close errors
+        }
+      }
+      
       this.ws = new WebSocket(wsUrl);
       
       this.ws.onopen = () => {
-        console.log('WebSocket connected');
+        console.log('✅ WebSocket connected successfully');
         this.isConnected = true;
+        this.isConnecting = false;
         this.reconnectAttempts = 0;
         this.startHeartbeat();
+        
+        // ✅ FIX: Resubscribe to all channels after reconnection
+        this.resubscribeAll();
       };
 
       this.ws.onmessage = (event) => {
         try {
           const message: WebSocketMessage = JSON.parse(event.data);
+          
+          // ✅ FIX: Handle pong responses
+          if (message.type === 'pong') {
+            return; // Heartbeat response, no need to process
+          }
+          
           this.handleMessage(message);
         } catch (error) {
           console.error('Error parsing WebSocket message:', error);
         }
       };
 
-      this.ws.onclose = () => {
-        console.log('WebSocket disconnected');
+      this.ws.onclose = (event) => {
+        console.log(`🔌 WebSocket disconnected (code: ${event.code}, reason: ${event.reason || 'No reason'})`);
         this.isConnected = false;
+        this.isConnecting = false;
         this.stopHeartbeat();
-        this.attemptReconnect();
+        
+        // ✅ FIX: Don't reconnect on clean close (1000) or going away (1001)
+        if (event.code !== 1000 && event.code !== 1001) {
+          this.attemptReconnect();
+        } else {
+          console.log('✅ WebSocket closed cleanly, not reconnecting');
+        }
       };
 
-      this.ws.onerror = (error) => {
-        console.error('WebSocket error:', error);
+      this.ws.onerror = (_error) => {
+        this.isConnecting = false;
+        // ✅ FIX: Don't log generic error events (they're handled in onclose)
+        // Only log if it's a meaningful error
+        if (this.ws && this.ws.readyState === WebSocket.CLOSED) {
+          console.warn('⚠️ WebSocket connection error (connection closed)');
+        }
       };
     } catch (error) {
-      console.error('Error creating WebSocket connection:', error);
+      this.isConnecting = false;
+      console.error('❌ Error creating WebSocket connection:', error);
       this.attemptReconnect();
     }
   }
@@ -99,9 +148,15 @@ class WebSocketClient {
   }
 
   private startHeartbeat() {
+    this.stopHeartbeat(); // ✅ FIX: Clear any existing heartbeat
     this.heartbeatInterval = setInterval(() => {
       if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-        this.ws.send(JSON.stringify({ type: 'ping' }));
+        try {
+          this.ws.send(JSON.stringify({ type: 'ping' }));
+        } catch (error) {
+          console.warn('⚠️ Heartbeat ping failed:', error);
+          // Connection might be dead, will be detected by onclose
+        }
       }
     }, 30000); // Send ping every 30 seconds
   }
@@ -114,17 +169,53 @@ class WebSocketClient {
   }
 
   private attemptReconnect() {
+    // ✅ FIX: Clear any existing reconnect timeout
+    if (this.reconnectTimeout) {
+      clearTimeout(this.reconnectTimeout);
+      this.reconnectTimeout = null;
+    }
+
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
-      const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
       
-      console.log(`Attempting to reconnect in ${delay}ms (attempt ${this.reconnectAttempts})`);
+      // ✅ FIX: Exponential backoff with jitter
+      const baseDelay = Math.min(
+        this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1),
+        this.maxReconnectDelay
+      );
+      const jitter = Math.random() * 1000; // Add up to 1s jitter
+      const delay = baseDelay + jitter;
       
-      setTimeout(() => {
-        this.connect();
+      console.log(`🔄 Reconnecting in ${Math.round(delay)}ms... (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+      
+      this.reconnectTimeout = setTimeout(() => {
+        this.reconnectTimeout = null;
+        if (!this.isConnecting && (!this.ws || this.ws.readyState !== WebSocket.OPEN)) {
+          this.connect();
+        }
       }, delay);
     } else {
-      console.error('Max reconnection attempts reached');
+      console.error('❌ Max reconnection attempts reached. WebSocket will not reconnect.');
+    }
+  }
+  
+  // ✅ FIX: Resubscribe to all channels after reconnection
+  private resubscribeAll() {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+      return;
+    }
+
+    // Resubscribe to all active subscriptions
+    for (const channel of this.subscriptions.keys()) {
+      try {
+        this.ws.send(JSON.stringify({
+          type: 'subscribe',
+          channel
+        }));
+        console.log(`📡 Resubscribed to channel: ${channel}`);
+      } catch (error) {
+        console.error(`❌ Error resubscribing to ${channel}:`, error);
+      }
     }
   }
 
@@ -138,13 +229,29 @@ class WebSocketClient {
     
     this.subscriptions.get(channel)!.push({ channel, callback });
     
-    // Send subscription message to server
-    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      this.ws.send(JSON.stringify({
-        type: 'subscribe',
-        channel
-      }));
-    }
+    // ✅ FIX: Send subscription message to server (with retry if not connected)
+    const sendSubscribe = () => {
+      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+        try {
+          this.ws.send(JSON.stringify({
+            type: 'subscribe',
+            channel
+          }));
+          console.log(`📡 Subscribed to channel: ${channel}`);
+        } catch (error) {
+          console.error(`❌ Error subscribing to ${channel}:`, error);
+        }
+      } else {
+        // If not connected, wait a bit and try again
+        setTimeout(() => {
+          if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            sendSubscribe();
+          }
+        }, 500);
+      }
+    };
+    
+    sendSubscribe();
     
     return () => this.unsubscribe(channel, callback);
   }
@@ -245,11 +352,25 @@ class WebSocketClient {
   }
 
   public disconnect() {
+    // ✅ FIX: Clear reconnect timeout
+    if (this.reconnectTimeout) {
+      clearTimeout(this.reconnectTimeout);
+      this.reconnectTimeout = null;
+    }
+    
     this.stopHeartbeat();
+    this.isConnecting = false;
+    this.reconnectAttempts = 0;
+    
     if (this.ws) {
-      this.ws.close();
+      try {
+        this.ws.close(1000, 'Client disconnect'); // Clean close
+      } catch (_error) {
+        // Ignore close errors
+      }
       this.ws = null;
     }
+    this.isConnected = false;
     this.subscriptions.clear();
   }
 }

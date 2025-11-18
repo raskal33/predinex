@@ -13,6 +13,7 @@ import {
 import { OddysseyContractService, UserData } from '@/services/oddysseyContractService';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
+import websocketClient from '@/services/websocket-client';
 
 interface UserSlipsDisplayProps {
   userAddress: string;
@@ -190,101 +191,68 @@ export default function UserSlipsDisplay({ userAddress, className = "" }: UserSl
     }
   }, [userAddress, fetchUserData]);
 
-  // Setup WebSocket for real-time updates
+  // ✅ FIX: Use singleton WebSocket client instead of creating new connection
   useEffect(() => {
     if (!userAddress) return;
 
-    let ws: WebSocket | null = null;
-    let reconnectTimeout: NodeJS.Timeout;
+    let unsubscribe: (() => void) | null = null;
 
-    const connectWebSocket = () => {
+    const setupWebSocket = () => {
       try {
-        // WebSocket must use direct connection (Vercel doesn't proxy WebSockets)
-        const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'wss://predinex.fly.dev/ws';
-        ws = new WebSocket(wsUrl);
+        // Subscribe to user slips updates via singleton client
+        unsubscribe = websocketClient.subscribeToUserSlips(userAddress.toLowerCase(), (data: any) => {
+          console.log('📡 WebSocket message:', data);
 
-        ws.onopen = () => {
-          console.log('✅ WebSocket connected for slip updates');
-          setWsConnected(true);
+          if (data.type === 'slip:evaluated') {
+            console.log('🎯 Slip evaluated:', data);
+            
+            // Update the specific slip with evaluation data
+            setSlips(prevSlips =>
+              prevSlips.map(slip => {
+                if (slip.cycleId === data.cycleId) {
+                  const wonOdds = calculateWonOdds(slip.predictions);
+                  toast.success(`🎉 Slip evaluated! ${data.correctPredictions}/10 correct`, {
+                    duration: 5000,
+                    icon: data.correctPredictions >= 7 ? '🏆' : '📊'
+                  });
+                  return {
+                    ...slip,
+                    isEvaluated: true,
+                    correctCount: data.correctPredictions,
+                    wonOdds,
+                    finalScore: wonOdds
+                  };
+                }
+                return slip;
+              })
+            );
 
-          // Subscribe to user's slip updates
-          ws?.send(JSON.stringify({
-            type: 'subscribe',
-            channel: `slips:user:${userAddress}`
-          }));
-        };
-
-        ws.onmessage = async (event) => {
-          try {
-            const message = JSON.parse(event.data);
-            console.log('📡 WebSocket message:', message);
-
-            if (message.type === 'update') {
-              const { data } = message;
-
-              if (data.type === 'slip:evaluated') {
-                console.log('🎯 Slip evaluated:', data);
-                
-                // Update the specific slip with evaluation data
-                setSlips(prevSlips =>
-                  prevSlips.map(slip => {
-                    if (slip.cycleId === data.cycleId) {
-                      const wonOdds = calculateWonOdds(slip.predictions);
-                      toast.success(`🎉 Slip evaluated! ${data.correctPredictions}/10 correct`, {
-                        duration: 5000,
-                        icon: data.correctPredictions >= 7 ? '🏆' : '📊'
-                      });
-                      return {
-                        ...slip,
-                        isEvaluated: true,
-                        correctCount: data.correctPredictions,
-                        wonOdds,
-                        finalScore: wonOdds
-                      };
-                    }
-                    return slip;
-                  })
-                );
-
-                // Refetch to get detailed evaluation data
-                setTimeout(() => fetchUserData(), 2000);
-              } else if (data.type === 'slip:placed') {
-                console.log('✅ New slip placed:', data);
-                toast.success('Slip placed successfully!', { duration: 3000 });
-                fetchUserData();
-              }
-            }
-          } catch (error) {
-            console.error('Error processing WebSocket message:', error);
+            // Refetch to get detailed evaluation data
+            setTimeout(() => fetchUserData(), 2000);
+          } else if (data.type === 'slip:placed') {
+            console.log('✅ New slip placed:', data);
+            toast.success('Slip placed successfully!', { duration: 3000 });
+            fetchUserData();
           }
-        };
+        });
 
-        ws.onerror = (error) => {
-          console.error('WebSocket error:', error);
-          setWsConnected(false);
-        };
-
-        ws.onclose = () => {
-          console.log('❌ WebSocket disconnected');
-          setWsConnected(false);
-          // Attempt to reconnect after 5 seconds
-          reconnectTimeout = setTimeout(connectWebSocket, 5000);
-        };
+        // Update connection status based on singleton client
+        const stats = websocketClient.getStats();
+        setWsConnected(stats.connected);
+        
+        console.log('✅ WebSocket subscription set up for slip updates');
       } catch (error) {
-        console.error('Error connecting to WebSocket:', error);
+        console.error('Error setting up WebSocket subscription:', error);
         setWsConnected(false);
-        reconnectTimeout = setTimeout(connectWebSocket, 5000);
       }
     };
 
-    connectWebSocket();
+    setupWebSocket();
 
     return () => {
-      if (ws) {
-        ws.close();
-      }
-      if (reconnectTimeout) {
-        clearTimeout(reconnectTimeout);
+      // Unsubscribe from WebSocket channel
+      if (unsubscribe) {
+        unsubscribe();
       }
     };
   }, [userAddress, fetchUserData, calculateWonOdds]);
