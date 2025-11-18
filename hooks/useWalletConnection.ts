@@ -13,6 +13,9 @@ export interface WalletConnectionState {
   error: string | null;
 }
 
+// Module-level tracking to ensure toast only shows once globally across all hook instances
+let globalToastShownForAddress: string | null = null;
+
 export function useWalletConnection() {
   const { address, isConnected } = useAccount();
   const { disconnect } = useDisconnect();
@@ -29,9 +32,6 @@ export function useWalletConnection() {
   const connectionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const checkConnectionIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const cleanupTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
-  // Track if we've already shown the success toast for this connection
-  const hasShownSuccessToastRef = useRef<string | null>(null);
 
   // Check if user is on BSC Testnet network
   const isOnBSC = chainId === bscTestnetNetwork.id;
@@ -140,8 +140,8 @@ export function useWalletConnection() {
       setError(null);
       setConnectionAttempts(0);
       setIsConnecting(false);
-      // Reset the success toast ref so we can show it again on next connection
-      hasShownSuccessToastRef.current = null;
+      // Reset the global toast tracking so we can show it again on next connection
+      globalToastShownForAddress = null;
       console.log('✅ Wallet disconnected');
       toast.success('Wallet disconnected', {
         duration: 2000,
@@ -158,20 +158,21 @@ export function useWalletConnection() {
   // Handle successful wallet connection - auto-close modal
   useEffect(() => {
     if (isConnected && address) {
-      // Only show toast and close modal if we haven't already done so for this address
+      // Only show toast and close modal if we haven't already done so for this address globally
       const currentAddress = address.toLowerCase();
-      if (hasShownSuccessToastRef.current !== currentAddress) {
+      if (globalToastShownForAddress !== currentAddress) {
         console.log('✅ Wallet connected successfully');
         clearAllTimers();
         setIsConnecting(false);
         setError(null);
         
-        // Mark that we've shown the toast for this address
-        hasShownSuccessToastRef.current = currentAddress;
+        // Mark that we've shown the toast for this address globally
+        globalToastShownForAddress = currentAddress;
         
-        // Show success toast only once per connection
+        // Show success toast only once per connection (globally across all components)
         toast.success('Wallet connected successfully! 🎉', {
           duration: 3000,
+          id: 'wallet-connected-success', // Use a unique ID to prevent duplicate toasts
           style: {
             background: '#10B981',
             color: '#fff',
@@ -179,6 +180,7 @@ export function useWalletConnection() {
         });
         
         // Auto-close AppKit modal after successful connection (check if modal is open)
+        // Check isModalOpen inside the effect, not in dependencies to prevent re-triggering on navigation
         if (isModalOpen) {
           setTimeout(() => {
             close();
@@ -187,10 +189,11 @@ export function useWalletConnection() {
         }
       }
     } else if (!isConnected) {
-      // Reset the ref when disconnected so we can show toast again on next connection
-      hasShownSuccessToastRef.current = null;
+      // Reset the global tracking when disconnected so we can show toast again on next connection
+      globalToastShownForAddress = null;
     }
-  }, [isConnected, address, isModalOpen, clearAllTimers, close]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isConnected, address, clearAllTimers, close]); // isModalOpen intentionally omitted to prevent re-triggering on navigation
 
   // Handle modal state changes
   useEffect(() => {
