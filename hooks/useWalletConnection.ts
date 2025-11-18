@@ -29,6 +29,9 @@ export function useWalletConnection() {
   const connectionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const checkConnectionIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const cleanupTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Track if we've already shown the success toast for this connection
+  const hasShownSuccessToastRef = useRef<string | null>(null);
 
   // Check if user is on BSC Testnet network
   const isOnBSC = chainId === bscTestnetNetwork.id;
@@ -137,6 +140,8 @@ export function useWalletConnection() {
       setError(null);
       setConnectionAttempts(0);
       setIsConnecting(false);
+      // Reset the success toast ref so we can show it again on next connection
+      hasShownSuccessToastRef.current = null;
       console.log('✅ Wallet disconnected');
       toast.success('Wallet disconnected', {
         duration: 2000,
@@ -153,27 +158,37 @@ export function useWalletConnection() {
   // Handle successful wallet connection - auto-close modal
   useEffect(() => {
     if (isConnected && address) {
-      console.log('✅ Wallet connected successfully');
-      clearAllTimers();
-      setIsConnecting(false);
-      setError(null);
-      
-      // Show success toast
-      toast.success('Wallet connected successfully! 🎉', {
-        duration: 3000,
-        style: {
-          background: '#10B981',
-          color: '#fff',
-        },
-      });
-      
-      // Auto-close AppKit modal after successful connection (check if modal is open)
-      if (isModalOpen) {
-        setTimeout(() => {
-          close();
-          console.log('✅ AppKit modal closed automatically after wallet connection');
-        }, 500); // Reduced delay for faster close
+      // Only show toast and close modal if we haven't already done so for this address
+      const currentAddress = address.toLowerCase();
+      if (hasShownSuccessToastRef.current !== currentAddress) {
+        console.log('✅ Wallet connected successfully');
+        clearAllTimers();
+        setIsConnecting(false);
+        setError(null);
+        
+        // Mark that we've shown the toast for this address
+        hasShownSuccessToastRef.current = currentAddress;
+        
+        // Show success toast only once per connection
+        toast.success('Wallet connected successfully! 🎉', {
+          duration: 3000,
+          style: {
+            background: '#10B981',
+            color: '#fff',
+          },
+        });
+        
+        // Auto-close AppKit modal after successful connection (check if modal is open)
+        if (isModalOpen) {
+          setTimeout(() => {
+            close();
+            console.log('✅ AppKit modal closed automatically after wallet connection');
+          }, 500); // Reduced delay for faster close
+        }
       }
+    } else if (!isConnected) {
+      // Reset the ref when disconnected so we can show toast again on next connection
+      hasShownSuccessToastRef.current = null;
     }
   }, [isConnected, address, isModalOpen, clearAllTimers, close]);
 
