@@ -150,17 +150,27 @@ export function usePoolCore() {
       }
       
       // ✅ FIX: For PRIX pools, totalRequired does NOT include boostCost (boost is paid in BNB separately)
-      // For BNB pools, totalRequired includes everything (creation fee + stake + boost cost)
+      // For BNB pools WITHOUT boost: totalRequired = creatorStake + creationFeeBNB (we call PoolCore directly)
+      // For BNB pools WITH boost: we don't support this yet (factory has bugs)
       const totalRequired = poolData.usePrix 
         ? poolData.creatorStake + creationFeePRIX  // Only creation fee + stake in PRIX (boost is in BNB)
-        : poolData.creatorStake + creationFeeBNB + boostCost;   // Everything in BNB: stake + creation fee + boost cost
+        : poolData.creatorStake + creationFeeBNB;   // ✅ FIX: For BNB pools, don't include boostCost (we call PoolCore directly, no boost support)
       
       // ✅ FIX: Transaction value for msg.value
-      // PRIX pools: only send boost cost (in BNB) as msg.value (creation fee + stake are transferred as PRIX tokens)
-      // BNB pools: send everything (creation fee + stake + boost cost) as msg.value
+      // PRIX pools with boost: only send boost cost (in BNB) as msg.value (creation fee + stake are transferred as PRIX tokens)
+      // BNB pools: send creatorStake + creationFeeBNB (no boost support yet - factory has bugs)
+      // PRIX pools without boost: value is 0 (token transfer handles it)
       const transactionValue = poolData.usePrix 
-        ? boostCost  // PRIX pools: only boost cost in BNB via msg.value
-        : totalRequired; // BNB pools: everything in BNB via msg.value
+        ? (hasBoost ? boostCost : 0n)  // PRIX pools: boost cost in BNB if boost, otherwise 0
+        : totalRequired; // BNB pools: creatorStake + creationFeeBNB (no boost)
+      
+      // ✅ FIX: Prevent BNB pools with boost (factory has bugs - wrong fees and boost cost)
+      if (!poolData.usePrix && hasBoost) {
+        const errorMsg = 'BNB pools with boost are not currently supported. Please create a PRIX pool if you want to use boost, or create a BNB pool without boost.';
+        console.error(`❌ ${errorMsg}`);
+        toast.error(errorMsg);
+        throw new Error(errorMsg);
+      }
 
       // ✅ FIX: For BNB pools, check BNB balance before attempting transaction
       if (!poolData.usePrix && address) {
@@ -412,8 +422,12 @@ export function usePoolCore() {
         gracePeriodBuffer: Number(poolData.eventStartTime) - Math.floor(Date.now() / 1000),
       });
 
-      // ✅ FIX: Use FACTORY.createPoolWithBoost if boost is selected, otherwise use POOL_CORE.createPool
-      const txHash = hasBoost
+      // ✅ FIX: For BNB pools without boost, always use POOL_CORE directly (factory has fee mismatches)
+      // For BNB pools with boost, we need to use factory but it has bugs - for now, disable boost for BNB pools
+      // For PRIX pools, use factory if boost is selected
+      const shouldUseFactory = hasBoost && poolData.usePrix; // Only use factory for PRIX pools with boost
+      
+      const txHash = shouldUseFactory
         ? await writeContractAsync({
             address: CONTRACT_ADDRESSES.FACTORY,
             abi: CONTRACTS.FACTORY.abi,
@@ -436,17 +450,15 @@ export function usePoolCore() {
               poolData.oracleType,
               marketIdString,
               poolData.marketType,
-              boostTierEnum, // ✅ Boost tier enum (0=NONE, 1=BRONZE, 2=SILVER, 3=GOLD)
+              true, // ✅ FIX: Factory expects bool _applyBoost, not enum
             ],
-            value: transactionValue, // ✅ Includes boost cost for both PRIX and BNB pools
-            // For PRIX pools: value = boostCost (in BNB)
-            // For BNB pools: value = totalRequired + boostCost
+            value: transactionValue, // For PRIX pools with boost: value = boostCost (in BNB)
             gas: BigInt(12000000), // Slightly higher gas for factory function
           })
         : await writeContractAsync({
             address: CONTRACT_ADDRESSES.POOL_CORE,
             abi: CONTRACTS.POOL_CORE.abi,
-            functionName: 'createPool', // ✅ Use main createPool function when no boost
+            functionName: 'createPool', // ✅ Use main createPool function (for both BNB and PRIX pools without boost)
             args: [
               predictedOutcomeBytes32,
               poolData.odds,
@@ -465,7 +477,7 @@ export function usePoolCore() {
               poolData.marketType,
               marketIdString, // 🎯 Market ID: keccak256(fixtureId) for guided, raw string for custom
             ],
-            value: poolData.usePrix ? 0n : totalRequired, // For PRIX pools, value is 0 (token transfer handles it)
+            value: poolData.usePrix ? 0n : totalRequired, // ✅ FIX: For BNB pools, value = creatorStake + creationFeeBNB (no boost)
             gas: BigInt(10000000), // ✅ Reduced gas limit for lightweight function (10M instead of 14M)
           });
       
