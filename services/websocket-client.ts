@@ -132,15 +132,25 @@ class WebSocketClient {
   }
 
   private handleMessage(message: WebSocketMessage) {
+    if (message.type === 'connected' || message.type === 'subscribed' || message.type === 'unsubscribed') {
+      // Acknowledgement events; nothing to forward downstream
+      return;
+    }
+
+    if (!message.channel) {
+      console.warn('Received WebSocket message without channel info:', message);
+      return;
+    }
+
+    if (message.data === undefined || message.data === null) {
+      console.warn('Received undefined/null WebSocket data for channel:', message.channel);
+      return;
+    }
+
     const subscriptions = this.subscriptions.get(message.channel) || [];
     subscriptions.forEach(sub => {
       try {
-        // Add null check for message.data
-        if (message.data !== undefined && message.data !== null) {
-          sub.callback(message.data);
-        } else {
-          console.warn('Received undefined/null WebSocket data for channel:', message.channel);
-        }
+        sub.callback(message.data);
       } catch (error) {
         console.error('Error in subscription callback:', error);
       }
