@@ -143,18 +143,25 @@ function CreateMarketPageContent() {
   const { createPool } = usePoolCore();
   const { getUserReputation, canCreateMarket, addReputationAction } = useReputationStore();
   const reputationCheck = useReputationCheck(address as `0x${string}` | undefined);
-  const { data: hash, error: writeError, isPending } = useWriteContract(); // writeContract removed as not currently used
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
+  const { data: _hash, error: writeError, isPending } = useWriteContract(); // hash not used - we track via currentTxHash instead
   const chainId = useChainId();
   
   // Transaction feedback system
-  const { transactionStatus, showSuccess, showError, showInfo, clearStatus } = useTransactionFeedback();
+  const { transactionStatus, showSuccess, showError, showInfo, showPending, showConfirming, clearStatus } = useTransactionFeedback();
   
   // PRIX Token approval state
   const [approvalConfirmed, setApprovalConfirmed] = useState(false);
   
   // Market type selection
   const [selectedType, setSelectedType] = useState<MarketType>(null);
+  
+  // Track transaction hash manually since createPool uses writeContractAsync (not wagmi's reactive writeContract)
+  const [currentTxHash, setCurrentTxHash] = useState<`0x${string}` | undefined>(undefined);
+  
+  // Track transaction receipt using manually tracked hash (since createPool uses writeContractAsync)
+  const { isLoading: isConfirming, isSuccess, isError: isTxError } = useWaitForTransactionReceipt({ 
+    hash: currentTxHash 
+  });
   
   // Helper to get currency name (BNB or tBNB based on network)
   const getCurrencyName = useCallback(() => {
@@ -469,37 +476,79 @@ function CreateMarketPageContent() {
       
       showError(errorTitle, errorMessage);
       setIsLoading(false);
+      // Clear transaction hash on error
+      setCurrentTxHash(undefined);
     }
   }, [writeError, showError]);
 
-  // Monitor transaction states for feedback
+  // Monitor transaction states for feedback - track with hash to ensure proper state transitions
+  // Note: createPool uses writeContractAsync, so we track hash manually via currentTxHash
   useEffect(() => {
-    if (isPending) {
-      console.log('🔄 Transaction pending - showing feedback');
-      showInfo('Transaction Pending', 'Please confirm the transaction in your wallet...');
+    if (currentTxHash && !isConfirming && !isSuccess && !isTxError) {
+      // Transaction was just submitted, show pending state
+      console.log('🔄 Transaction pending - showing feedback with hash:', currentTxHash);
+      showPending('Transaction Pending', 'Please confirm the transaction in your wallet...');
     }
-  }, [isPending, showInfo]);
+  }, [currentTxHash, isConfirming, isSuccess, isTxError, showPending]);
 
   useEffect(() => {
-    if (isConfirming) {
-      console.log('⏳ Transaction confirming - showing feedback');
-      showInfo('Transaction Confirming', 'Your market creation is being processed on the blockchain...');
+    if (currentTxHash && isConfirming) {
+      console.log('⏳ Transaction confirming - showing feedback with hash:', currentTxHash);
+      showConfirming('Transaction Confirming', 'Your market creation is being processed on the blockchain...', currentTxHash);
     }
-  }, [isConfirming, showInfo]);
+  }, [currentTxHash, isConfirming, showConfirming]);
 
   // Clear loading state when transaction is no longer pending (user cancelled or error occurred)
   useEffect(() => {
-    if (!isPending && !isConfirming && !isSuccess && !writeError && isLoading) {
+    if (!isConfirming && !isSuccess && !isTxError && !writeError && isLoading && !currentTxHash) {
       // Transaction was cancelled or failed without triggering writeError
       setIsLoading(false);
     }
-  }, [isPending, isConfirming, isSuccess, writeError, isLoading]);
+  }, [isConfirming, isSuccess, isTxError, writeError, isLoading, currentTxHash]);
+  
+  // Handle transaction errors from receipt
+  useEffect(() => {
+    if (isTxError && currentTxHash) {
+      console.log('❌ Transaction failed on-chain - showing error feedback');
+      // ✅ FIX: Provide more specific error message for on-chain failures
+      showError(
+        'Transaction Failed On-Chain', 
+        'The transaction was submitted but failed during execution. This may be due to invalid parameters, insufficient balance, or contract validation errors. Please review your inputs and try again.', 
+        currentTxHash
+      );
+      setIsLoading(false);
+      setCurrentTxHash(undefined); // Clear hash to allow retry
+      
+      // Scroll to top to show error modal
+      scrollToTop('smooth');
+    }
+  }, [isTxError, currentTxHash, showError]);
 
   useEffect(() => {
-    if (isSuccess && hash) {
-      console.log('✅ Transaction successful - showing feedback with hash:', hash);
-      showSuccess('Market Created Successfully!', 'Your market has been created and is now live on the blockchain', hash);
-      setDeploymentHash(hash);
+    if (isSuccess && currentTxHash) {
+      console.log('✅ Transaction successful - showing feedback with hash:', currentTxHash);
+      
+      // Calculate total cost for display
+      const creationFee = usePrix ? '50 PRIX' : '0.01 BNB';
+      const boostCost = data.boostTier && data.boostTier !== 'NONE' 
+        ? `${data.boostTier === 'BRONZE' ? '2' : data.boostTier === 'SILVER' ? '3' : '5'} BNB`
+        : '0';
+      const totalCost = data.boostTier && data.boostTier !== 'NONE' 
+        ? `${boostCost} + ${creationFee}`
+        : creationFee;
+      
+      const categoryName = data.category === 'football' ? 'football prediction' : 
+                          data.category === 'cryptocurrency' ? 'cryptocurrency prediction' : 
+                          'prediction';
+      
+      showSuccess(
+        'Market Created Successfully!', 
+        `Your ${categoryName} market has been created and is now live on the blockchain!`, 
+        currentTxHash,
+        data.boostTier,
+        totalCost
+      );
+      setDeploymentHash(currentTxHash);
       setIsLoading(false);
       
       // Scroll to top to show success message
@@ -510,15 +559,15 @@ function CreateMarketPageContent() {
         addReputationAction(address, {
           type: 'market_created',
           points: 8,
-          description: 'Created a guided market',
-          marketId: hash
+          description: `Created a ${categoryName} market`,
+          marketId: currentTxHash
         });
       }
 
       // Notify backend about the new pool creation for indexing
       const notifyBackend = async () => {
         try {
-          await notifyPoolCreation(hash);
+          await notifyPoolCreation(currentTxHash);
         } catch (error) {
           console.warn('Failed to notify backend about pool creation:', error);
           // Don't fail the entire flow if backend notification fails
@@ -528,6 +577,11 @@ function CreateMarketPageContent() {
       
       // Reset approval state for future transactions
       setApprovalConfirmed(false);
+      
+      // Clear transaction hash after a delay to allow modal to show success
+      setTimeout(() => {
+        setCurrentTxHash(undefined);
+      }, 1000);
       
       // Reset form data for next market creation
       try {
@@ -544,7 +598,7 @@ function CreateMarketPageContent() {
         setStep(1);
       }
     }
-  }, [isSuccess, hash, address, addReputationAction, notifyPoolCreation, showSuccess]);
+  }, [isSuccess, currentTxHash, address, addReputationAction, notifyPoolCreation, showSuccess, data, usePrix]);
 
   // Track approval transaction confirmation
   const { isSuccess: isApprovalSuccess } = useWaitForTransactionReceipt({ 
@@ -553,18 +607,18 @@ function CreateMarketPageContent() {
 
   // Track token approval states for transaction feedback
   useEffect(() => {
-    if (token.isPending) {
+    if (token.isPending && token.hash) {
       console.log('🔄 Token approval pending - showing feedback');
-      showInfo('Approval Pending', 'Please confirm the PRIX token approval in your wallet...');
+      showPending('Approval Pending', 'Please confirm the PRIX token approval in your wallet...');
     }
-  }, [token.isPending, showInfo]);
+  }, [token.isPending, token.hash, showPending]);
 
   useEffect(() => {
-    if (token.isConfirming) {
+    if (token.isConfirming && token.hash) {
       console.log('⏳ Token approval confirming - showing feedback');
-      showInfo('Approval Confirming', 'Your PRIX token approval is being processed on the blockchain...');
+      showConfirming('Approval Confirming', 'Your PRIX token approval is being processed on the blockchain...', token.hash);
     }
-  }, [token.isConfirming, showInfo]);
+  }, [token.isConfirming, token.hash, showConfirming]);
 
   // Track approval confirmation
   useEffect(() => {
@@ -783,6 +837,24 @@ function CreateMarketPageContent() {
     }
 
     setErrors(newErrors);
+    
+    // ✅ FIX: Scroll to first error field if validation fails
+    if (Object.keys(newErrors).length > 0) {
+      const firstErrorField = Object.keys(newErrors)[0];
+      setTimeout(() => {
+        const errorElement = document.querySelector(`[data-field="${firstErrorField}"]`) || 
+                            document.querySelector(`[name="${firstErrorField}"]`) ||
+                            document.getElementById(firstErrorField);
+        if (errorElement) {
+          errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          // Focus on input if it's an input element
+          if (errorElement instanceof HTMLElement && (errorElement.tagName === 'INPUT' || errorElement.tagName === 'TEXTAREA' || errorElement.tagName === 'SELECT')) {
+            errorElement.focus();
+          }
+        }
+      }, 100);
+    }
+    
     return Object.keys(newErrors).length === 0;
   };
 
@@ -1046,41 +1118,17 @@ function CreateMarketPageContent() {
         
         showInfo('Creating Market', 'Preparing market creation transaction...');
         
-        // Use direct contract call
+        // Use direct contract call - returns hash immediately (no longer waits for receipt)
         const txHash = await createPool(poolData);
         
         if (txHash) {
-          // Calculate total cost for display
-          const creationFee = usePrix ? '50 PRIX' : '0.01 BNB'; // Contract: creationFeePrix = 50 PRIX, creationFeeBNB = 0.01 BNB
-        // ✅ FIX: Boost cost is always in BNB (not PRIX), regardless of pool currency
-        const boostCost = data.boostTier && data.boostTier !== 'NONE' 
-          ? `${data.boostTier === 'BRONZE' ? '2' : data.boostTier === 'SILVER' ? '3' : '5'} BNB`
-          : '0';
-          const totalCost = data.boostTier && data.boostTier !== 'NONE' 
-            ? `${boostCost} + ${creationFee}`
-            : creationFee;
-
-          showSuccess(
-            'Market Created Successfully!', 
-            'Your football prediction market has been created and is now live on the blockchain!', 
-            txHash,
-            data.boostTier,
-            totalCost
-          );
-          
-          // Add reputation for market creation
-          if (address) {
-            addReputationAction(address, {
-              type: 'market_created',
-              points: 10,
-              description: 'Created a football prediction market'
-            });
-          }
-          
-          // Reset form and go to success step
-          setStep(3);
+          // ✅ FIX: Set transaction hash so wagmi hooks can track it
+          setCurrentTxHash(txHash as `0x${string}`);
+          // Transaction state will be tracked by useEffect hooks (lines 480-511)
+          // They will show: pending -> confirming -> success in the correct order
         } else {
           showError('Market Creation Failed', 'Failed to create football market');
+          setIsLoading(false);
         }
 
       } else if (data.category === 'cryptocurrency' && data.selectedCrypto) {
@@ -1150,41 +1198,17 @@ function CreateMarketPageContent() {
         
         showInfo('Creating Market', 'Preparing crypto market creation transaction...');
         
-        // Use direct contract call
+        // Use direct contract call - returns hash immediately (no longer waits for receipt)
         const txHash = await createPool(poolData);
         
         if (txHash) {
-        // Calculate total cost for display
-        const creationFee = usePrix ? '50 PRIX' : '0.01 BNB'; // Contract: creationFeePrix = 50 PRIX, creationFeeBNB = 0.01 BNB
-        // ✅ FIX: Boost cost is always in BNB (not PRIX), regardless of pool currency
-        const boostCost = data.boostTier && data.boostTier !== 'NONE' 
-          ? `${data.boostTier === 'BRONZE' ? '2' : data.boostTier === 'SILVER' ? '3' : '5'} BNB`
-          : '0';
-        const totalCost = data.boostTier && data.boostTier !== 'NONE' 
-          ? `${boostCost} + ${creationFee}`
-          : creationFee;
-
-        showSuccess(
-          'Market Created Successfully!', 
-          'Your cryptocurrency prediction market has been created and is now live on the blockchain!', 
-            txHash,
-          data.boostTier,
-          totalCost
-        );
-        
-        // Add reputation for market creation
-        if (address) {
-          addReputationAction(address, {
-            type: 'market_created',
-            points: 10,
-            description: 'Created a cryptocurrency prediction market'
-          });
-          }
-          
-          // Reset form and go to success step
-          setStep(3);
+          // ✅ FIX: Set transaction hash so wagmi hooks can track it
+          setCurrentTxHash(txHash as `0x${string}`);
+          // Transaction state will be tracked by useEffect hooks (lines 480-511)
+          // They will show: pending -> confirming -> success in the correct order
         } else {
           showError('Market Creation Failed', 'Failed to create crypto market');
+          setIsLoading(false);
         }
 
       } else {
@@ -1209,7 +1233,57 @@ function CreateMarketPageContent() {
 
     } catch (error) {
       console.error('Error in market creation:', error);
-      showError('Creation Error', 'Failed to create market. Please try again.');
+      // Clear transaction hash on error
+      setCurrentTxHash(undefined);
+      
+      // ✅ FIX: Parse error message to provide better feedback
+      let errorTitle = 'Creation Error';
+      let errorMessage = 'Failed to create market. Please try again.';
+      
+      if (error instanceof Error) {
+        const errorStr = error.message.toLowerCase();
+        
+        // Parse specific error types
+        if (errorStr.includes('minimum stake')) {
+          errorTitle = 'Invalid Stake Amount';
+          errorMessage = error.message;
+          // Focus on stake input field
+          setTimeout(() => {
+            const stakeInput = document.querySelector('[data-field="creatorStake"]') || 
+                              document.querySelector('[name="creatorStake"]');
+            if (stakeInput) {
+              stakeInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              if (stakeInput instanceof HTMLElement) {
+                stakeInput.focus();
+              }
+            }
+          }, 100);
+        } else if (errorStr.includes('odds')) {
+          errorTitle = 'Invalid Odds';
+          errorMessage = error.message;
+          // Focus on odds input field
+          setTimeout(() => {
+            const oddsInput = document.querySelector('[data-field="odds"]') || 
+                             document.querySelector('[name="odds"]');
+            if (oddsInput) {
+              oddsInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              if (oddsInput instanceof HTMLElement) {
+                oddsInput.focus();
+              }
+            }
+          }, 100);
+        } else if (errorStr.includes('insufficient')) {
+          errorTitle = 'Insufficient Balance';
+          errorMessage = error.message;
+        } else if (errorStr.includes('allowance')) {
+          errorTitle = 'Token Approval Required';
+          errorMessage = error.message;
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      showError(errorTitle, errorMessage);
       setIsLoading(false);
     }
   };

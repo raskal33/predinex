@@ -470,27 +470,8 @@ export function usePoolCore() {
           });
       
       console.log('Pool creation transaction submitted:', txHash);
-      toast.loading('Waiting for transaction confirmation...', { id: 'pool-creation' });
-      
-      // Wait for transaction confirmation
-      console.log('⏳ Waiting for transaction confirmation...');
-      if (!publicClient) {
-        throw new Error('Public client not available');
-      }
-      const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
-      
-      if (receipt.status !== 'success') {
-        console.error('❌ Transaction failed. Receipt:', {
-          status: receipt.status,
-          blockNumber: receipt.blockNumber,
-          gasUsed: receipt.gasUsed?.toString(),
-          effectiveGasPrice: receipt.effectiveGasPrice?.toString(),
-        });
-        throw new Error(`Transaction reverted on-chain. Possible causes: insufficient reputation, timing validation failed, or token transfer rejected. Check contract requirements.`);
-      }
-      
-      console.log('✅ Pool creation transaction confirmed:', txHash);
-      toast.success('Pool created successfully!', { id: 'pool-creation' });
+      // ✅ FIX: Return hash immediately so wagmi hooks can track transaction state
+      // Don't wait for receipt here - let the component track it via useWaitForTransactionReceipt
       return txHash;
     } catch (error) {
       console.error('Error creating pool:', error);
