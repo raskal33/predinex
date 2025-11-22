@@ -133,7 +133,7 @@ export function usePoolCore() {
       // Calculate total required amount (creation fee + creator stake + boost cost)
       // ✅ FIX: Match contract values - PRIX = 50e18, BNB = 1e16 (with discounts applied)
       const creationFeePRIX = 50n * 10n**18n; // 50 PRIX base fee (contract constant)
-      const creationFeeBNB = 1n * 10n**16n; // 0.01 BNB base fee (contract constant)
+      const baseCreationFeeBNB = 1n * 10n**16n; // 0.01 BNB base fee (contract constant)
       
       // ✅ FIX: Calculate boost cost (always in BNB, even for PRIX pools)
       // Boost costs: BRONZE = 2 BNB, SILVER = 3 BNB, GOLD = 5 BNB
@@ -149,12 +149,43 @@ export function usePoolCore() {
         }
       }
       
+      // ✅ FIX: For BNB pools, calculate discount based on PRIX balance (same logic as contract)
+      let creationFeeBNB = baseCreationFeeBNB;
+      if (!poolData.usePrix && address) {
+        try {
+          const prixBalance = await getBalance();
+          let discountMultiplier = 100n; // 100% = no discount
+          
+          // Apply discount based on PRIX balance (matching contract logic)
+          if (prixBalance >= 500000n * 10n**18n) {
+            discountMultiplier = 50n; // 50% discount
+          } else if (prixBalance >= 200000n * 10n**18n) {
+            discountMultiplier = 70n; // 30% discount
+          } else if (prixBalance >= 50000n * 10n**18n) {
+            discountMultiplier = 80n; // 20% discount
+          } else if (prixBalance >= 5000n * 10n**18n) {
+            discountMultiplier = 90n; // 10% discount
+          }
+          
+          creationFeeBNB = (baseCreationFeeBNB * discountMultiplier) / 100n;
+          
+          if (discountMultiplier < 100n) {
+            const discountPercent = 100n - discountMultiplier;
+            console.log(`💰 PRIX Balance Discount Applied: ${discountPercent}% off (PRIX balance: ${prixBalance / BigInt(10**18)} PRIX)`);
+            console.log(`   Base fee: ${baseCreationFeeBNB / BigInt(10**16)} BNB → Adjusted fee: ${creationFeeBNB / BigInt(10**16)} BNB`);
+          }
+        } catch (error) {
+          console.warn('⚠️ Could not fetch PRIX balance for discount calculation, using base fee:', error);
+          // Continue with base fee if balance check fails
+        }
+      }
+      
       // ✅ FIX: For PRIX pools, totalRequired does NOT include boostCost (boost is paid in BNB separately)
-      // For BNB pools WITHOUT boost: totalRequired = creatorStake + creationFeeBNB (we call PoolCore directly)
+      // For BNB pools WITHOUT boost: totalRequired = creatorStake + creationFeeBNB (with discount applied)
       // For BNB pools WITH boost: we don't support this yet (factory has bugs)
       const totalRequired = poolData.usePrix 
         ? poolData.creatorStake + creationFeePRIX  // Only creation fee + stake in PRIX (boost is in BNB)
-        : poolData.creatorStake + creationFeeBNB;   // ✅ FIX: For BNB pools, don't include boostCost (we call PoolCore directly, no boost support)
+        : poolData.creatorStake + creationFeeBNB;   // ✅ FIX: For BNB pools, use adjusted fee with discount
       
       // ✅ FIX: Transaction value for msg.value
       // PRIX pools with boost: only send boost cost (in BNB) as msg.value (creation fee + stake are transferred as PRIX tokens)
@@ -175,7 +206,8 @@ export function usePoolCore() {
       // ✅ FIX: For BNB pools, check BNB balance before attempting transaction
       if (!poolData.usePrix && address) {
         console.log(`💰 BNB Pool Creation Flow Started`);
-        console.log(`   Base Creation Fee: ${creationFeeBNB / BigInt(10**18)} BNB`);
+        console.log(`   Base Creation Fee: ${baseCreationFeeBNB / BigInt(10**16)} BNB`);
+        console.log(`   Adjusted Creation Fee: ${creationFeeBNB / BigInt(10**16)} BNB`);
         console.log(`   Creator Stake: ${poolData.creatorStake / BigInt(10**18)} BNB`);
         console.log(`   Boost Cost: ${boostCost / BigInt(10**18)} BNB`);
         console.log(`   Total Required: ${totalRequired / BigInt(10**18)} BNB`);
