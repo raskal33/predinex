@@ -37,6 +37,12 @@ import { GuidedMarketService, Cryptocurrency, FootballMatch } from "@/services/g
 import { useWalletConnection } from "@/hooks/useWalletConnection";
 import { usePRIXToken } from "@/hooks/usePRIXToken";
 import { useReputationCheck } from "@/hooks/useReputationCheck";
+// ✅ NEW: Import new components and hooks
+import { CurrencySelector } from "@/components/CurrencySelector";
+import { LeverageSelector } from "@/components/LeverageSelector";
+import { FeeDisplay } from "@/components/FeeDisplay";
+import { parseEther } from "viem";
+import type { CurrencyType } from "@/utils/feeCalculator";
 
 
 
@@ -179,7 +185,10 @@ function CreateMarketPageContent() {
     description: ''
   });
 
-  const [usePrix, setUsePrix] = useState<boolean>(false);
+  // ✅ NEW: Currency and leverage state
+  const [currency, setCurrency] = useState<'BNB' | 'PRIX' | 'USDT'>('BNB');
+  const [leverage, setLeverage] = useState<1 | 2 | 3 | 4 | 5>(1);
+  const [usePrix, setUsePrix] = useState<boolean>(false); // Legacy support - maps to currency
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState(1);
@@ -1109,6 +1118,9 @@ function CreateMarketPageContent() {
           throw new Error(`Odds must be between 1.01x and 100x (101-10000 basis points). You provided ${oddsBasisPoints}.`);
         }
         
+        // ✅ NEW: Map currency to currencyType
+        const currencyType: 0 | 1 | 2 = currency === 'BNB' ? 0 : currency === 'PRIX' ? 1 : 2;
+        
         const poolData = {
           predictedOutcome: predictedOutcome,
           odds: BigInt(oddsBasisPoints), // Already in basis points
@@ -1119,7 +1131,9 @@ function CreateMarketPageContent() {
           category: 'football',
           isPrivate: data.isPrivate || false,
           maxBetPerUser: data.maxBetPerUser ? parseUnits(data.maxBetPerUser.toString(), 18) : BigInt(0),
-          usePrix: usePrix,
+          usePrix: currency === 'PRIX', // Legacy support
+          currencyType: currencyType, // ✅ NEW: Currency type (0=BNB, 1=PRIX, 2=USDT)
+          leverage: leverage, // ✅ NEW: Leverage (1-5)
           oracleType: 0, // GUIDED
           marketId: data.selectedFixture.id.toString(), // 🎯 SportMonks fixture ID
           marketType: data.marketType || 0, // Use selected market type or default to MONEYLINE
@@ -1201,6 +1215,9 @@ function CreateMarketPageContent() {
         const marketIdString = `${data.selectedCrypto.symbol.toLowerCase()}_${data.targetPrice}_${getDateString()}`;
         const marketIdHash = keccak256(toHex(marketIdString));
         
+        // ✅ NEW: Map currency to currencyType
+        const currencyType: 0 | 1 | 2 = currency === 'BNB' ? 0 : currency === 'PRIX' ? 1 : 2;
+        
         const poolData = {
           predictedOutcome: predictedOutcome,
           odds: BigInt(oddsBasisPoints), // Already in basis points
@@ -1211,7 +1228,9 @@ function CreateMarketPageContent() {
           category: 'cryptocurrency',
           isPrivate: data.isPrivate || false,
           maxBetPerUser: data.maxBetPerUser ? parseUnits(data.maxBetPerUser.toString(), 18) : BigInt(0),
-          usePrix: usePrix,
+          usePrix: currency === 'PRIX', // Legacy support
+          currencyType: currencyType, // ✅ NEW: Currency type (0=BNB, 1=PRIX, 2=USDT)
+          leverage: leverage, // ✅ NEW: Leverage (1-5)
           oracleType: 0, // GUIDED
           marketId: marketIdHash, // Use keccak256 hash for crypto markets
           marketType: 0, // MONEYLINE for crypto price direction
@@ -1764,47 +1783,41 @@ function CreateMarketPageContent() {
             )}
           </div>
 
-          {/* Payment Token Selection */}
+          {/* ✅ NEW: Currency Selection */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-300 mb-2">Payment Token</label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                onClick={() => {
-                  setUsePrix(false);
-                  // Update stake to minimum BNB if current stake is below BNB minimum
-                  if (data.creatorStake < 1) {
-                    handleInputChange('creatorStake', 1);
-                  }
-                }}
-                className={`p-3 rounded-lg border text-center transition-all ${
-                  !usePrix
-                    ? 'border-cyan-500 bg-cyan-500/10 text-cyan-400'
-                    : 'border-gray-600 bg-gray-800/50 text-gray-300 hover:border-cyan-400'
-                }`}
-              >
-                <div className="font-semibold text-sm sm:text-base">BNB</div>
-                <div className="text-xs mt-1">Binance Smart Chain Currency</div>
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                onClick={() => {
-                  setUsePrix(true);
-                  // Update stake to minimum PRIX if current stake is below PRIX minimum
-                  if (data.creatorStake < 1000) {
-                    handleInputChange('creatorStake', 1000);
-                  }
-                }}
-                className={`p-3 rounded-lg border text-center transition-all ${
-                  usePrix
-                    ? 'border-cyan-500 bg-cyan-500/10 text-cyan-400'
-                    : 'border-gray-600 bg-gray-800/50 text-gray-300 hover:border-cyan-400'
-                }`}
-              >
-                <div className="font-semibold text-sm sm:text-base">PRIX</div>
-                <div className="text-xs mt-1">Reduced fees & bonuses</div>
-              </motion.button>
-            </div>
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">Payment Currency</label>
+            <CurrencySelector
+              value={currency}
+              onChange={(newCurrency: CurrencyType) => {
+                setCurrency(newCurrency);
+                setUsePrix(newCurrency === 'PRIX'); // Legacy support
+                // Update stake to minimum for selected currency
+                if (newCurrency === 'BNB' && data.creatorStake < 1) {
+                  handleInputChange('creatorStake', 1);
+                } else if (newCurrency === 'PRIX' && data.creatorStake < 1000) {
+                  handleInputChange('creatorStake', 1000);
+                } else if (newCurrency === 'USDT' && data.creatorStake < 1) {
+                  handleInputChange('creatorStake', 1);
+                }
+              }}
+            />
+          </div>
+
+          {/* ✅ NEW: Leverage Selection */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">Leverage</label>
+            <LeverageSelector
+              value={leverage}
+              onChange={setLeverage}
+            />
+          </div>
+
+          {/* ✅ NEW: Fee Display */}
+          <div className="space-y-2 mt-4">
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+              Creation Fee
+            </label>
+            <FeeDisplay baseFee={parseEther('0.01')} />
           </div>
         </div>
 

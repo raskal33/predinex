@@ -104,6 +104,9 @@ export const CONTRACT_ADDRESSES = {
   // Legacy support (for backward compatibility) - UPDATED TO BSC TESTNET ADDRESSES
   PREDINEX_POOL: (process.env.NEXT_PUBLIC_PREDINEX_POOL_ADDRESS || '0xd43Ff2F8aB39D3536e30a0F03C25c2d16DE2B8D9') as `0x${string}`, // Points to Diamond
   PREDINEX_STAKING: (process.env.NEXT_PUBLIC_STAKING_CONTRACT_ADDRESS || '0xE3745b9212B4a588e0E7AF310676e3F2445aa245') as `0x${string}`,
+  
+  // Token Contracts
+  USDT_TOKEN: (process.env.NEXT_PUBLIC_USDT_TOKEN_ADDRESS || '0x55d398326f99059fF775485246999027B3197955') as `0x${string}`, // USDT on BSC (testnet/mainnet)
 }
 
 // Network configuration for contract calls

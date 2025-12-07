@@ -538,7 +538,9 @@ export class GuidedMarketService {
     predictedOutcome: string;
     odds: number;
     creatorStake: number;
-    usePrix?: boolean;
+    usePrix?: boolean; // Legacy support
+    currencyType?: 0 | 1 | 2; // ✅ NEW: 0=BNB, 1=PRIX, 2=USDT
+    leverage?: 1 | 2 | 3 | 4 | 5; // ✅ NEW: 1x to 5x leverage
     description?: string;
     isPrivate?: boolean;
     maxBetPerUser?: number;
@@ -562,7 +564,9 @@ export class GuidedMarketService {
     predictedOutcome: string;
     odds: number;
     creatorStake: number;
-    usePrix?: boolean;
+    usePrix?: boolean; // Legacy support
+    currencyType?: 0 | 1 | 2; // ✅ NEW: 0=BNB, 1=PRIX, 2=USDT
+    leverage?: 1 | 2 | 3 | 4 | 5; // ✅ NEW: 1x to 5x leverage
     description?: string;
     isPrivate?: boolean;
     maxBetPerUser?: number;
@@ -650,7 +654,9 @@ export class GuidedMarketService {
     predictedOutcome: string;
     odds: number;
     creatorStake: number;
-    usePrix?: boolean;
+    usePrix?: boolean; // Legacy support
+    currencyType?: 0 | 1 | 2; // ✅ NEW: 0=BNB, 1=PRIX, 2=USDT
+    leverage?: 1 | 2 | 3 | 4 | 5; // ✅ NEW: 1x to 5x leverage
     description?: string;
     isPrivate?: boolean;
     maxBetPerUser?: number;

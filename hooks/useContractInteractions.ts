@@ -109,7 +109,9 @@ export function usePoolCore() {
     category: string;
     isPrivate: boolean;
     maxBetPerUser: bigint;
-    usePrix: boolean;
+    usePrix: boolean; // Legacy support
+    currencyType?: 0 | 1 | 2; // ✅ NEW: 0=BNB, 1=PRIX, 2=USDT
+    leverage?: 1 | 2 | 3 | 4 | 5; // ✅ NEW: 1x to 5x leverage
     oracleType: number;
     marketId: string;
     marketType: number;
@@ -149,9 +151,9 @@ export function usePoolCore() {
         }
       }
       
-      // ✅ FIX: For BNB pools, calculate discount based on PRIX balance (same logic as contract)
+      // ✅ NEW: Calculate discount based on PRIX balance (applies to all pools, fee always in BNB)
       let creationFeeBNB = baseCreationFeeBNB;
-      if (!poolData.usePrix && address) {
+      if (address) {
         try {
           const prixBalance = await getBalance();
           let discountMultiplier = 100n; // 100% = no discount
@@ -380,6 +382,10 @@ export function usePoolCore() {
         });
       }
 
+      // ✅ NEW: Map legacy usePrix to currencyType if not provided
+      const finalCurrencyType: 0 | 1 | 2 = poolData.currencyType !== undefined ? poolData.currencyType : (poolData.usePrix ? 1 : 0);
+      const finalLeverage: 1 | 2 | 3 | 4 | 5 = poolData.leverage !== undefined ? poolData.leverage : 1;
+
       // Helper function to safely encode strings as bytes32
       const safeEncodeBytes32 = (str: string, fieldName: string): string => {
         if (!str) return ethers.encodeBytes32String('');
@@ -504,12 +510,13 @@ export function usePoolCore() {
               titleBytes32, // 🎯 bytes32 encoded title
               poolData.isPrivate,
               poolData.maxBetPerUser,
-              poolData.usePrix,
+              finalCurrencyType, // ✅ NEW: Currency type (0=BNB, 1=PRIX, 2=USDT)
+              finalLeverage, // ✅ NEW: Leverage (1-5)
               poolData.oracleType,
               poolData.marketType,
               marketIdString, // 🎯 Market ID: keccak256(fixtureId) for guided, raw string for custom
             ],
-            value: poolData.usePrix ? 0n : totalRequired, // ✅ FIX: For BNB pools, value = creatorStake + creationFeeBNB (no boost)
+            value: finalCurrencyType === 0 ? (poolData.creatorStake + creationFeeBNB) : creationFeeBNB, // ✅ NEW: BNB pools send stake+fee, token pools send only fee
             gas: BigInt(10000000), // ✅ Reduced gas limit for lightweight function (10M instead of 14M)
           });
       
