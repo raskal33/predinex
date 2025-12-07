@@ -3,7 +3,7 @@ import { useAccount, useReadContract, useWriteContract, useWaitForTransactionRec
 import { CONTRACTS } from '@/contracts';
 import { formatUnits } from 'viem';
 import { useQuery } from '@tanstack/react-query';
-import { oddysseyService } from '@/services/oddysseyService';
+import { gauntletService } from '@/services/gauntletService';
 import { transformContractData } from '@/utils/bigint-serializer';
 
 export enum BetType {
@@ -76,14 +76,14 @@ export interface GlobalStats {
   highestOdd: bigint;
 }
 
-export function useOddyssey() {
+export function useGauntlet() {
   const { address } = useAccount();
   const { writeContract, data: hash, isPending } = useWriteContract();
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
 
   // Read contract functions
   const { data: entryFee } = useReadContract({
-    ...CONTRACTS.ODDYSSEY,
+    ...CONTRACTS.GAUNTLET,
     functionName: 'entryFee',
     query: {
       select: (data: unknown) => transformContractData(data),
@@ -91,7 +91,7 @@ export function useOddyssey() {
   });
 
   const { data: dailyCycleId, refetch: refetchCycleId } = useReadContract({
-    ...CONTRACTS.ODDYSSEY,
+    ...CONTRACTS.GAUNTLET,
     functionName: 'dailyCycleId',
     query: {
       select: (data: unknown) => transformContractData(data),
@@ -99,7 +99,7 @@ export function useOddyssey() {
   });
 
   const { data: slipCount } = useReadContract({
-    ...CONTRACTS.ODDYSSEY,
+    ...CONTRACTS.GAUNTLET,
     functionName: 'slipCount',
     query: {
       select: (data: unknown) => transformContractData(data),
@@ -107,7 +107,7 @@ export function useOddyssey() {
   });
 
   const { data: globalStats, refetch: refetchGlobalStats } = useReadContract({
-    ...CONTRACTS.ODDYSSEY,
+    ...CONTRACTS.GAUNTLET,
     functionName: 'stats',
     query: {
       select: (data: unknown) => transformContractData(data),
@@ -116,10 +116,10 @@ export function useOddyssey() {
 
   // Get current cycle matches
   const { data: dailyMatches, refetch: refetchMatches } = useReadContract({
-    ...CONTRACTS.ODDYSSEY,
+    ...CONTRACTS.GAUNTLET,
     functionName: 'getDailyMatches',
     args: dailyCycleId ? [Number(dailyCycleId)] : undefined,
-    query: { 
+    query: {
       enabled: !!dailyCycleId,
       select: (data: unknown) => transformContractData(data),
     }
@@ -127,10 +127,10 @@ export function useOddyssey() {
 
   // Get current cycle leaderboard
   const { data: dailyLeaderboard, refetch: refetchLeaderboard } = useReadContract({
-    ...CONTRACTS.ODDYSSEY,
+    ...CONTRACTS.GAUNTLET,
     functionName: 'getDailyLeaderboard',
     args: dailyCycleId ? [Number(dailyCycleId)] : undefined,
-    query: { 
+    query: {
       enabled: !!dailyCycleId,
       select: (data: unknown) => transformContractData(data),
     }
@@ -138,10 +138,10 @@ export function useOddyssey() {
 
   // Get current cycle stats
   const { data: cycleStats, refetch: refetchCycleStats } = useReadContract({
-    ...CONTRACTS.ODDYSSEY,
+    ...CONTRACTS.GAUNTLET,
     functionName: 'cycleStats',
     args: dailyCycleId ? [Number(dailyCycleId)] : undefined,
-    query: { 
+    query: {
       enabled: !!dailyCycleId,
       select: (data: unknown) => transformContractData(data),
     }
@@ -149,10 +149,10 @@ export function useOddyssey() {
 
   // Get current cycle prize pool
   const { data: prizePool, refetch: refetchPrizePool } = useReadContract({
-    ...CONTRACTS.ODDYSSEY,
+    ...CONTRACTS.GAUNTLET,
     functionName: 'dailyPrizePools',
     args: dailyCycleId ? [Number(dailyCycleId)] : undefined,
-    query: { 
+    query: {
       enabled: !!dailyCycleId,
       select: (data: unknown) => transformContractData(data),
     }
@@ -160,23 +160,23 @@ export function useOddyssey() {
 
   // Contract-based data queries using the new contract-only service
   const { data: contractCycleData, isLoading: contractLoading, refetch: refetchContractData } = useQuery({
-    queryKey: ['oddyssey', 'contract', 'currentCycle'],
-    queryFn: () => oddysseyService.getCurrentCycle(),
+    queryKey: ['gauntlet', 'contract', 'currentCycle'],
+    queryFn: () => gauntletService.getCurrentCycle(),
     refetchInterval: 60000, // Every minute for contract data
     staleTime: 30000, // Consider data fresh for 30 seconds
   });
 
-  // Fetch Oddyssey matches directly from contract
-  const { data: contractOddysseyMatches, refetch: refetchContractOddysseyMatches } = useQuery({
-    queryKey: ['oddyssey', 'contract', 'matches'],
-    queryFn: () => oddysseyService.getMatches(),
+  // Fetch Gauntlet matches directly from contract
+  const { data: contractGauntletMatches, refetch: refetchContractGauntletMatches } = useQuery({
+    queryKey: ['gauntlet', 'contract', 'matches'],
+    queryFn: () => gauntletService.getMatches(),
     refetchInterval: 60000, // Every minute for contract data
     staleTime: 30000, // Consider data fresh for 30 seconds
   });
 
   const { data: contractLeaderboardData, refetch: refetchContractLeaderboard } = useQuery({
-    queryKey: ['oddyssey', 'contract', 'leaderboard', dailyCycleId?.toString()],
-    queryFn: () => oddysseyService.getLeaderboard(),
+    queryKey: ['gauntlet', 'contract', 'leaderboard', dailyCycleId?.toString()],
+    queryFn: () => gauntletService.getLeaderboard(),
     enabled: !!dailyCycleId,
     refetchInterval: 120000, // Every 2 minutes
     staleTime: 60000, // Consider data fresh for 1 minute
@@ -184,8 +184,8 @@ export function useOddyssey() {
 
   // Get user slips from contract
   const { data: contractUserSlips, refetch: refetchContractSlips } = useQuery({
-    queryKey: ['oddyssey', 'contract', 'user-slips', address, dailyCycleId],
-    queryFn: () => address && dailyCycleId ? oddysseyService.getUserSlipsForCycleFromBackend(Number(dailyCycleId), address as string) : null,
+    queryKey: ['gauntlet', 'contract', 'user-slips', address, dailyCycleId],
+    queryFn: () => address && dailyCycleId ? gauntletService.getUserSlipsForCycleFromBackend(Number(dailyCycleId), address as string) : null,
     enabled: !!(address && dailyCycleId),
     refetchInterval: 60000, // Every minute for real-time updates
     staleTime: 30000, // Consider data fresh for 30 seconds
@@ -193,15 +193,15 @@ export function useOddyssey() {
 
   // Contract synchronization status (always synced in contract-only mode)
   useQuery({
-    queryKey: ['oddyssey', 'contract', 'sync'],
-    queryFn: () => oddysseyService.checkCycleSync(),
+    queryKey: ['gauntlet', 'contract', 'sync'],
+    queryFn: () => gauntletService.checkCycleSync(),
     refetchInterval: 300000, // Every 5 minutes
     staleTime: 120000, // Consider data fresh for 2 minutes
   });
 
   const { data: contractStats, refetch: refetchContractStats } = useQuery({
-    queryKey: ['oddyssey', 'contract', 'stats', dailyCycleId?.toString()],
-    queryFn: () => oddysseyService.getCycleStats(),
+    queryKey: ['gauntlet', 'contract', 'stats', dailyCycleId?.toString()],
+    queryFn: () => gauntletService.getCycleStats(),
     enabled: !!dailyCycleId,
     refetchInterval: 120000, // Every 2 minutes
     staleTime: 60000, // Consider data fresh for 1 minute
@@ -209,10 +209,10 @@ export function useOddyssey() {
 
   // Get current cycle end time
   const { data: cycleEndTime } = useReadContract({
-    ...CONTRACTS.ODDYSSEY,
+    ...CONTRACTS.GAUNTLET,
     functionName: 'dailyCycleEndTimes',
     args: dailyCycleId ? [Number(dailyCycleId)] : undefined,
-    query: { 
+    query: {
       enabled: !!dailyCycleId,
       select: (data: unknown) => transformContractData(data),
     }
@@ -220,10 +220,10 @@ export function useOddyssey() {
 
   // Get user slips for current cycle
   const { data: userSlips, refetch: refetchUserSlips } = useReadContract({
-    ...CONTRACTS.ODDYSSEY,
+    ...CONTRACTS.GAUNTLET,
     functionName: 'getUserSlipsForCycle',
     args: address && dailyCycleId ? [address, Number(dailyCycleId)] : undefined,
-    query: { 
+    query: {
       enabled: !!(address && dailyCycleId),
       select: (data: unknown) => transformContractData(data),
     }
@@ -231,10 +231,10 @@ export function useOddyssey() {
 
   // Get if cycle is resolved
   const { data: isCycleResolved } = useReadContract({
-    ...CONTRACTS.ODDYSSEY,
+    ...CONTRACTS.GAUNTLET,
     functionName: 'isCycleResolved',
     args: dailyCycleId ? [Number(dailyCycleId)] : undefined,
-    query: { 
+    query: {
       enabled: !!dailyCycleId,
       select: (data: unknown) => transformContractData(data),
     }
@@ -243,13 +243,13 @@ export function useOddyssey() {
   // Write contract functions
   const placeSlip = async (_predictions: UserPrediction[]) => {
     if (!entryFee || !address) return;
-    
+
     try {
-      console.log('⚠️ placeSlip via useOddyssey is deprecated. Use OddysseyContractService.placeSlip directly.');
-      
+      console.log('⚠️ placeSlip via useGauntlet is deprecated. Use GauntletContractService.placeSlip directly.');
+
       // For now, just return a warning
-      throw new Error('Please use the OddysseyContractService.placeSlip method for placing slips');
-      
+      throw new Error('Please use the GauntletContractService.placeSlip method for placing slips');
+
     } catch (error) {
       console.error('Error placing slip:', error);
       throw error;
@@ -258,7 +258,7 @@ export function useOddyssey() {
 
   const evaluateSlip = async (slipId: number) => {
     writeContract({
-      ...CONTRACTS.ODDYSSEY,
+      ...CONTRACTS.GAUNTLET,
       functionName: 'evaluateSlip',
       args: [BigInt(slipId)],
     });
@@ -266,7 +266,7 @@ export function useOddyssey() {
 
   const claimPrize = async (cycleId: number) => {
     writeContract({
-      ...CONTRACTS.ODDYSSEY,
+      ...CONTRACTS.GAUNTLET,
       functionName: 'claimPrize',
       args: [BigInt(cycleId)],
     });
@@ -289,11 +289,11 @@ export function useOddyssey() {
 
   // Contract-based daily matches (no live data integration)
   const { refetch: refetchDailyMatches } = useQuery({
-    queryKey: ['oddyssey-daily-matches-contract', dailyCycleId],
+    queryKey: ['gauntlet-daily-matches-contract', dailyCycleId],
     queryFn: async () => {
       const matches = Array.isArray(dailyMatches) ? dailyMatches : [];
       if (matches.length === 0) return [];
-      
+
       // In contract-only mode, just return the matches without live data
       return matches.map((match: any) => ({
         ...match,
@@ -393,7 +393,7 @@ export function useOddyssey() {
   const getUserRank = (): number => {
     if (!dailyLeaderboard || !address) return -1;
     const leaderboard = dailyLeaderboard as LeaderboardEntry[];
-    
+
     for (let i = 0; i < leaderboard.length; i++) {
       if (leaderboard[i].player.toLowerCase() === address.toLowerCase()) {
         return i;
@@ -414,11 +414,11 @@ export function useOddyssey() {
 
   const calculatePrizeAmount = (rank: number): string => {
     if (!prizePool || rank < 0 || rank >= 5) return '0';
-    
+
     const percentages = [40, 30, 20, 5, 5];
     const percentage = percentages[rank];
     const amount = (Number(prizePool) * percentage) / 100;
-    
+
     return formatUnits(BigInt(Math.floor(amount)), 18);
   };
 
@@ -433,7 +433,7 @@ export function useOddyssey() {
     refetchDailyMatches();
     // Contract data
     refetchContractData();
-    refetchContractOddysseyMatches();
+    refetchContractGauntletMatches();
     refetchContractLeaderboard();
     refetchContractSlips();
     refetchContractStats();
@@ -446,38 +446,38 @@ export function useOddyssey() {
     slipCount: Number(slipCount || 0),
     globalStats: globalStats as GlobalStats,
     // PRIORITIZE CONTRACT DATA: Use contract matches as primary source
-    dailyMatches: contractOddysseyMatches?.data?.today?.matches || [],
+    dailyMatches: contractGauntletMatches?.data?.today?.matches || [],
     dailyLeaderboard: dailyLeaderboard as LeaderboardEntry[],
     cycleStats: cycleStats as CycleStats,
     prizePool: formatAmount(prizePool as string | bigint | undefined),
     isCycleResolved: isCycleResolved as boolean,
     userSlips: userSlips || [],
-    
+
     // Contract data
     contractCycleData: contractCycleData,
     contractLoading,
     leaderboard: contractLeaderboardData?.data || [],
     contractUserSlips: contractUserSlips || [],
     contractStats: contractStats?.data,
-    
+
     // Calculated data
     isBettingOpen: isBettingOpen(),
     timeRemaining: getTimeRemaining(),
     userRank: getUserRank(),
     prizeDistribution: getPrizeDistribution(),
     userPrizeAmount: calculatePrizeAmount(getUserRank()),
-    
+
     // Actions
     placeSlip,
     evaluateSlip,
     claimPrize,
-    
+
     // Transaction state
     isPending,
     isConfirming,
     isConfirmed,
     hash,
-    
+
     // Helpers
     formatAmount,
     formatOdds,

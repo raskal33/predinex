@@ -1,7 +1,7 @@
 "use client";
 
 import websocketClient from './websocket-client';
-// import { OddysseySlip } from './oddysseyService';
+// import { GauntletSlip } from './gauntletService';
 
 export interface SlipPlacedEvent {
   type: 'slip:placed';
@@ -65,12 +65,12 @@ export interface SlipPrizeClaimedEvent {
   timestamp: number;
 }
 
-export type OddysseyWebSocketEvent = 
-  | SlipPlacedEvent 
-  | SlipEvaluatedEvent 
+export type GauntletWebSocketEvent =
+  | SlipPlacedEvent
+  | SlipEvaluatedEvent
   | SlipPrizeClaimedEvent;
 
-class OddysseyWebSocketService {
+class GauntletWebSocketService {
   private userAddress: string | null = null;
   private activeSubscriptions: Map<string, () => void> = new Map();
 
@@ -84,10 +84,10 @@ class OddysseyWebSocketService {
       '0x09492a13': { 0: 'home' },   // Home win
       '0xc89efdaa': { 0: 'draw' },   // Draw
       '0xad7c5bef': { 0: 'away' },   // Away win
-      
+
       // Over/Under Bets (betType = 1)
       '0xe5f3458d': { 1: 'under' },  // Under 2.5
-      
+
       // BTTS Bets (betType = 2)
       '0x12345678': { 2: 'yes' },    // Both teams to score
       '0x87654321': { 2: 'no' },     // Not both teams to score
@@ -143,7 +143,7 @@ class OddysseyWebSocketService {
     // Subscribe to all user slip events
     const unsubscribeAll = websocketClient.subscribeToUserSlips(
       userAddress,
-      (event: OddysseyWebSocketEvent) => {
+      (event: GauntletWebSocketEvent) => {
         console.log('📡 Received slip event:', event);
         this.handleSlipEvent(event);
       }
@@ -239,7 +239,7 @@ class OddysseyWebSocketService {
     cycleId: number,
     callback: (data: any) => void
   ) {
-    const unsubscribe = websocketClient.subscribeToOddysseyCycle(
+    const unsubscribe = websocketClient.subscribeToGauntletCycle(
       cycleId,
       (data) => {
         console.log(`🎯 Cycle ${cycleId} event:`, data);
@@ -255,7 +255,7 @@ class OddysseyWebSocketService {
   /**
    * Handle incoming slip event
    */
-  private handleSlipEvent(event: OddysseyWebSocketEvent) {
+  private handleSlipEvent(event: GauntletWebSocketEvent) {
     switch (event.type) {
       case 'slip:placed':
         this.handleSlipPlaced(event);
@@ -288,7 +288,7 @@ class OddysseyWebSocketService {
       const prediction = this.convertRawPrediction(rawPred);
       const decodedSelection = this.decodeSelectionHash(prediction.selectionHash, prediction.betType);
       const decimalOdds = prediction.odds / 1000; // Convert scaled odds to decimal
-      
+
       console.log(`🔍 Prediction ${index}:`, {
         matchId: prediction.matchId,
         betType: this.getBetTypeDisplay(prediction.betType),
@@ -318,9 +318,9 @@ class OddysseyWebSocketService {
     };
 
     console.log('🎉 Processed slip data:', enrichedEvent);
-    
+
     // Dispatch custom event for UI components to listen
-    window.dispatchEvent(new CustomEvent('oddyssey:slip:placed', { detail: enrichedEvent }));
+    window.dispatchEvent(new CustomEvent('gauntlet:slip:placed', { detail: enrichedEvent }));
   }
 
   /**
@@ -333,9 +333,9 @@ class OddysseyWebSocketService {
       finalScore: event.finalScore,
       timestamp: new Date(event.timestamp * 1000).toLocaleString()
     });
-    
+
     // Dispatch custom event for UI components to listen
-    window.dispatchEvent(new CustomEvent('oddyssey:slip:evaluated', { detail: event }));
+    window.dispatchEvent(new CustomEvent('gauntlet:slip:evaluated', { detail: event }));
   }
 
   /**
@@ -348,9 +348,9 @@ class OddysseyWebSocketService {
       prizeAmount: event.prizeAmount,
       timestamp: new Date(event.timestamp * 1000).toLocaleString()
     });
-    
+
     // Dispatch custom event for UI components to listen
-    window.dispatchEvent(new CustomEvent('oddyssey:prize:claimed', { detail: event }));
+    window.dispatchEvent(new CustomEvent('gauntlet:prize:claimed', { detail: event }));
   }
 
   /**
@@ -371,10 +371,10 @@ class OddysseyWebSocketService {
   public async enrichSlipData(slipId: number, userAddress: string, options?: { skipCache?: boolean }): Promise<EnrichedPrediction[] | null> {
     try {
       console.log(`🔍 Enriching slip ${slipId} with REST API data ${options?.skipCache ? '(bypassing cache)' : ''}...`);
-      
-      // Use Oddyssey-specific endpoint which has predictions enrichment
+
+      // Use Gauntlet-specific endpoint which has predictions enrichment
       const cacheParam = options?.skipCache ? `&t=${Date.now()}` : '';
-      const response = await fetch(`/api/oddyssey/user-slips/${userAddress}?limit=50&offset=0${cacheParam}`, {
+      const response = await fetch(`/api/gauntlet/user-slips/${userAddress}?limit=50&offset=0${cacheParam}`, {
         headers: {
           'Cache-Control': 'no-cache, no-store, must-revalidate',
           'Pragma': 'no-cache',
@@ -389,17 +389,17 @@ class OddysseyWebSocketService {
 
       const data = await response.json();
       const slips = data.data || [];
-      
+
       // Find the specific slip
       const targetSlip = slips.find((slip: any) => slip.slip_id === slipId || slip.id === slipId);
-      
+
       if (!targetSlip) {
         console.warn(`Slip ${slipId} not found in REST API response`);
         return null;
       }
 
       console.log(`✅ Found enriched data for slip ${slipId}:`, targetSlip.predictions);
-      
+
       return targetSlip.predictions || [];
     } catch (error) {
       console.error(`Error enriching slip ${slipId}:`, error);
@@ -421,6 +421,6 @@ class OddysseyWebSocketService {
 }
 
 // Create and export singleton instance
-export const oddysseyWebSocketService = new OddysseyWebSocketService();
+export const gauntletWebSocketService = new GauntletWebSocketService();
 
-export default oddysseyWebSocketService;
+export default gauntletWebSocketService;

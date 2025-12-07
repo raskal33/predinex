@@ -1,16 +1,16 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef, useCallback } from "react";
-import { motion } from "framer-motion";
-import { 
-  TrophyIcon, 
-  CurrencyDollarIcon,
-  ClockIcon,
-  UserIcon,
-} from "@heroicons/react/24/outline";
-import { optimizedPoolService } from "@/services/optimizedPoolService";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { getPoolIcon } from "@/services/crypto-icons";
+import { optimizedPoolService } from "@/services/optimizedPoolService";
 import websocketClient from "@/services/websocket-client";
+import Link from "next/link";
+import { 
+  SparklesIcon,
+  CurrencyDollarIcon,
+  UserIcon,
+  ClockIcon
+} from "@heroicons/react/24/outline";
 
 interface RecentBet {
   id: number;
@@ -21,11 +21,11 @@ interface RecentBet {
   isForOutcome: boolean;
   createdAt: string;
   timeAgo: string;
-  eventType?: 'bet' | 'pool_created' | 'liquidity_added'; // Enhanced event types
-  action?: string; // Human-readable action
-  icon?: string; // Icon for event type
-  odds?: number; // Odds that user took
-  currency?: string; // Currency used
+  eventType?: 'bet' | 'pool_created' | 'liquidity_added';
+  action?: string;
+  icon?: string;
+  odds?: number;
+  currency?: string;
   pool: {
     predictedOutcome: string;
     league: string;
@@ -44,137 +44,10 @@ interface RecentBetsLaneProps {
 }
 
 export default function RecentBetsLane({ className = "" }: RecentBetsLaneProps) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  // Demo data for the moving lane
-  const demoBets: RecentBet[] = useMemo(() => [
-    {
-      id: 1,
-      poolId: "1",
-      bettorAddress: "0x1234567890123456789012345678901234567890",
-      amount: "2500000000000000000000",
-      amountFormatted: "2,500.00",
-      isForOutcome: true,
-      eventType: 'bet',
-      action: 'Placed bet',
-      icon: '🎯',
-      odds: 175,
-      currency: 'BNB',
-      createdAt: new Date(Date.now() - 30000).toISOString(),
-      timeAgo: "5m ago",
-      pool: {
-        predictedOutcome: "Over 2.5",
-        league: "Premier League",
-        category: "football",
-        homeTeam: "Manchester United",
-        awayTeam: "Liverpool",
-        title: "Manchester United vs Liverpool",
-        usePrix: true,
-        odds: 175,
-        creatorAddress: "0x9876543210987654321098765432109876543210"
-      }
-    },
-    {
-      id: 2,
-      poolId: "2",
-      bettorAddress: "0x2345678901234567890123456789012345678901",
-      amount: "1800000000000000000000",
-      amountFormatted: "1,800.00",
-      isForOutcome: false,
-      eventType: 'bet',
-      createdAt: new Date(Date.now() - 45000).toISOString(),
-      timeAgo: "8m ago",
-      pool: {
-        predictedOutcome: "Under 2.5",
-        league: "La Liga",
-        category: "football",
-        homeTeam: "Barcelona",
-        awayTeam: "Real Madrid",
-        title: "Barcelona vs Real Madrid",
-        usePrix: true,
-        odds: 210,
-        creatorAddress: "0x8765432109876543210987654321098765432109"
-      }
-    },
-    {
-      id: 3,
-      poolId: "3",
-      bettorAddress: "0x3456789012345678901234567890123456789012",
-      amount: "5200000000000000000000",
-      amountFormatted: "5,200.00",
-      isForOutcome: true,
-      eventType: 'pool_created', // Pool creation event
-      action: 'Created pool',
-      icon: '🏗️',
-      odds: 125,
-      currency: 'BNB',
-      createdAt: new Date(Date.now() - 60000).toISOString(),
-      timeAgo: "12m ago",
-      pool: {
-        predictedOutcome: "Home wins",
-        league: "Serie A",
-        category: "football",
-        homeTeam: "Juventus",
-        awayTeam: "AC Milan",
-        title: "Juventus vs AC Milan",
-        usePrix: true,
-        odds: 125,
-        creatorAddress: "0x7654321098765432109876543210987654321098"
-      }
-    },
-    {
-      id: 4,
-      poolId: "3",
-      bettorAddress: "0x4567890123456789012345678901234567890123",
-      amount: "2000000000000000000000",
-      amountFormatted: "2,000.00",
-      isForOutcome: false,
-      eventType: 'liquidity_added', // Liquidity provider event
-      action: 'Added liquidity',
-      icon: '💧',
-      odds: 125,
-      currency: 'BNB',
-      createdAt: new Date(Date.now() - 75000).toISOString(),
-      timeAgo: "10m ago",
-      pool: {
-        predictedOutcome: "Home wins",
-        league: "Serie A",
-        category: "football",
-        homeTeam: "Juventus",
-        awayTeam: "AC Milan",
-        title: "Juventus vs AC Milan",
-        usePrix: true,
-        odds: 125,
-        creatorAddress: "0x7654321098765432109876543210987654321098"
-      }
-    },
-    {
-      id: 5,
-      poolId: "4",
-      bettorAddress: "0x4567890123456789012345678901234567890123",
-      amount: "3500000000000000000000",
-      amountFormatted: "3,500.00",
-      isForOutcome: true,
-      eventType: 'bet',
-      createdAt: new Date(Date.now() - 90000).toISOString(),
-      timeAgo: "15m ago",
-      pool: {
-        predictedOutcome: "BTC above $1450",
-        league: "crypto",
-        category: "cryptocurrency",
-        homeTeam: "BTC",
-        awayTeam: "USD",
-        title: "BTC Price Prediction",
-        usePrix: true,
-        odds: 190,
-        creatorAddress: "0x6543210987654321098765432109876543210987"
-      }
-    }
-  ], []);
-
   const [apiData, setApiData] = useState<RecentBet[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Transform API data to component format
   const transformBets = (bets: any[]): RecentBet[] => {
@@ -185,7 +58,7 @@ export default function RecentBetsLane({ className = "" }: RecentBetsLaneProps) 
       amount: bet.amount,
       amountFormatted: parseFloat(bet.amount).toFixed(2),
       isForOutcome: bet.isForOutcome,
-      eventType: bet.eventType || 'bet', // Default to 'bet' if not provided
+      eventType: bet.eventType || 'bet',
       action: bet.action || (bet.eventType === 'liquidity_added' ? 'Added liquidity' : 'Placed bet'),
       icon: bet.icon || (bet.eventType === 'liquidity_added' ? '💧' : '🎯'),
       odds: bet.odds,
@@ -210,7 +83,7 @@ export default function RecentBetsLane({ className = "" }: RecentBetsLaneProps) 
   const fetchRecentBets = useCallback(async () => {
     try {
       setIsLoading(true);
-      const bets = await optimizedPoolService.getRecentBets(20);
+      const bets = await optimizedPoolService.getRecentBets(30);
       const transformedBets = transformBets(bets);
       setApiData(transformedBets);
     } catch (error) {
@@ -221,18 +94,12 @@ export default function RecentBetsLane({ className = "" }: RecentBetsLaneProps) 
     }
   }, []);
 
-  // ✅ FIX: Use WebSocket for real-time updates + fallback polling
+  // Use WebSocket for real-time updates + fallback polling
   useEffect(() => {
-    // Initial fetch
     fetchRecentBets();
     
-    // ✅ Subscribe to WebSocket updates for instant bet placement notifications
     const unsubscribe = websocketClient.subscribeToRecentBets((data: any) => {
-      console.log('📡 Received recent bets WebSocket update:', data);
-      
-      // If we get a bet_placed or liquidity_added event, refresh immediately
       if (data.type === 'bet_placed' || data.type === 'liquidity_added') {
-        // Debounce rapid updates (max once per 2 seconds)
         if (fetchTimeoutRef.current) {
           clearTimeout(fetchTimeoutRef.current);
         }
@@ -240,16 +107,13 @@ export default function RecentBetsLane({ className = "" }: RecentBetsLaneProps) 
           fetchRecentBets();
         }, 2000);
       } else if (data.bets) {
-        // If we get full bets array, use it directly
         const transformedBets = transformBets(data.bets);
         setApiData(transformedBets);
       } else {
-        // Otherwise, refresh from API
         fetchRecentBets();
       }
     });
     
-    // Fallback polling every 30 seconds (reduced from 60s since we have WebSocket)
     const interval = setInterval(fetchRecentBets, 30000);
     
     return () => {
@@ -261,176 +125,130 @@ export default function RecentBetsLane({ className = "" }: RecentBetsLaneProps) 
     };
   }, [fetchRecentBets]);
 
-  // Use API data or fallback to demo data
-  const bets = apiData || demoBets;
-
-  // Auto-rotate through bets
-  useEffect(() => {
-    if (bets.length === 0) return;
-
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % bets.length);
-    }, 3000); // Change every 3 seconds
-
-    return () => clearInterval(interval);
-  }, [bets.length]);
-
-  const formatTimeAgo = (timeAgo: string): string => {
-    // Use the timeAgo string directly from the API
-    return timeAgo;
-  };
+  const bets = apiData;
 
   const getCategoryIcon = (category: string, homeTeam?: string) => {
     const poolIcon = getPoolIcon(category, homeTeam);
     return poolIcon.icon;
   };
 
+  const getEventIcon = (eventType?: string) => {
+    switch (eventType) {
+      case 'pool_created':
+        return <SparklesIcon className="h-3 w-3 text-emerald-400" />;
+      case 'liquidity_added':
+        return <CurrencyDollarIcon className="h-3 w-3 text-purple-400" />;
+      default:
+        return <UserIcon className="h-3 w-3 text-cyan-400" />;
+    }
+  };
+
+  const getEventColor = (eventType?: string, isForOutcome?: boolean) => {
+    if (eventType === 'pool_created') return 'text-emerald-400';
+    if (eventType === 'liquidity_added') return 'text-purple-400';
+    return isForOutcome ? 'text-cyan-400' : 'text-orange-400';
+  };
 
   if (isLoading && bets.length === 0) {
     return (
-      <div className={`bg-gradient-to-r from-gray-800/20 to-gray-900/20 backdrop-blur-lg border border-gray-700/30 rounded-2xl p-4 ${className}`}>
-        <div className="flex items-center justify-center">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-cyan-400"></div>
-          <span className="ml-3 text-gray-400">Loading recent bets...</span>
+      <div className={`w-full bg-slate-900/40 backdrop-blur-sm border-b border-slate-800/50 py-2 ${className}`}>
+        <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
+          <div className="animate-spin rounded-full h-3 w-3 border-b border-cyan-400"></div>
+          <span>Loading activity...</span>
         </div>
       </div>
     );
   }
 
+  if (bets.length === 0) {
+    return null;
+  }
+
+  // Duplicate bets for seamless loop
+  const duplicatedBets = [...bets, ...bets];
+
   return (
-    <div className={`bg-slate-800/30 backdrop-blur-xl border border-slate-700/50 rounded-xl p-3 ${className}`}>
-      {/* Compact Header */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 bg-gradient-to-r from-cyan-500/80 to-blue-500/80 rounded-lg">
-            <TrophyIcon className="h-3 w-3 text-white" />
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-white">Recent Bets</h3>
-          </div>
+    <div className={`w-full bg-slate-900/30 backdrop-blur-sm border-b border-slate-800/30 py-2 overflow-hidden ${className}`}>
+      <div className="relative flex items-center gap-1">
+        {/* Live indicator */}
+        <div className="flex items-center gap-1.5 px-3 flex-shrink-0">
+          <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></div>
+          <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Live</span>
         </div>
-        
-        <div className="flex items-center gap-1.5">
-          <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div>
-          <span className="text-xs text-gray-400">Live</span>
-        </div>
-      </div>
 
-      {/* Moving Lane - Compact */}
-      <div className="relative overflow-hidden">
-        <motion.div
-          className="flex gap-2"
-          animate={{
-            x: -currentIndex * 240
-          }}
-          transition={{
-            duration: 0.5,
-            ease: "easeInOut"
-          }}
+        {/* Divider */}
+        <div className="w-px h-4 bg-slate-700/50 flex-shrink-0"></div>
+
+        {/* Scrolling ticker */}
+        <div 
+          ref={scrollContainerRef}
+          className="flex-1 overflow-hidden"
         >
-          {bets.map((bet: RecentBet) => (
-            <motion.div
-              key={bet.id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="flex-shrink-0 w-60"
-            >
-              <div className="bg-slate-700/50 backdrop-blur-sm border border-slate-600/50 rounded-lg p-2.5 hover:border-cyan-500/30 transition-all duration-300">
-                {/* User Info - Compact */}
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-5 h-5 bg-gradient-to-r from-cyan-500/80 to-blue-500/80 rounded-full flex items-center justify-center flex-shrink-0">
-                    <UserIcon className="h-2.5 w-2.5 text-white" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-white truncate">
-                      {bet.bettorAddress.slice(0, 6)}...{bet.bettorAddress.slice(-4)}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <ClockIcon className="h-2.5 w-2.5 text-gray-400" />
-                    <span className="text-xs text-gray-400">
-                      {formatTimeAgo(bet.timeAgo)}
-                    </span>
-                  </div>
+          <div 
+            className="flex gap-3"
+            style={{
+              animation: `scroll ${Math.max(bets.length * 8, 60)}s linear infinite`,
+            }}
+          >
+            {duplicatedBets.map((bet: RecentBet, index: number) => (
+              <Link
+                key={`${bet.id}-${index}`}
+                href={`/markets?pool=${bet.poolId}`}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-slate-800/30 hover:bg-slate-800/50 border border-slate-700/20 hover:border-slate-700/40 transition-all duration-200 flex-shrink-0 group"
+              >
+                {/* Event Icon */}
+                <div className="flex-shrink-0">
+                  {getEventIcon(bet.eventType)}
                 </div>
 
-                {/* Bet Details - Compact */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs">{getCategoryIcon(bet.pool.category, bet.pool.homeTeam)}</span>
-                    <span className="text-xs font-medium text-white truncate flex-1">
-                      {bet.pool.title}
-                    </span>
-                  </div>
+                {/* User Address */}
+                <span className="text-[11px] font-mono text-gray-300 group-hover:text-white transition-colors">
+                  {bet.bettorAddress.slice(0, 4)}...{bet.bettorAddress.slice(-4)}
+                </span>
 
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1">
-                      <span className="text-xs">{bet.icon}</span>
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
-                        bet.eventType === 'pool_created' 
-                          ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                          : bet.eventType === 'liquidity_added'
-                          ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
-                          : bet.isForOutcome 
-                          ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' 
-                          : 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
-                      }`}>
-                        {bet.eventType === 'pool_created' ? 'Created' : 
-                         bet.eventType === 'liquidity_added' ? 'LP' :
-                         bet.isForOutcome ? 'YES' : 'NO'}
-                      </span>
-                    </div>
-                    
-                    <div className="text-right">
-                      <p className="text-xs font-bold text-white">
-                        {bet.amountFormatted} {bet.currency || (bet.pool.usePrix ? 'PRIX' : 'BNB')}
-                      </p>
-                      {bet.odds && (
-                        <p className="text-[10px] text-gray-400">
-                          @{(bet.odds / 100).toFixed(2)}x
-                        </p>
-                      )}
-                    </div>
-                  </div>
+                {/* Action */}
+                <span className={`text-[11px] font-medium ${getEventColor(bet.eventType, bet.isForOutcome)}`}>
+                  {bet.eventType === 'pool_created' ? 'created' : 
+                   bet.eventType === 'liquidity_added' ? 'added liquidity' : 
+                   bet.isForOutcome ? 'predicted YES' : 'predicted NO'}
+                </span>
+
+                {/* Pool Icon */}
+                <span className="text-xs flex-shrink-0">
+                  {getCategoryIcon(bet.pool.category, bet.pool.homeTeam)}
+                </span>
+
+                {/* Pool Title (truncated) */}
+                <span className="text-[11px] text-gray-400 group-hover:text-gray-300 transition-colors max-w-[120px] truncate">
+                  {bet.pool.title}
+                </span>
+
+                {/* Amount */}
+                <span className="text-[11px] font-semibold text-white flex-shrink-0">
+                  {bet.amountFormatted} {bet.currency || (bet.pool.usePrix ? 'PRIX' : 'BNB')}
+                </span>
+
+                {/* Odds */}
+                {bet.odds && (
+                  <span className="text-[10px] text-gray-500 flex-shrink-0">
+                    @{(bet.odds / 100).toFixed(2)}x
+                  </span>
+                )}
+
+                {/* Time */}
+                <div className="flex items-center gap-1 text-[10px] text-gray-500 flex-shrink-0">
+                  <ClockIcon className="h-2.5 w-2.5" />
+                  <span>{bet.timeAgo}</span>
                 </div>
-              </div>
-            </motion.div>
-          ))}
-        </motion.div>
 
-        {/* Navigation Dots */}
-        <div className="flex justify-center gap-2 mt-4">
-          {bets.map((bet: RecentBet, index: number) => (
-            <button
-              key={index}
-              onClick={() => setCurrentIndex(index)}
-              className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                index === currentIndex 
-                  ? 'bg-cyan-400 w-6' 
-                  : 'bg-gray-600 hover:bg-gray-500'
-              }`}
-            />
-          ))}
+                {/* Separator */}
+                <div className="w-px h-3 bg-slate-700/30 flex-shrink-0"></div>
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="flex flex-col sm:flex-row items-center justify-between mt-4 pt-4 border-t border-gray-700/30 gap-2 sm:gap-0">
-        <div className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-400">
-          <div className="flex items-center gap-1">
-            <TrophyIcon className="h-3 w-3 sm:h-4 sm:w-4" />
-            <span>{bets.length} recent bets</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <CurrencyDollarIcon className="h-3 w-3 sm:h-4 sm:w-4" />
-            <span>Live updates</span>
-          </div>
-        </div>
-        
-        <div className="text-xs text-gray-500">
-          Auto-refresh every 3s
-        </div>
-      </div>
     </div>
   );
 }

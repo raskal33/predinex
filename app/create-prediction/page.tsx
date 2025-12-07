@@ -508,7 +508,7 @@ function CreateMarketPageContent() {
       setIsLoading(false);
     }
   }, [isConfirming, isSuccess, isTxError, writeError, isLoading, currentTxHash]);
-  
+
   // Handle transaction errors from receipt
   useEffect(() => {
     if (isTxError && currentTxHash) {

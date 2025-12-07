@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  CheckCircleIcon, 
-  ClockIcon, 
+import {
+  CheckCircleIcon,
+  ClockIcon,
   ExclamationTriangleIcon,
   TrophyIcon,
   CalendarDaysIcon,
@@ -12,9 +12,9 @@ import {
   ChevronRightIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
-import { OddysseyMatchWithResult } from '@/services/oddysseyService';
+import { GauntletMatchWithResult } from '@/services/gauntletService';
 
-interface OddysseyMatchResultsProps {
+interface GauntletMatchResultsProps {
   cycleId?: number;
   className?: string;
 }
@@ -25,19 +25,19 @@ interface CycleWithDate {
   endTime: string;
 }
 
-export default function OddysseyMatchResults({ cycleId, className = '' }: OddysseyMatchResultsProps) {
-  const [results, setResults] = useState<OddysseyMatchWithResult[]>([]);
+export default function GauntletMatchResults({ cycleId, className = '' }: GauntletMatchResultsProps) {
+  const [results, setResults] = useState<GauntletMatchWithResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Debug: Log received cycleId
-  console.log('🔍 OddysseyMatchResults received cycleId:', cycleId);
+  console.log('🔍 GauntletMatchResults received cycleId:', cycleId);
   const [cycleInfo, setCycleInfo] = useState<{
     isResolved: boolean;
     totalMatches: number;
     finishedMatches: number;
   } | null>(null);
-  
+
   // Time filtering states
   const [currentCycleId, setCurrentCycleId] = useState<number | null>(null);
   const [availableCycles, setAvailableCycles] = useState<CycleWithDate[]>([]);
@@ -49,42 +49,42 @@ export default function OddysseyMatchResults({ cycleId, className = '' }: Oddyss
   const fetchAvailableCycles = useCallback(async () => {
     try {
       console.log('📅 Fetching available cycle dates...');
-      
-      const response = await fetch(`/api/oddyssey/available-dates?t=${Date.now()}`, {
+
+      const response = await fetch(`/api/gauntlet/available-dates?t=${Date.now()}`, {
         headers: {
           'Cache-Control': 'no-cache, no-store, must-revalidate',
           'Pragma': 'no-cache',
           'Expires': '0'
         }
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.data?.dates) {
           console.log(`✅ Found ${data.data.dates.length} available cycle dates:`, data.data.dates);
-          
+
           // ✅ FIXED: Use actual cycle data from backend (includes cycleId)
           const cyclesFound: CycleWithDate[] = data.data.dates.map((dateItem: { date: string, cycleId: number, isResolved: boolean }) => ({
             cycleId: dateItem.cycleId, // Use actual cycleId from backend
             startTime: dateItem.date,
             endTime: dateItem.date
           }));
-          
+
           setAvailableCycles(cyclesFound);
           return;
         }
       }
-      
+
       // Fallback: Use /results/all to get actual cycles
       console.log('⚠️ Available dates API failed, using /results/all fallback');
-      const fallbackResponse = await fetch(`/api/oddyssey/results/all?t=${Date.now()}`, {
+      const fallbackResponse = await fetch(`/api/gauntlet/results/all?t=${Date.now()}`, {
         headers: {
           'Cache-Control': 'no-cache, no-store, must-revalidate',
           'Pragma': 'no-cache',
           'Expires': '0'
         }
       });
-      
+
       if (fallbackResponse.ok) {
         const data = await fallbackResponse.json();
         if (data.success && data.data?.cycles) {
@@ -93,10 +93,10 @@ export default function OddysseyMatchResults({ cycleId, className = '' }: Oddyss
             startTime: cycle.startTime,
             endTime: cycle.endTime
           }));
-          
+
           console.log(`✅ Found ${cyclesFound.length} cycles from /results/all`);
           setAvailableCycles(cyclesFound);
-          
+
           // Only set selected cycle if not already set from prop
           if (!selectedCycle && cyclesFound.length > 0) {
             // Prioritize the cycleId prop (current contract cycle) if available
@@ -112,7 +112,7 @@ export default function OddysseyMatchResults({ cycleId, className = '' }: Oddyss
           return;
         }
       }
-      
+
       // Final fallback: empty array
       console.log('⚠️ No cycles found, using empty array');
       setAvailableCycles([]);
@@ -126,22 +126,22 @@ export default function OddysseyMatchResults({ cycleId, className = '' }: Oddyss
     try {
       setLoading(true);
       setError(null);
-      
+
       const targetCycleId = selectedCycle || cycleId;
       console.log('🎯 Fetching results for cycle:', targetCycleId);
-      
+
       if (targetCycleId) {
         // Use direct API call to get specific cycle results
-        const response = await fetch(`/api/oddyssey/cycle/${targetCycleId}/results?t=${Date.now()}`, {
+        const response = await fetch(`/api/gauntlet/cycle/${targetCycleId}/results?t=${Date.now()}`, {
           headers: {
             'Cache-Control': 'no-cache'
           }
         });
-        
+
         if (response.ok) {
           const data = await response.json();
           console.log('✅ Cycle results fetched:', data);
-          
+
           if (data.success && data.data) {
             console.log('🔍 Cycle data received:', {
               cycleId: data.data.cycleId,
@@ -151,23 +151,23 @@ export default function OddysseyMatchResults({ cycleId, className = '' }: Oddyss
               startTime: data.data.startTime,
               endTime: data.data.endTime
             });
-            
+
             const matches = data.data.matches || [];
             console.log('🔍 Matches array:', matches);
-            
+
             if (matches.length === 0) {
               console.log('⚠️ No matches found for cycle', targetCycleId);
               setError('No matches available for this cycle yet');
             } else {
               setError(null);
             }
-            
+
             setResults(matches);
             setCurrentCycleId(targetCycleId);
             setCycleInfo({
               isResolved: data.data.isResolved || false,
               totalMatches: data.data.matchesCount || matches.length,
-              finishedMatches: matches.filter((m: OddysseyMatchWithResult) => m.result?.finished_at).length
+              finishedMatches: matches.filter((m: GauntletMatchWithResult) => m.result?.finished_at).length
             });
           } else {
             throw new Error('No data in response');
@@ -178,17 +178,17 @@ export default function OddysseyMatchResults({ cycleId, className = '' }: Oddyss
       } else {
         // Fallback: Use /results/all to get latest cycle
         console.log('🔍 No cycle ID provided, fetching from /results/all...');
-        
-        const response = await fetch(`/api/oddyssey/results/all?t=${Date.now()}`, {
+
+        const response = await fetch(`/api/gauntlet/results/all?t=${Date.now()}`, {
           headers: {
             'Cache-Control': 'no-cache'
           }
         });
-        
+
         if (response.ok) {
           const data = await response.json();
           console.log('✅ All results fetched:', data);
-          
+
           if (data.success && data.data?.cycles?.length > 0) {
             // Get the latest cycle
             const latestCycle = data.data.cycles[0];
@@ -198,7 +198,7 @@ export default function OddysseyMatchResults({ cycleId, className = '' }: Oddyss
             setCycleInfo({
               isResolved: latestCycle.isResolved || false,
               totalMatches: latestCycle.matchesCount || latestCycle.matches?.length || 0,
-              finishedMatches: latestCycle.matches?.filter((m: OddysseyMatchWithResult) => m.result?.finished_at).length || 0
+              finishedMatches: latestCycle.matches?.filter((m: GauntletMatchWithResult) => m.result?.finished_at).length || 0
             });
           } else {
             // If no backend data available, show empty state with current cycle info
@@ -217,7 +217,7 @@ export default function OddysseyMatchResults({ cycleId, className = '' }: Oddyss
       }
     } catch (err) {
       console.error('❌ Error fetching results:', err);
-      
+
       // Show more specific error messages
       if (err instanceof Error) {
         if (err.message.includes('No cycles found')) {
@@ -230,7 +230,7 @@ export default function OddysseyMatchResults({ cycleId, className = '' }: Oddyss
       } else {
         setError('Failed to load match results');
       }
-      
+
       setResults([]);
     } finally {
       setLoading(false);
@@ -279,7 +279,7 @@ export default function OddysseyMatchResults({ cycleId, className = '' }: Oddyss
     }
   };
 
-  const formatScore = (match: OddysseyMatchWithResult) => {
+  const formatScore = (match: GauntletMatchWithResult) => {
     // Check if match has results based on backend data structure
     if (match.result) {
       // Check if match has finished_at timestamp (indicates completion)
@@ -305,11 +305,11 @@ export default function OddysseyMatchResults({ cycleId, className = '' }: Oddyss
 
   const getOutcomeText = (outcome: string | number | null, isOverUnder = false) => {
     if (!outcome || outcome === 0 || outcome === '0') return 'TBD';
-    
+
     // Handle both string and numeric outcomes
     if (typeof outcome === 'string' || typeof outcome === 'number') {
       const outcomeStr = String(outcome);
-      
+
       if (isOverUnder) {
         // ✅ FIXED: Handle normalized format (Home/Draw/Away, Over/Under) AND legacy format
         switch (outcomeStr) {
@@ -360,13 +360,13 @@ export default function OddysseyMatchResults({ cycleId, className = '' }: Oddyss
         }
       }
     }
-    
+
     return 'TBD';
   };
 
   const getOutcomeColor = (outcome: string | number | null) => {
     if (!outcome || outcome === 0 || outcome === '0') return 'text-gray-400';
-    
+
     const outcomeStr = String(outcome);
     // ✅ FIXED: Handle normalized format (Home/Draw/Away, Over/Under) AND legacy format
     switch (outcomeStr) {
@@ -456,7 +456,7 @@ export default function OddysseyMatchResults({ cycleId, className = '' }: Oddyss
     // Days of month
     for (let day = 1; day <= daysInMonth; day++) {
       const hasData = isDateInCycle(day);
-      const isSelected = selectedCycle !== null && 
+      const isSelected = selectedCycle !== null &&
         getCycleForDate(new Date(pickerMonth.getFullYear(), pickerMonth.getMonth(), day))?.cycleId === selectedCycle;
 
       days.push(
@@ -464,13 +464,12 @@ export default function OddysseyMatchResults({ cycleId, className = '' }: Oddyss
           key={day}
           onClick={() => handleDateSelect(day)}
           disabled={!hasData}
-          className={`h-10 rounded text-sm font-medium transition-all ${
-            hasData
+          className={`h-10 rounded text-sm font-medium transition-all ${hasData
               ? isSelected
                 ? 'bg-primary text-black'
                 : 'bg-primary/20 text-primary hover:bg-primary/30'
               : 'text-gray-600 cursor-not-allowed'
-          }`}
+            }`}
         >
           {day}
         </button>
@@ -498,7 +497,7 @@ export default function OddysseyMatchResults({ cycleId, className = '' }: Oddyss
           <ExclamationTriangleIcon className="h-12 w-12 mx-auto mb-4 text-red-400" />
           <h3 className="text-lg font-semibold text-white mb-2">Error Loading Results</h3>
           <p className="text-text-muted">{error}</p>
-          <button 
+          <button
             onClick={fetchResults}
             className="mt-4 px-4 py-2 bg-primary text-black rounded-button hover:bg-primary/80 transition-colors"
           >
@@ -517,106 +516,105 @@ export default function OddysseyMatchResults({ cycleId, className = '' }: Oddyss
         animate={{ opacity: 1, y: 0 }}
         className="glass-card p-6 bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20"
       >
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg">
-                <CalendarDaysIcon className="h-5 w-5 text-black" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-white">Select Cycle</h3>
-                <p className="text-sm text-text-muted">Choose a cycle to view match results</p>
-              </div>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg">
+              <CalendarDaysIcon className="h-5 w-5 text-black" />
             </div>
-            <button
-              onClick={() => setShowDatePicker(!showDatePicker)}
-              className="px-6 py-3 bg-gradient-to-r from-primary to-primary/80 text-black rounded-full hover:from-primary/90 hover:to-primary/70 transition-all flex items-center gap-2 shadow-lg font-semibold"
-            >
-              <CalendarDaysIcon className="h-4 w-4" />
-              <span className="hidden sm:inline">Pick Date</span>
-              <span className="sm:hidden">📅</span>
-            </button>
+            <div>
+              <h3 className="text-xl font-bold text-white">Select Cycle</h3>
+              <p className="text-sm text-text-muted">Choose a cycle to view match results</p>
+            </div>
           </div>
+          <button
+            onClick={() => setShowDatePicker(!showDatePicker)}
+            className="px-6 py-3 bg-gradient-to-r from-primary to-primary/80 text-black rounded-full hover:from-primary/90 hover:to-primary/70 transition-all flex items-center gap-2 shadow-lg font-semibold"
+          >
+            <CalendarDaysIcon className="h-4 w-4" />
+            <span className="hidden sm:inline">Pick Date</span>
+            <span className="sm:hidden">📅</span>
+          </button>
+        </div>
 
-          {/* Enhanced Quick Select Cycle Buttons */}
-          <div className="flex flex-wrap gap-3 mb-6">
-            {availableCycles.slice(0, 5).map((cycle) => {
-              const startDate = new Date(cycle.startTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-              return (
-                <button
-                  key={cycle.cycleId}
-                  onClick={() => {
-                    setSelectedCycle(cycle.cycleId);
-                    setShowDatePicker(false);
-                  }}
-                  className={`px-6 py-3 rounded-full text-sm font-semibold transition-all duration-300 shadow-lg ${
-                    selectedCycle === cycle.cycleId
-                      ? 'bg-gradient-to-r from-primary to-primary/80 text-black shadow-primary/30'
-                      : 'bg-gradient-to-r from-primary/20 to-primary/10 text-primary hover:from-primary/30 hover:to-primary/20 border border-primary/30'
+        {/* Enhanced Quick Select Cycle Buttons */}
+        <div className="flex flex-wrap gap-3 mb-6">
+          {availableCycles.slice(0, 5).map((cycle) => {
+            const startDate = new Date(cycle.startTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            return (
+              <button
+                key={cycle.cycleId}
+                onClick={() => {
+                  setSelectedCycle(cycle.cycleId);
+                  setShowDatePicker(false);
+                }}
+                className={`px-6 py-3 rounded-full text-sm font-semibold transition-all duration-300 shadow-lg ${selectedCycle === cycle.cycleId
+                    ? 'bg-gradient-to-r from-primary to-primary/80 text-black shadow-primary/30'
+                    : 'bg-gradient-to-r from-primary/20 to-primary/10 text-primary hover:from-primary/30 hover:to-primary/20 border border-primary/30'
                   }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-current"></div>
-                    <span>Cycle #{cycle.cycleId}</span>
-                    <span className="hidden sm:inline text-xs opacity-70">({startDate})</span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Enhanced Calendar Picker */}
-          <AnimatePresence>
-            {showDatePicker && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="border-t border-primary/20 pt-6"
               >
-                <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 rounded-xl p-6 border border-primary/20 shadow-xl">
-                  {/* Enhanced Calendar Header */}
-                  <div className="flex items-center justify-between mb-6">
-                    <button
-                      onClick={() => setPickerMonth(new Date(pickerMonth.getFullYear(), pickerMonth.getMonth() - 1))}
-                      className="p-3 hover:bg-primary/20 rounded-full transition-all duration-300 hover:scale-110"
-                    >
-                      <ChevronLeftIcon className="h-5 w-5 text-primary" />
-                    </button>
-                    <h4 className="text-xl font-bold text-white">{formatMonthYear(pickerMonth)}</h4>
-                    <button
-                      onClick={() => setPickerMonth(new Date(pickerMonth.getFullYear(), pickerMonth.getMonth() + 1))}
-                      className="p-3 hover:bg-primary/20 rounded-full transition-all duration-300 hover:scale-110"
-                    >
-                      <ChevronRightIcon className="h-5 w-5 text-primary" />
-                    </button>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-current"></div>
+                  <span>Cycle #{cycle.cycleId}</span>
+                  <span className="hidden sm:inline text-xs opacity-70">({startDate})</span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
 
-                  {/* Day names */}
-                  <div className="grid grid-cols-7 gap-2 mb-2">
-                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-                      <div key={day} className="h-10 flex items-center justify-center text-xs font-semibold text-gray-400">
-                        {day}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Calendar Days */}
-                  <div className="grid grid-cols-7 gap-2">
-                    {renderCalendarDays()}
-                  </div>
-
+        {/* Enhanced Calendar Picker */}
+        <AnimatePresence>
+          {showDatePicker && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="border-t border-primary/20 pt-6"
+            >
+              <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 rounded-xl p-6 border border-primary/20 shadow-xl">
+                {/* Enhanced Calendar Header */}
+                <div className="flex items-center justify-between mb-6">
                   <button
-                    onClick={() => setShowDatePicker(false)}
-                    className="mt-6 w-full py-3 bg-gradient-to-r from-primary/20 to-primary/10 text-primary rounded-full hover:from-primary/30 hover:to-primary/20 transition-all duration-300 flex items-center justify-center gap-2 font-semibold shadow-lg border border-primary/30"
+                    onClick={() => setPickerMonth(new Date(pickerMonth.getFullYear(), pickerMonth.getMonth() - 1))}
+                    className="p-3 hover:bg-primary/20 rounded-full transition-all duration-300 hover:scale-110"
                   >
-                    <XMarkIcon className="h-4 w-4" />
-                    Close Calendar
+                    <ChevronLeftIcon className="h-5 w-5 text-primary" />
+                  </button>
+                  <h4 className="text-xl font-bold text-white">{formatMonthYear(pickerMonth)}</h4>
+                  <button
+                    onClick={() => setPickerMonth(new Date(pickerMonth.getFullYear(), pickerMonth.getMonth() + 1))}
+                    className="p-3 hover:bg-primary/20 rounded-full transition-all duration-300 hover:scale-110"
+                  >
+                    <ChevronRightIcon className="h-5 w-5 text-primary" />
                   </button>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.div>
+
+                {/* Day names */}
+                <div className="grid grid-cols-7 gap-2 mb-2">
+                  {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+                    <div key={day} className="h-10 flex items-center justify-center text-xs font-semibold text-gray-400">
+                      {day}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Calendar Days */}
+                <div className="grid grid-cols-7 gap-2">
+                  {renderCalendarDays()}
+                </div>
+
+                <button
+                  onClick={() => setShowDatePicker(false)}
+                  className="mt-6 w-full py-3 bg-gradient-to-r from-primary/20 to-primary/10 text-primary rounded-full hover:from-primary/30 hover:to-primary/20 transition-all duration-300 flex items-center justify-center gap-2 font-semibold shadow-lg border border-primary/30"
+                >
+                  <XMarkIcon className="h-4 w-4" />
+                  Close Calendar
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
 
       {/* Enhanced Cycle Info */}
       {cycleInfo && (
@@ -640,7 +638,7 @@ export default function OddysseyMatchResults({ cycleId, className = '' }: Oddyss
                     {cycleInfo.finishedMatches}/{cycleInfo.totalMatches} matches finished
                   </p>
                   <div className="w-full max-w-32 bg-gray-700 rounded-full h-2">
-                    <div 
+                    <div
                       className="bg-gradient-to-r from-primary to-primary/70 h-2 rounded-full transition-all duration-500"
                       style={{ width: `${(cycleInfo.finishedMatches / cycleInfo.totalMatches) * 100}%` }}
                     ></div>
@@ -648,11 +646,10 @@ export default function OddysseyMatchResults({ cycleId, className = '' }: Oddyss
                 </div>
               </div>
             </div>
-            <div className={`px-4 py-2 rounded-full text-sm font-semibold shadow-lg ${
-              cycleInfo.isResolved 
-                ? 'text-emerald-400 bg-emerald-400/20 border border-emerald-400/30 shadow-emerald-400/20' 
+            <div className={`px-4 py-2 rounded-full text-sm font-semibold shadow-lg ${cycleInfo.isResolved
+                ? 'text-emerald-400 bg-emerald-400/20 border border-emerald-400/30 shadow-emerald-400/20'
                 : 'text-amber-400 bg-amber-400/20 border border-amber-400/30 shadow-amber-400/20 animate-pulse'
-            }`}>
+              }`}>
               {cycleInfo.isResolved ? '✅ Resolved' : '⚡ Active'}
             </div>
           </div>
@@ -673,7 +670,7 @@ export default function OddysseyMatchResults({ cycleId, className = '' }: Oddyss
               </div>
               <h3 className="text-lg font-semibold text-white mb-2">No Matches Available</h3>
               <p className="text-text-muted mb-4">
-                {selectedCycle || currentCycleId 
+                {selectedCycle || currentCycleId
                   ? `No matches found for Cycle #${selectedCycle || currentCycleId}. Matches may not be available yet.`
                   : 'No cycle selected. Please select a cycle to view matches.'
                 }
@@ -686,97 +683,95 @@ export default function OddysseyMatchResults({ cycleId, className = '' }: Oddyss
           </motion.div>
         ) : (
           results.map((match, index) => (
-          <motion.div
-            key={match.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className={`glass-card p-5 transition-all duration-300 hover:shadow-lg ${
-              match.status === 'finished' 
-                ? 'bg-gradient-to-r from-emerald-500/5 to-emerald-500/10 border border-emerald-500/20' 
-                : match.status === 'live'
-                ? 'bg-gradient-to-r from-red-500/5 to-red-500/10 border border-red-500/20 animate-pulse'
-                : 'bg-gradient-to-r from-blue-500/5 to-blue-500/10 border border-blue-500/20'
-            }`}
-          >
-            {/* Enhanced Mobile-First Responsive Layout */}
-            <div className="space-y-4 md:space-y-0 md:grid md:grid-cols-12 md:gap-6 md:items-center">
-              {/* Mobile: Match Header */}
-              <div className="flex items-center justify-between md:hidden">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/70 text-black font-bold text-sm flex items-center justify-center shadow-lg">
-                  {match.display_order}
+            <motion.div
+              key={match.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className={`glass-card p-5 transition-all duration-300 hover:shadow-lg ${match.status === 'finished'
+                  ? 'bg-gradient-to-r from-emerald-500/5 to-emerald-500/10 border border-emerald-500/20'
+                  : match.status === 'live'
+                    ? 'bg-gradient-to-r from-red-500/5 to-red-500/10 border border-red-500/20 animate-pulse'
+                    : 'bg-gradient-to-r from-blue-500/5 to-blue-500/10 border border-blue-500/20'
+                }`}
+            >
+              {/* Enhanced Mobile-First Responsive Layout */}
+              <div className="space-y-4 md:space-y-0 md:grid md:grid-cols-12 md:gap-6 md:items-center">
+                {/* Mobile: Match Header */}
+                <div className="flex items-center justify-between md:hidden">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/70 text-black font-bold text-sm flex items-center justify-center shadow-lg">
+                    {match.display_order}
+                  </div>
+                  <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold shadow-lg ${getStatusColor(match.status)}`}>
+                    {getStatusIcon(match.status)}
+                    <span className="capitalize">{match.status}</span>
+                  </div>
                 </div>
-                <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold shadow-lg ${getStatusColor(match.status)}`}>
-                  {getStatusIcon(match.status)}
-                  <span className="capitalize">{match.status}</span>
-                </div>
-              </div>
 
-              {/* Desktop: Match Number */}
-              <div className="hidden md:block md:col-span-1 text-center">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/70 text-black font-bold text-lg flex items-center justify-center mx-auto shadow-lg">
-                  {match.display_order}
+                {/* Desktop: Match Number */}
+                <div className="hidden md:block md:col-span-1 text-center">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/70 text-black font-bold text-lg flex items-center justify-center mx-auto shadow-lg">
+                    {match.display_order}
+                  </div>
                 </div>
-              </div>
 
-              {/* Enhanced Teams Section */}
-              <div className="md:col-span-4">
-                <div className="text-center md:text-left">
-                  <div className="text-lg font-bold text-white mb-1 truncate">{match.home_team}</div>
-                  <div className="text-sm text-primary font-semibold mb-1">VS</div>
-                  <div className="text-lg font-bold text-white mb-2 truncate">{match.away_team}</div>
-                  <div className="text-xs text-text-muted bg-gray-800/50 px-2 py-1 rounded-full inline-block">
-                    {match.league_name}
+                {/* Enhanced Teams Section */}
+                <div className="md:col-span-4">
+                  <div className="text-center md:text-left">
+                    <div className="text-lg font-bold text-white mb-1 truncate">{match.home_team}</div>
+                    <div className="text-sm text-primary font-semibold mb-1">VS</div>
+                    <div className="text-lg font-bold text-white mb-2 truncate">{match.away_team}</div>
+                    <div className="text-xs text-text-muted bg-gray-800/50 px-2 py-1 rounded-full inline-block">
+                      {match.league_name}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Desktop: Enhanced Status */}
+                <div className="hidden md:block md:col-span-2 text-center">
+                  <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold shadow-lg ${getStatusColor(match.status)}`}>
+                    {getStatusIcon(match.status)}
+                    <span className="capitalize">{match.status}</span>
+                  </div>
+                </div>
+
+                {/* Enhanced Score Section */}
+                <div className="md:col-span-2 text-center">
+                  <div className={`text-2xl font-bold ${match.status === 'finished'
+                      ? 'text-emerald-400'
+                      : match.status === 'live'
+                        ? 'text-red-400 animate-pulse'
+                        : 'text-gray-400'
+                    }`}>
+                    {formatScore(match)}
+                  </div>
+                  {match.result.finished_at && (
+                    <div className="text-xs text-text-muted mt-1 bg-gray-800/50 px-2 py-1 rounded-full">
+                      {new Date(match.result.finished_at).toLocaleTimeString()}
+                    </div>
+                  )}
+                </div>
+
+                {/* Enhanced Outcomes Section */}
+                <div className="md:col-span-3 text-center space-y-2">
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="text-xs text-text-muted font-medium">1X2:</span>
+                      <span className={`${getOutcomeColor((match.result.outcome_1x2 || match.result.moneyline) ?? null)}`}>
+                        {getOutcomeText((match.result.outcome_1x2 || match.result.moneyline) ?? null, false)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="text-xs text-text-muted font-medium">O/U:</span>
+                      <span className={`${getOutcomeColor((match.result.outcome_ou25 || match.result.overUnder) ?? null)}`}>
+                        {getOutcomeText((match.result.outcome_ou25 || match.result.overUnder) ?? null, true)}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
-
-              {/* Desktop: Enhanced Status */}
-              <div className="hidden md:block md:col-span-2 text-center">
-                <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold shadow-lg ${getStatusColor(match.status)}`}>
-                  {getStatusIcon(match.status)}
-                  <span className="capitalize">{match.status}</span>
-                </div>
-              </div>
-
-              {/* Enhanced Score Section */}
-              <div className="md:col-span-2 text-center">
-                <div className={`text-2xl font-bold ${
-                  match.status === 'finished' 
-                    ? 'text-emerald-400' 
-                    : match.status === 'live'
-                    ? 'text-red-400 animate-pulse'
-                    : 'text-gray-400'
-                }`}>
-                  {formatScore(match)}
-                </div>
-                {match.result.finished_at && (
-                  <div className="text-xs text-text-muted mt-1 bg-gray-800/50 px-2 py-1 rounded-full">
-                    {new Date(match.result.finished_at).toLocaleTimeString()}
-                  </div>
-                )}
-              </div>
-
-              {/* Enhanced Outcomes Section */}
-              <div className="md:col-span-3 text-center space-y-2">
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center justify-center gap-2">
-                    <span className="text-xs text-text-muted font-medium">1X2:</span>
-                    <span className={`${getOutcomeColor((match.result.outcome_1x2 || match.result.moneyline) ?? null)}`}>
-                      {getOutcomeText((match.result.outcome_1x2 || match.result.moneyline) ?? null, false)}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-center gap-2">
-                    <span className="text-xs text-text-muted font-medium">O/U:</span>
-                    <span className={`${getOutcomeColor((match.result.outcome_ou25 || match.result.overUnder) ?? null)}`}>
-                      {getOutcomeText((match.result.outcome_ou25 || match.result.overUnder) ?? null, true)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        ))
+            </motion.div>
+          ))
         )}
       </div>
 

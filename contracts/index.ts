@@ -1,30 +1,34 @@
 import { CONTRACT_ADDRESSES } from '@/config/wagmi';
 
-// Import ABIs - Updated for Modular Architecture
+// Import ABIs - Updated for Diamond Pattern Architecture
 import PredinexTokenArtifact from './abis/PredinexToken.json';
 import PrixFaucetArtifact from './abis/PrixFaucet.json';
 import GuidedOracleArtifact from './abis/GuidedOracle.json';
 import OptimisticOracleArtifact from './abis/OptimisticOracle.json';
-import PredinexPoolCoreArtifact from './abis/PredinexPoolCore.json';
+import PredinexDiamondArtifact from './abis/PredinexDiamond.json'; // Diamond ABI (replaces PoolCore)
+import PredinexPoolCoreArtifact from './abis/PredinexPoolCore.json'; // Legacy fallback
 import PredinexBoostSystemArtifact from './abis/PredinexBoostSystem.json';
 import PredinexComboPoolsArtifact from './abis/PredinexComboPools.json';
 import PredinexPoolFactoryArtifact from './abis/PredinexPoolFactory.json';
 import PredinexStakingArtifact from './abis/PredinexStaking.json';
 import ReputationSystemArtifact from './abis/ReputationSystem.json';
-import OddysseyArtifact from './abis/Oddyssey.json';
+import OddysseyArtifact from './abis/Oddyssey.json'; // Updated Oddyssey ABI
+import GauntletArtifact from './abis/Gauntlet.json'; // Legacy alias
 
 // Extract ABI arrays from artifacts (ABI files are arrays directly, not objects with .abi property)
 const PredinexTokenABI = PredinexTokenArtifact as any;
 const PrixFaucetABI = PrixFaucetArtifact as any;
 const GuidedOracleABI = GuidedOracleArtifact as any;
 const OptimisticOracleABI = OptimisticOracleArtifact as any;
-const PredinexPoolCoreABI = PredinexPoolCoreArtifact as any;
+const PredinexDiamondABI = PredinexDiamondArtifact as any; // Diamond ABI (master ABI with all facets)
+const PredinexPoolCoreABI = PredinexPoolCoreArtifact as any; // Legacy fallback
 const PredinexBoostSystemABI = PredinexBoostSystemArtifact as any;
 const PredinexComboPoolsABI = PredinexComboPoolsArtifact as any;
 const PredinexPoolFactoryABI = PredinexPoolFactoryArtifact as any;
 const PredinexStakingABI = PredinexStakingArtifact as any;
 const ReputationSystemABI = ReputationSystemArtifact as any;
-const OddysseyABI = OddysseyArtifact as any;
+const OddysseyABI = OddysseyArtifact as any; // Updated Oddyssey ABI
+const GauntletABI = GauntletArtifact as any; // Legacy alias (may be same as Oddyssey)
 
 // Contract configurations - Updated for Modular Architecture
 export const CONTRACTS = {
@@ -35,7 +39,11 @@ export const CONTRACTS = {
   },
   POOL_CORE: {
     address: CONTRACT_ADDRESSES.POOL_CORE,
-    abi: PredinexPoolCoreABI,
+    abi: PredinexDiamondABI, // Use Diamond ABI (includes all facet functions)
+  },
+  PREDINEX_DIAMOND: {
+    address: CONTRACT_ADDRESSES.PREDINEX_DIAMOND,
+    abi: PredinexDiamondABI, // Main Diamond proxy
   },
   BOOST_SYSTEM: {
     address: CONTRACT_ADDRESSES.BOOST_SYSTEM,
@@ -49,7 +57,7 @@ export const CONTRACTS = {
     address: CONTRACT_ADDRESSES.FACTORY,
     abi: PredinexPoolFactoryABI,
   },
-  
+
   // Oracle Contracts
   GUIDED_ORACLE: {
     address: CONTRACT_ADDRESSES.GUIDED_ORACLE,
@@ -59,7 +67,7 @@ export const CONTRACTS = {
     address: CONTRACT_ADDRESSES.OPTIMISTIC_ORACLE,
     abi: OptimisticOracleABI,
   },
-  
+
   // System Contracts
   REPUTATION_SYSTEM: {
     address: CONTRACT_ADDRESSES.REPUTATION_SYSTEM,
@@ -75,13 +83,17 @@ export const CONTRACTS = {
   },
   ODDYSSEY: {
     address: CONTRACT_ADDRESSES.ODDYSSEY,
-    abi: OddysseyABI,
+    abi: OddysseyABI, // Updated Oddyssey ABI
   },
-  
+  GAUNTLET: {
+    address: CONTRACT_ADDRESSES.ODDYSSEY, // Legacy alias - same as Oddyssey
+    abi: OddysseyABI, // Use Oddyssey ABI instead of legacy Gauntlet
+  },
+
   // Legacy support (for backward compatibility) - DEPRECATED: Use POOL_CORE instead
   PREDINEX_POOL: {
-    address: CONTRACT_ADDRESSES.PREDINEX_POOL, // DEPRECATED: Use POOL_CORE
-    abi: PredinexPoolCoreABI, // DEPRECATED: Use POOL_CORE.abi
+    address: CONTRACT_ADDRESSES.PREDINEX_POOL, // DEPRECATED: Use POOL_CORE (points to Diamond)
+    abi: PredinexDiamondABI, // DEPRECATED: Use POOL_CORE.abi (now Diamond ABI)
   },
   PREDINEX_STAKING: {
     address: CONTRACT_ADDRESSES.PREDINEX_STAKING,
@@ -96,13 +108,15 @@ export {
   PrixFaucetABI,
   GuidedOracleABI,
   OptimisticOracleABI,
-  PredinexPoolCoreABI,
+  PredinexDiamondABI, // Diamond ABI (master ABI)
+  PredinexPoolCoreABI, // Legacy fallback
   PredinexBoostSystemABI,
   PredinexComboPoolsABI,
   PredinexPoolFactoryABI,
   PredinexStakingABI,
   ReputationSystemABI,
-  OddysseyABI,
+  OddysseyABI, // Updated Oddyssey ABI
+  GauntletABI, // Legacy alias
 };
 
 // Contract events - Updated for Modular Architecture
@@ -116,8 +130,19 @@ export const CONTRACT_EVENTS = {
     POOL_CREATED: 'PoolCreated',
     BET_PLACED: 'BetPlaced',
     POOL_SETTLED: 'PoolSettled',
-    WINNINGS_CLAIMED: 'WinningsClaimed',
+    WINNINGS_CLAIMED: 'RewardClaimed', // Updated event name
     REPUTATION_ACTION_OCCURRED: 'ReputationActionOccurred',
+    CREATOR_YIELD_CALCULATED: 'CreatorYieldCalculated', // New event
+    CREATOR_YIELD_CLAIMED: 'CreatorYieldClaimed', // New event
+    CREATOR_FEE_ACCRUED: 'CreatorFeeAccrued', // New event
+    CREATOR_FEE_CLAIMED: 'CreatorFeeClaimed', // New event
+    POOL_LISTED_FOR_SALE: 'PoolListedForSale', // Early cashout
+    POOL_OWNERSHIP_TRANSFERRED: 'PoolOwnershipTransferred', // Early cashout
+    BETTOR_POSITION_LISTED_FOR_SALE: 'BettorPositionListedForSale', // Early cashout
+    BETTOR_POSITION_TRANSFERRED: 'BettorPositionTransferred', // Early cashout
+    LIQUIDITY_ADDED: 'LiquidityAdded',
+    LIQUIDITY_WITHDRAWN: 'LiquidityWithdrawn',
+    POOL_REFUNDED: 'PoolRefunded',
   },
   BOOST_SYSTEM: {
     POOL_BOOSTED: 'PoolBoosted',
@@ -132,7 +157,7 @@ export const CONTRACT_EVENTS = {
     POOL_CREATED_WITH_BOOST: 'PoolCreatedWithBoost',
     BATCH_POOLS_CREATED: 'BatchPoolsCreated',
   },
-  
+
   // Oracle Contract Events
   GUIDED_ORACLE: {
     OUTCOME_SUBMITTED: 'OutcomeSubmitted',
@@ -144,7 +169,7 @@ export const CONTRACT_EVENTS = {
     OUTCOME_DISPUTED: 'OutcomeDisputed',
     MARKET_RESOLVED: 'MarketResolved',
   },
-  
+
   // System Contract Events
   REPUTATION_SYSTEM: {
     REPUTATION_UPDATED: 'ReputationUpdated',
@@ -166,8 +191,16 @@ export const CONTRACT_EVENTS = {
     SLIP_PURCHASED: 'SlipPurchased',
     GAME_SETTLED: 'GameSettled',
     WINNINGS_CLAIMED: 'WinningsClaimed',
+    CYCLE_STARTED: 'CycleStarted',
+    CYCLE_ENDED: 'CycleEnded',
   },
-  
+  GAUNTLET: {
+    // Legacy alias - same as ODDYSSEY
+    SLIP_PURCHASED: 'SlipPurchased',
+    GAME_SETTLED: 'GameSettled',
+    WINNINGS_CLAIMED: 'WinningsClaimed',
+  },
+
   // Legacy events (for backward compatibility)
   PREDINEX_POOL: {
     POOL_CREATED: 'PoolCreated',

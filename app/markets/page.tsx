@@ -7,7 +7,6 @@ import { toast } from "react-hot-toast";
 import { optimizedPoolService, type OptimizedPool } from "@/services/optimizedPoolService";
 import { poolStateService } from "@/services/poolStateService";
 import { frontendCache } from "@/services/frontendCache";
-import RecentBetsLane from "@/components/RecentBetsLane";
 import { type EnhancedPool } from "@/components/EnhancedPoolCard";
 import { PoolCardCatalog, PoolCardModal } from "@/components/PoolCard";
 import { 
@@ -392,15 +391,6 @@ export default function MarketsPage() {
           </div>
         </div>
 
-        {/* Compact Recent Bets Lane */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="mb-4"
-        >
-          <RecentBetsLane className="!p-3" />
-        </motion.div>
 
         {/* Professional Filters & Search - Compact & Responsive */}
         <div className="bg-slate-800/30 backdrop-blur-xl border border-slate-700/50 rounded-xl p-3 mb-4">

@@ -7,25 +7,24 @@ import Link from "next/link";
 import { useSelectedLayoutSegment } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import {
-  Bars3Icon, 
+  Bars3Icon,
   XMarkIcon,
   ChartBarIcon,
   UsersIcon,
-  CurrencyDollarIcon,
   UserIcon,
   FireIcon,
   TrophyIcon,
   ChevronDownIcon,
   CubeTransparentIcon,
   WalletIcon,
-  DocumentTextIcon,
-  BoltIcon,
-  ArrowTrendingUpIcon,
-  LockClosedIcon,
-  Squares2X2Icon,
-  SparklesIcon
+  SparklesIcon,
+  BookOpenIcon
 } from "@heroicons/react/24/outline";
-import Button from "@/components/button";
+import {
+  TrophyIcon as TrophyIconSolid,
+  SparklesIcon as SparklesIconSolid,
+  FireIcon as FireIconSolid
+} from "@heroicons/react/24/solid";
 import { useProfileStore } from '@/stores/useProfileStore';
 import { useWalletConnection } from '@/hooks/useWalletConnection';
 import NotificationBadge from "@/components/NotificationBadge";
@@ -33,34 +32,25 @@ import NotificationBadge from "@/components/NotificationBadge";
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const [isPredinextorOpen, setIsPredinextorOpen] = useState<boolean>(false);
-  const [isMarketsOpen, setIsMarketsOpen] = useState<boolean>(false);
   const [isWalletDropdownOpen, setIsWalletDropdownOpen] = useState<boolean>(false);
+  const [isMarketsOpen, setIsMarketsOpen] = useState<boolean>(false);
   const [{ y }] = useWindowScroll();
   const segment = useSelectedLayoutSegment();
   const [isRender, setIsRender] = useState<boolean>(false);
-  
+  const [hoveredNav, setHoveredNav] = useState<string | null>(null);
+
   // Refs for dropdown positioning
   const predinextorButtonRef = useRef<HTMLButtonElement>(null);
-  const marketsButtonRef = useRef<HTMLButtonElement>(null);
   const walletButtonRef = useRef<HTMLButtonElement>(null);
-  
-  // Get dropdown positions for fixed positioning
-  const getDropdownPosition = (buttonRef: React.RefObject<HTMLButtonElement | null>) => {
-    if (!buttonRef.current) return { top: 0, left: 0 };
-    const rect = buttonRef.current.getBoundingClientRect();
-    return {
-      top: rect.bottom + 8,
-      left: rect.left,
-    };
-  };
-  
+  const marketsButtonRef = useRef<HTMLButtonElement>(null);
+
+
   // Custom wallet connection hook
   const {
     isConnected,
     address,
     isOnSomnia,
     isConnecting,
-    error,
     connectWallet,
     disconnectWallet,
     switchToSomnia,
@@ -71,160 +61,112 @@ export default function Header() {
     setIsRender(true);
   }, []);
 
-  // Update current profile when wallet connects and auto-close modal
+  // Update current profile when wallet connects
   useEffect(() => {
     if (address && isConnected) {
       setCurrentProfile(address);
-      // Remove auto-close behavior for mobile menu to prevent instability
-      // Auto-close AppKit modal if it's open
-      // Note: AppKit modal should close automatically when wallet connects
-      console.log('Wallet connected, AppKit modal should close automatically');
     } else {
       setCurrentProfile(null);
     }
   }, [address, isConnected, setCurrentProfile]);
 
   const newY = y || 1;
-  const isScrolled = newY > 100;
+  const isScrolled = newY > 50;
 
   const handleClose = () => {
     setIsMenuOpen(false);
   };
   const handlePredinextorToggle = () => setIsPredinextorOpen(!isPredinextorOpen);
   const handlePredinextorClose = () => setIsPredinextorOpen(false);
-  const handleMarketsToggle = () => setIsMarketsOpen(!isMarketsOpen);
-  const handleMarketsClose = () => setIsMarketsOpen(false);
   const handleWalletDropdownToggle = () => setIsWalletDropdownOpen(!isWalletDropdownOpen);
   const handleWalletDropdownClose = () => setIsWalletDropdownOpen(false);
-
-
 
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = () => {
       setIsPredinextorOpen(false);
-      setIsMarketsOpen(false);
       setIsWalletDropdownOpen(false);
+      setIsMarketsOpen(false);
     };
 
-    if (isPredinextorOpen || isMarketsOpen || isWalletDropdownOpen) {
+    if (isPredinextorOpen || isWalletDropdownOpen || isMarketsOpen) {
       document.addEventListener('click', handleClickOutside);
       return () => document.removeEventListener('click', handleClickOutside);
     }
-  }, [isPredinextorOpen, isMarketsOpen, isWalletDropdownOpen]);
+  }, [isPredinextorOpen, isWalletDropdownOpen, isMarketsOpen]);
 
   // Close dropdowns on scroll
   useEffect(() => {
     const handleScroll = () => {
       setIsPredinextorOpen(false);
-      setIsMarketsOpen(false);
       setIsWalletDropdownOpen(false);
+      setIsMarketsOpen(false);
     };
 
     window.addEventListener('scroll', handleScroll, true);
     return () => window.removeEventListener('scroll', handleScroll, true);
   }, []);
 
+  const handleMarketsToggle = () => setIsMarketsOpen(!isMarketsOpen);
+  const handleMarketsClose = () => setIsMarketsOpen(false);
+
+  const marketsSubItems = [
+    { href: "/markets", label: "All Markets", icon: ChartBarIcon, segment: "markets", color: "from-cyan-500 to-blue-500" },
+    { href: "/markets/trending", label: "Trending", icon: FireIcon, segment: "trending", color: "from-orange-500 to-red-500" },
+    { href: "/markets/boosted", label: "Boosted", icon: SparklesIcon, segment: "boosted", color: "from-yellow-500 to-amber-500" },
+    { href: "/markets/private", label: "Private", icon: CubeTransparentIcon, segment: "private", color: "from-purple-500 to-pink-500" },
+    { href: "/markets/combo", label: "Combo", icon: CubeTransparentIcon, segment: "combo", color: "from-emerald-500 to-green-500" },
+  ];
+
+  const navItems = [
+    { href: "/gauntlet", label: "Gauntlet", icon: FireIcon, iconSolid: FireIconSolid, segment: "gauntlet", color: "from-[#FFC107] to-[#F7B600]" },
+    { href: "/stats", label: "Stats", icon: ChartBarIcon, iconSolid: ChartBarIcon, segment: "stats", color: "from-[#3B82F6] to-[#2563EB]" },
+    { href: "/rewards", label: "Prize", icon: TrophyIcon, iconSolid: TrophyIconSolid, segment: "rewards", color: "from-[#FFC107] to-[#F7B600]" },
+    { href: "/staking", label: "Staking", icon: SparklesIcon, iconSolid: SparklesIconSolid, segment: "staking", color: "from-[#10B981] to-[#059669]" },
+    { href: "/docs", label: "Docs", icon: BookOpenIcon, iconSolid: BookOpenIcon, segment: "docs", color: "from-[#FFC107] to-[#10B981]" },
+  ];
+
   if (segment !== "/_not-found") {
     return (
       <>
         <motion.header
-          animate={{ 
-            backgroundColor: isScrolled ? "rgba(10, 10, 26, 0.95)" : "rgba(10, 10, 26, 0.8)",
-            backdropFilter: isScrolled ? "blur(20px)" : "blur(10px)",
+          initial={{ y: -20, opacity: 0 }}
+          animate={{
+            y: 0,
+            opacity: 1,
+            backgroundColor: isScrolled
+              ? "rgba(15, 20, 25, 0.95)"
+              : "rgba(15, 20, 25, 0.8)",
+            backdropFilter: isScrolled ? "blur(20px)" : "blur(12px)",
+            borderBottomColor: isScrolled ? "rgba(255, 255, 255, 0.05)" : "transparent"
           }}
-          className={`${
-            isScrolled ? "fixed shadow-card" : "relative"
-          } inset-x-0 top-0 z-[100] border-b border-border-card transition-all duration-300 nav-glass`}
+          transition={{ duration: 0.3 }}
+          className="fixed inset-x-0 top-0 z-[100] transition-all duration-300 border-b border-transparent"
         >
-          <div className="container-nav overflow-x-hidden overflow-y-visible">
-            <div className="flex items-center justify-between py-1.5 min-w-0 gap-2">
-              {/* Left Side - Logo */}
-              <div className="flex items-center gap-8 flex-shrink-0">
-                <Link href="/" className="flex items-center gap-3">
-                  <Image 
-                    src="/logo.png" 
-                    alt="Predinex Logo" 
-                    width={120} 
-                    height={40} 
-                    className="navbar-logo"
-                    priority 
-                    style={{ mixBlendMode: 'lighten', background: 'transparent' }}
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16 lg:h-20">
+
+              {/* Left - Logo */}
+              <motion.div
+                className="flex items-center gap-6 flex-shrink-0"
+                whileHover={{ scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 400, damping: 17 }}
+              >
+                <Link href="/" className="relative group">
+                  <Image
+                    src="/logo.png"
+                    alt="Predinex Logo"
+                    width={120}
+                    height={40}
+                    className="relative navbar-logo object-contain"
+                    priority
+                    style={{ mixBlendMode: 'lighten' }}
                   />
                 </Link>
+              </motion.div>
 
-                {/* Predinextor Dropdown */}
-                <div className="relative hidden lg:block" style={{ zIndex: 1000 }}>
-                  <motion.button
-                    ref={predinextorButtonRef}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handlePredinextorToggle();
-                    }}
-                    whileHover={{ scale: 1.01 }}
-                    className="flex items-center gap-2 px-4 py-2 rounded-button text-xs font-medium transition-all duration-200 text-text-secondary hover:text-text-primary hover:bg-bg-card"
-                  >
-                    <CubeTransparentIcon className="h-4 w-4 text-primary" />
-                    <span className="font-semibold">Predinextor</span>
-                    <motion.div
-                      animate={{ rotate: isPredinextorOpen ? 180 : 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <ChevronDownIcon className="h-4 w-4" />
-                    </motion.div>
-                  </motion.button>
-
-                  <AnimatePresence>
-                    {isPredinextorOpen && (() => {
-                      const position = getDropdownPosition(predinextorButtonRef);
-                      return (
-                        <motion.div
-                          initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                          transition={{ duration: 0.2, ease: "easeOut" }}
-                          className="fixed w-52 bg-[rgba(5,5,15,0.95)] backdrop-blur-xl border border-border-card/50 rounded-2xl shadow-2xl overflow-hidden"
-                          style={{ 
-                            zIndex: 1001,
-                            top: `${position.top}px`,
-                            left: `${position.left}px`
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                        <div className="py-3 px-2">
-                          {predinextorLinks.map((link) => (
-                            <Link
-                              key={link.href}
-                              href={link.href}
-                              onClick={handlePredinextorClose}
-                              className={`flex items-center gap-3 px-3 py-2.5 mx-1 text-xs font-medium transition-all duration-200 rounded-xl group ${
-                                segment === link.segment
-                                  ? "bg-gradient-primary text-black shadow-lg"
-                                  : "text-text-secondary hover:text-text-primary hover:bg-[rgba(255,255,255,0.08)]"
-                              }`}
-                            >
-                              <link.icon className={`h-4 w-4 transition-colors duration-200 ${
-                                segment === link.segment ? 'text-black' : 'text-primary group-hover:text-secondary'
-                              }`} />
-                              <span className="font-medium">{link.label}</span>
-                              {segment === link.segment && (
-                                <div className="ml-auto w-1.5 h-1.5 bg-black rounded-full" />
-                              )}
-                            </Link>
-                          ))}
-                        </div>
-                        
-                        {/* Bottom gradient accent */}
-                        <div className="h-0.5 bg-gradient-to-r from-primary via-secondary to-accent" />
-                        </motion.div>
-                      );
-                    })()}
-                  </AnimatePresence>
-                </div>
-              </div>
-
-              {/* Center - Desktop Navigation */}
-              <nav className="hidden lg:flex items-center space-x-1 min-w-0">
+              {/* Center - Icon-Based Navigation with Hover Reveals */}
+              <nav className="hidden lg:flex items-center gap-2 min-w-0">
                 {/* Markets Dropdown */}
                 <div className="relative" style={{ zIndex: 1000 }}>
                   <motion.button
@@ -233,102 +175,163 @@ export default function Header() {
                       e.stopPropagation();
                       handleMarketsToggle();
                     }}
-                    whileHover={{ scale: 1.01 }}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-button text-xs font-medium transition-all duration-200 ${
-                      segment?.startsWith('markets') || segment === 'markets'
-                        ? "bg-gradient-primary text-black shadow-button"
-                        : "text-text-secondary hover:text-text-primary hover:bg-bg-card"
-                    }`}
+                    onMouseEnter={() => setHoveredNav("/markets")}
+                    onMouseLeave={() => setHoveredNav(null)}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="relative group"
                   >
-                    <ChartBarIcon className="h-4 w-4" />
-                    Markets
-                    <motion.div
-                      animate={{ rotate: isMarketsOpen ? 180 : 0 }}
-                      transition={{ duration: 0.2 }}
+                    <div
+                      className={`relative flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-300 ${segment === "markets" || segment?.startsWith("markets")
+                        ? "bg-white/10 text-white"
+                        : "text-gray-400 hover:text-white hover:bg-white/5"
+                        }`}
                     >
-                      <ChevronDownIcon className="h-4 w-4" />
-                    </motion.div>
-                  </motion.button>
+                      <ChartBarIcon className="h-5 w-5 relative z-10" />
+                    </div>
 
-                  <AnimatePresence>
-                    {isMarketsOpen && (() => {
-                      const position = getDropdownPosition(marketsButtonRef);
-                      return (
+                    <AnimatePresence>
+                      {hoveredNav === "/markets" && (
                         <motion.div
-                          initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                          transition={{ duration: 0.2, ease: "easeOut" }}
-                          className="fixed w-56 bg-[rgba(5,5,15,0.95)] backdrop-blur-xl border border-border-card/50 rounded-2xl shadow-2xl overflow-hidden"
-                          style={{ 
-                            zIndex: 1001,
-                            top: `${position.top}px`,
-                            left: `${position.left}px`
-                          }}
-                          onClick={(e) => e.stopPropagation()}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 10 }}
+                          className="absolute top-full left-0 mt-2 px-2 py-2 bg-[#0F1419] border border-white/10 rounded-xl shadow-xl z-50 min-w-[180px]"
                         >
-                        <div className="py-3 px-2">
-                          {marketsLinks.map((link) => (
-                            <Link
-                              key={link.href}
-                              href={link.href}
-                              onClick={handleMarketsClose}
-                              className={`flex items-center gap-3 px-3 py-2.5 mx-1 text-xs font-medium transition-all duration-200 rounded-xl group ${
-                                segment === link.segment
-                                  ? "bg-gradient-primary text-black shadow-lg"
-                                  : "text-text-secondary hover:text-text-primary hover:bg-[rgba(255,255,255,0.08)]"
-                              }`}
-                            >
-                              <link.icon className={`h-4 w-4 transition-colors duration-200 ${
-                                segment === link.segment ? 'text-black' : 'text-primary group-hover:text-secondary'
-                              }`} />
-                              <span className="font-medium">{link.label}</span>
-                              {segment === link.segment && (
-                                <div className="ml-auto w-1.5 h-1.5 bg-black rounded-full" />
-                              )}
-                            </Link>
-                          ))}
-                        </div>
-                        
-                        {/* Bottom gradient accent */}
-                        <div className="h-0.5 bg-gradient-to-r from-primary via-secondary to-accent" />
+                          <div className="relative space-y-1">
+                            {marketsSubItems.map((subItem) => {
+                              const SubIcon = subItem.icon;
+                              const isActive = segment === subItem.segment;
+                              return (
+                                <Link
+                                  key={subItem.href}
+                                  href={subItem.href}
+                                  onClick={handleMarketsClose}
+                                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 group ${isActive
+                                    ? "bg-white/10 text-white"
+                                    : "text-gray-400 hover:text-white hover:bg-white/5"
+                                    }`}
+                                >
+                                  <SubIcon className={`h-4 w-4 ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-white'}`} />
+                                  <span>{subItem.label}</span>
+                                </Link>
+                              );
+                            })}
+                          </div>
                         </motion.div>
-                      );
-                    })()}
-                  </AnimatePresence>
+                      )}
+                    </AnimatePresence>
+                  </motion.button>
                 </div>
 
-                {/* Other navigation links */}
-                {links.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-button text-xs font-medium transition-all duration-200 ${
-                      segment === link.segment
-                        ? "bg-gradient-primary text-black shadow-button"
-                        : "text-text-secondary hover:text-text-primary hover:bg-bg-card"
-                    }`}
+                {/* Nexpert - Icon Button in Center */}
+                <div className="relative" style={{ zIndex: 1000 }}>
+                  <motion.button
+                    ref={predinextorButtonRef}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePredinextorToggle();
+                    }}
+                    onMouseEnter={() => setHoveredNav("/nexpert")}
+                    onMouseLeave={() => setHoveredNav(null)}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="relative group"
                   >
-                    <link.icon className="h-4 w-4" />
-                    {link.label}
-                  </Link>
-                ))}
+                    <div
+                      className={`relative flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-300 ${segment === "dashboard" || segment === "profile" || segment === "leaderboard" || segment === "community"
+                        ? "bg-white/10 text-white"
+                        : "text-gray-400 hover:text-white hover:bg-white/5"
+                        }`}
+                    >
+                      <UserIcon className="h-5 w-5 relative z-10" />
+                    </div>
+
+                    <AnimatePresence>
+                      {hoveredNav === "/nexpert" && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 10 }}
+                          className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-2 py-2 bg-[#0F1419] border border-white/10 rounded-xl shadow-xl z-50 min-w-[160px]"
+                        >
+                          <div className="relative space-y-1">
+                            {nexpertLinks.map((link) => {
+                              const LinkIcon = link.icon;
+                              const isActive = segment === link.segment;
+                              return (
+                                <Link
+                                  key={link.href}
+                                  href={link.href}
+                                  onClick={handlePredinextorClose}
+                                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 group ${isActive
+                                    ? "bg-white/10 text-white"
+                                    : "text-gray-400 hover:text-white hover:bg-white/5"
+                                    }`}
+                                >
+                                  <LinkIcon className={`h-4 w-4 ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-white'}`} />
+                                  <span>{link.label}</span>
+                                </Link>
+                              );
+                            })}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.button>
+                </div>
+
+                {navItems.map((item) => {
+                  const Icon = segment === item.segment ? item.iconSolid : item.icon;
+                  const isActive = segment === item.segment;
+
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onMouseEnter={() => setHoveredNav(item.href)}
+                      onMouseLeave={() => setHoveredNav(null)}
+                      className="relative group"
+                    >
+                      <motion.div
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className={`relative flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-300 ${isActive
+                          ? "bg-white/10 text-white"
+                          : "text-gray-400 hover:text-white hover:bg-white/5"
+                          }`}
+                      >
+                        <Icon className="h-5 w-5 relative z-10" />
+                      </motion.div>
+
+                      {/* Label on hover */}
+                      <AnimatePresence>
+                        {hoveredNav === item.href && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 10 }}
+                            className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-[#0F1419] border border-white/10 rounded-lg text-xs font-medium text-white whitespace-nowrap shadow-xl z-50"
+                          >
+                            {item.label}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </Link>
+                  );
+                })}
               </nav>
 
-              {/* Right Side Actions */}
-              <div className="flex items-center gap-2 flex-shrink-0">
+              {/* Right - Wallet & Actions */}
+              <div className="flex items-center gap-3 flex-shrink-0">
                 {/* Notification Badge */}
-                {isConnected && address && isRender && <NotificationBadge />}
-                
-                {/* Error Display */}
-                {error && (
+                {isConnected && address && isRender && (
                   <div className="hidden sm:block">
-                    <div className="px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
-                      {error}
-                    </div>
+                    <NotificationBadge />
                   </div>
                 )}
-                {/* Reown AppKit Wallet Button */}
+
+                {/* Wallet Connection */}
                 {isRender && (
                   <div className="hidden sm:block">
                     {isConnected && address ? (
@@ -339,18 +342,20 @@ export default function Header() {
                             e.stopPropagation();
                             handleWalletDropdownToggle();
                           }}
-                          whileHover={{ scale: 1.01 }}
-                          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-button bg-bg-card border border-border-input text-xs hover:bg-bg-card-hover transition-colors duration-200"
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          className="relative flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/10 text-sm font-medium transition-all duration-300 overflow-hidden group"
                         >
-                          <div className={`w-1.5 h-1.5 rounded-full ${isOnSomnia ? 'bg-green-500' : 'bg-orange-500'}`}></div>
-                          <span className="text-text-secondary font-mono">
-                            {address.slice(0, 6)}...{address.slice(-4)}
+                          <div className={`w-2 h-2 rounded-full ${isOnSomnia ? 'bg-emerald-400' : 'bg-orange-400'} relative z-10 shadow-lg ${isOnSomnia ? 'shadow-emerald-400/50' : 'shadow-orange-400/50'}`}></div>
+                          <span className="text-gray-200 font-mono text-xs relative z-10">
+                            {address.slice(0, 5)}...{address.slice(-4)}
                           </span>
                           <motion.div
                             animate={{ rotate: isWalletDropdownOpen ? 180 : 0 }}
                             transition={{ duration: 0.2 }}
+                            className="relative z-10"
                           >
-                            <ChevronDownIcon className="h-3 w-3 text-text-muted" />
+                            <ChevronDownIcon className="h-3.5 w-3.5 text-gray-400" />
                           </motion.div>
                         </motion.button>
 
@@ -364,87 +369,65 @@ export default function Header() {
                                 animate={{ opacity: 1, y: 0, scale: 1 }}
                                 exit={{ opacity: 0, y: -10, scale: 0.95 }}
                                 transition={{ duration: 0.2, ease: "easeOut" }}
-                                className="fixed w-48 bg-[rgba(5,5,15,0.95)] backdrop-blur-xl border border-border-card/50 rounded-2xl shadow-2xl overflow-hidden"
-                                style={{ 
+                                className="fixed w-48 bg-[#0F1419] border border-white/10 rounded-xl shadow-2xl overflow-hidden"
+                                style={{
                                   zIndex: 1001,
                                   top: `${rect.bottom + 8}px`,
                                   right: `${window.innerWidth - rect.right}px`
                                 }}
                                 onClick={(e) => e.stopPropagation()}
                               >
-                              <div className="py-2 px-1">
-                                {!isOnSomnia && (
+                                <div className="relative py-2 px-1">
+                                  {!isOnSomnia && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        switchToSomnia();
+                                        handleWalletDropdownClose();
+                                      }}
+                                      className="w-full flex items-center gap-2 px-4 py-2.5 mx-1 text-sm font-medium transition-all duration-200 rounded-lg text-orange-400 hover:text-orange-300 hover:bg-white/5"
+                                    >
+                                      <span>Switch Network</span>
+                                    </button>
+                                  )}
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      switchToSomnia();
+                                      disconnectWallet();
                                       handleWalletDropdownClose();
                                     }}
-                                    className="w-full flex items-center gap-2 px-3 py-2 mx-1 text-sm font-medium transition-all duration-200 rounded-xl text-orange-400 hover:text-orange-300 hover:bg-[rgba(255,255,255,0.08)]"
+                                    className="w-full flex items-center gap-2 px-4 py-2.5 mx-1 text-sm font-medium transition-all duration-200 rounded-lg text-gray-300 hover:text-white hover:bg-white/5"
                                   >
-                                    <span>Switch to BSC Testnet</span>
+                                    <span>Disconnect</span>
                                   </button>
-                                )}
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    disconnectWallet();
-                                    handleWalletDropdownClose();
-                                  }}
-                                  className="w-full flex items-center gap-2 px-3 py-2 mx-1 text-sm font-medium transition-all duration-200 rounded-xl text-text-secondary hover:text-text-primary hover:bg-[rgba(255,255,255,0.08)]"
-                                >
-                                  <span>Disconnect</span>
-                                </button>
-                              </div>
-                              <div className="h-0.5 bg-gradient-to-r from-primary via-secondary to-accent" />
-                            </motion.div>
+                                </div>
+                              </motion.div>
                             );
                           })()}
                         </AnimatePresence>
                       </div>
                     ) : (
-                      <div className="flex flex-col items-end gap-1">
-                        <button
-                          onClick={connectWallet}
-                          disabled={isConnecting}
-                          className="flex items-center gap-2 px-4 py-2 rounded-button text-sm font-medium transition-all duration-200 border-2 border-primary text-primary hover:bg-primary hover:text-black disabled:opacity-50 disabled:cursor-not-allowed"
-                          style={{
-                            fontFamily: "var(--font-onest)",
-                            fontSize: "14px",
-                            fontWeight: "500",
-                          }}
-                        >
+                      <motion.button
+                        onClick={connectWallet}
+                        disabled={isConnecting}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="relative px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 overflow-hidden group bg-bsc-yellow text-black hover:bg-bsc-gold"
+                      >
+                        <span className="relative z-10 flex items-center gap-2">
                           <WalletIcon className="h-4 w-4" />
-                          {isConnecting ? 'Connecting...' : 'Connect Wallet'}
-                        </button>
-                        {error && (
-                          <div className="text-xs text-red-400 max-w-48 text-right">
-                            {error}
-                          </div>
-                        )}
-                      </div>
+                          {isConnecting ? 'Connecting...' : 'Connect'}
+                        </span>
+                      </motion.button>
                     )}
                   </div>
                 )}
 
-                {/* Create Market Button */}
-                <Link href="/create-prediction" className="hidden md:block flex-shrink-0">
-                  <Button size="sm" variant="primary" className="whitespace-nowrap">
-                    Create Market
-                  </Button>
-                </Link>
 
                 {/* Mobile Menu Toggle */}
                 <button
-                  onClick={() => {
-                    // Prevent rapid clicking
-                    if (!isMenuOpen) {
-                      setIsMenuOpen(true);
-                    } else {
-                      handleClose();
-                    }
-                  }}
-                  className="lg:hidden relative z-50 p-2 rounded-button bg-bg-card text-text-secondary hover:bg-[rgba(255,255,255,0.05)] hover:text-text-primary transition-colors border border-border-card"
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  className="lg:hidden relative z-50 p-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 text-gray-300 hover:text-white transition-all"
                   aria-label={isMenuOpen ? "Close menu" : "Open menu"}
                 >
                   <AnimatePresence mode="wait">
@@ -485,180 +468,115 @@ export default function Header() {
               exit={{ opacity: 0 }}
               className="fixed inset-0 z-40 lg:hidden"
             >
-              {/* Backdrop */}
-              <div 
-                className="absolute inset-0 bg-bg-overlay backdrop-blur-modal"
+              <div
+                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
                 onClick={handleClose}
               />
-              
-              {/* Menu Panel */}
+
               <motion.div
                 initial={{ x: "100%" }}
                 animate={{ x: 0 }}
                 exit={{ x: "100%" }}
                 transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                className="absolute right-0 top-0 h-full w-72 max-w-[85vw] glass-card"
-                style={{ borderRadius: "0px" }}
+                className="absolute right-0 top-0 h-full w-80 max-w-[85vw] bg-[#0F1419] border-l border-white/10 shadow-2xl"
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="flex flex-col h-full">
-                  {/* Header */}
-                  <div className="flex items-center justify-between p-4 border-b border-border-card">
+                  <div className="flex items-center justify-between p-6 border-b border-white/5">
                     <Link href="/" className="flex items-center gap-2" onClick={handleClose}>
-                      <Image 
-                        src="/logo.png" 
-                        alt="Predinex Logo" 
-                        width={120} 
-                        height={40} 
-                        className="navbar-logo"
-                        priority 
-                        style={{ mixBlendMode: 'lighten', background: 'transparent' }}
+                      <Image
+                        src="/logo.png"
+                        alt="Predinex Logo"
+                        width={100}
+                        height={32}
+                        className="navbar-logo object-contain"
+                        priority
+                        style={{ mixBlendMode: 'lighten' }}
                       />
                     </Link>
                   </div>
 
-                  {/* Navigation Links */}
-                  <nav className="flex-1 p-4 overflow-y-auto">
-                    {/* Predinextor Section */}
-                    <div className="mb-4">
-                      <h3 className="text-xs font-semibold text-text-secondary mb-2 px-2">PREDINEXTOR</h3>
-                      <div className="space-y-1">
-                        {predinextorLinks.map((link) => (
-                          <Link
-                            key={link.href}
-                            href={link.href}
-                            onClick={handleClose}
-                            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                              segment === link.segment
-                                ? "bg-gradient-primary text-black"
-                                : "text-text-secondary hover:text-text-primary hover:bg-bg-card"
-                            }`}
-                          >
-                            <link.icon className="h-4 w-4 flex-shrink-0" />
-                            <span className="truncate">{link.label}</span>
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-
+                  <nav className="flex-1 p-4 overflow-y-auto space-y-2">
                     {/* Markets Section */}
                     <div className="mb-4">
-                      <h3 className="text-xs font-semibold text-text-secondary mb-2 px-2">MARKETS</h3>
+                      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">Markets</h3>
                       <div className="space-y-1">
-                        {marketsLinks.map((link) => (
-                          <Link
-                            key={link.href}
-                            href={link.href}
-                            onClick={handleClose}
-                            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                              segment === link.segment
-                                ? "bg-gradient-primary text-black"
-                                : "text-text-secondary hover:text-text-primary hover:bg-bg-card"
-                            }`}
-                          >
-                            <link.icon className="h-4 w-4 flex-shrink-0" />
-                            <span className="truncate">{link.label}</span>
-                          </Link>
-                        ))}
+                        {marketsSubItems.map((subItem) => {
+                          const SubIcon = subItem.icon;
+                          const isActive = segment === subItem.segment;
+                          return (
+                            <Link
+                              key={subItem.href}
+                              href={subItem.href}
+                              onClick={handleClose}
+                              className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${isActive
+                                ? "bg-white/10 text-white"
+                                : "text-gray-300 hover:text-white hover:bg-white/5"
+                                }`}
+                            >
+                              <SubIcon className="h-4 w-4" />
+                              <span>{subItem.label}</span>
+                            </Link>
+                          );
+                        })}
                       </div>
                     </div>
 
-                    {/* Other Navigation */}
-                    <div className="mb-4">
-                      <h3 className="text-xs font-semibold text-text-secondary mb-2 px-2">OTHER</h3>
-                      <div className="space-y-1">
-                        {links.map((link) => (
-                          <Link
-                            key={link.href}
-                            href={link.href}
-                            onClick={handleClose}
-                            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                              segment === link.segment
-                                ? "bg-gradient-primary text-black"
-                                : "text-text-secondary hover:text-text-primary hover:bg-bg-card"
-                            }`}
-                          >
-                            <link.icon className="h-4 w-4 flex-shrink-0" />
-                            <span className="truncate">{link.label}</span>
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
+                    {/* Main Nav Items */}
+                    {navItems.map((item) => {
+                      const Icon = segment === item.segment ? item.iconSolid : item.icon;
+                      const isActive = segment === item.segment;
 
-                    {/* Action Buttons */}
-                    <div className="space-y-2">
-                      <Link href="/create-prediction" onClick={handleClose}>
-                        <Button fullWidth variant="primary" size="sm">
-                          Create Market
-                        </Button>
-                      </Link>
-                      
-                      {isRender && (
-                        isConnected && address ? (
-                          <div className="space-y-2">
-                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-bg-card border border-border-input text-sm">
-                              <div className={`w-2 h-2 rounded-full flex-shrink-0 ${isOnSomnia ? 'bg-green-500' : 'bg-orange-500'}`}></div>
-                              <span className="text-text-secondary font-mono text-xs truncate">
-                                {address.slice(0, 6)}...{address.slice(-4)}
-                              </span>
-                            </div>
-                            {!isOnSomnia && (
-                              <button
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  switchToSomnia();
-                                }}
-                                className="w-full px-3 py-2.5 rounded-lg text-sm font-medium text-orange-400 hover:text-orange-300 hover:bg-bg-card border border-orange-500 transition-colors"
-                              >
-                                Switch Network
-                              </button>
-                            )}
-                            <button
-                              onClick={(e) => {
-                                e.preventDefault();
-                                disconnectWallet();
-                              }}
-                              className="w-full px-3 py-2.5 rounded-lg text-sm font-medium text-text-muted hover:text-text-secondary hover:bg-bg-card border border-border-input transition-colors"
-                            >
-                              Disconnect
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="w-full space-y-2">
-                            <button
-                              onClick={(e) => {
-                                e.preventDefault();
-                                connectWallet();
-                              }}
-                              disabled={isConnecting}
-                              className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 border-2 border-primary text-primary hover:bg-primary hover:text-black disabled:opacity-50 disabled:cursor-not-allowed"
-                              style={{
-                                fontFamily: "var(--font-onest)",
-                                fontWeight: "500",
-                              }}
-                            >
-                              <WalletIcon className="h-4 w-4" />
-                              {isConnecting ? 'Connecting...' : 'Connect Wallet'}
-                            </button>
-                            {error && (
-                              <div className="text-xs text-red-400 text-center px-2">
-                                {error}
-                              </div>
-                            )}
-                          </div>
-                        )
-                      )}
-                    </div>
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={handleClose}
+                          className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${isActive
+                            ? "bg-white/10 text-white"
+                            : "text-gray-300 hover:text-white hover:bg-white/5"
+                            }`}
+                        >
+                          <Icon className="h-5 w-5" />
+                          <span>{item.label}</span>
+                        </Link>
+                      );
+                    })}
                   </nav>
 
-                  {/* Footer */}
-                  <div className="p-4 border-t border-border-card">
-                    <div className="text-center">
-                      <p className="text-xs text-text-muted">
-                        Powered by{" "}
-                        <span className="gradient-text font-medium">BNB Chain</span>
-                      </p>
-                    </div>
+                  <div className="p-4 border-t border-white/5 space-y-2">
+                    {isConnected && address ? (
+                      <>
+                        <div className="px-4 py-3 rounded-lg bg-white/5 border border-white/5 text-sm">
+                          <div className="flex items-center gap-2 mb-1">
+                            <div className={`w-2 h-2 rounded-full ${isOnSomnia ? 'bg-emerald-400' : 'bg-orange-400'}`}></div>
+                            <span className="text-gray-300 font-mono text-xs">
+                              {address.slice(0, 6)}...{address.slice(-4)}
+                            </span>
+                          </div>
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            disconnectWallet();
+                          }}
+                          className="w-full px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
+                        >
+                          Disconnect
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          connectWallet();
+                        }}
+                        disabled={isConnecting}
+                        className="w-full px-4 py-3 rounded-lg text-sm font-semibold bg-bsc-yellow text-black hover:bg-bsc-gold transition-colors disabled:opacity-50"
+                      >
+                        {isConnecting ? 'Connecting...' : 'Connect Wallet'}
+                      </button>
+                    )}
                   </div>
                 </div>
               </motion.div>
@@ -670,7 +588,7 @@ export default function Header() {
   }
 }
 
-const predinextorLinks = [
+const nexpertLinks = [
   {
     label: "Dashboard",
     href: "/dashboard",
@@ -694,77 +612,5 @@ const predinextorLinks = [
     href: "/community",
     segment: "community",
     icon: UsersIcon,
-  },
-];
-
-const marketsLinks = [
-  {
-    label: "All Markets",
-    href: "/markets",
-    segment: "markets",
-    icon: ChartBarIcon,
-  },
-  {
-    label: "Pool Roulette",
-    href: "/roulette",
-    segment: "roulette",
-    icon: SparklesIcon,
-  },
-  {
-    label: "Boosted Markets",
-    href: "/markets/boosted",
-    segment: "boosted",
-    icon: BoltIcon,
-  },
-  {
-    label: "Trending",
-    href: "/markets/trending", 
-    segment: "trending",
-    icon: ArrowTrendingUpIcon,
-  },
-  {
-    label: "Private (Whitelist)",
-    href: "/markets/private",
-    segment: "private", 
-    icon: LockClosedIcon,
-  },
-  {
-    label: "Combo Markets",
-    href: "/markets/combo",
-    segment: "combo",
-    icon: Squares2X2Icon,
-  },
-];
-
-const links = [
-  {
-    label: "Oddyssey",
-    href: "/oddyssey",
-    segment: "oddyssey",
-    icon: FireIcon,
-  },
-  {
-    label: "Stats",
-    href: "/stats",
-    segment: "stats",
-    icon: TrophyIcon,
-  },
-  {
-    label: "Staking",
-    href: "/staking",
-    segment: "staking",
-    icon: CurrencyDollarIcon,
-  },
-  {
-    label: "Rewards",
-    href: "/rewards",
-    segment: "rewards",
-    icon: TrophyIcon,
-  },
-  {
-    label: "Docs",
-    href: "/docs",
-    segment: "docs",
-    icon: DocumentTextIcon,
   },
 ];

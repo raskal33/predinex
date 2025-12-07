@@ -1,8 +1,8 @@
 import { CONTRACTS } from '@/contracts';
-import { 
-  createPublicClient, 
-  http, 
-  formatEther, 
+import {
+  createPublicClient,
+  http,
+  formatEther,
   defineChain,
   type Address,
   type PublicClient,
@@ -34,7 +34,7 @@ const bscTestnet = defineChain({
 });
 
 // Contract-based interfaces (matching the updated Solidity contract)
-export interface OddysseyMatch {
+export interface GauntletMatch {
   id: bigint;
   startTime: bigint;
   oddsHome: number;
@@ -62,7 +62,7 @@ export interface UserPrediction {
   isCorrect?: boolean; // Will be determined by evaluation
 }
 
-export interface OddysseySlip {
+export interface GauntletSlip {
   id?: number;
   player: Address;
   cycleId: number;
@@ -104,7 +104,7 @@ export interface LeaderboardEntry {
   correctCount: bigint;
 }
 
-export interface OddysseyMatchWithResult {
+export interface GauntletMatchWithResult {
   id: string;
   fixture_id: string;
   home_team: string;
@@ -125,7 +125,7 @@ export interface OddysseyMatchWithResult {
   };
 }
 
-export interface OddysseyCycle {
+export interface GauntletCycle {
   cycleId: number;
   state: number;
   endTime: string;
@@ -138,12 +138,12 @@ export interface ResultsByDate {
   date: string;
   cycleId: number;
   isResolved: boolean;
-  matches: OddysseyMatchWithResult[];
+  matches: GauntletMatchWithResult[];
   totalMatches: number;
   finishedMatches: number;
 }
 
-class OddysseyService {
+class GauntletService {
   private publicClient: PublicClient;
   private walletClient: WalletClient | null = null;
 
@@ -162,8 +162,8 @@ class OddysseyService {
   async getCurrentCycle(): Promise<bigint> {
     try {
       const result = await this.publicClient.readContract({
-        address: CONTRACTS.ODDYSSEY.address,
-        abi: CONTRACTS.ODDYSSEY.abi,
+        address: CONTRACTS.GAUNTLET.address,
+        abi: CONTRACTS.GAUNTLET.abi,
         functionName: 'dailyCycleId',
         args: [],
       });
@@ -179,50 +179,51 @@ class OddysseyService {
   }
 
   // Get current cycle info with full data structure
-  async getCurrentCycleInfo(): Promise<CycleInfo> {
+  async getCurrentCycleInfo(): Promise<CycleInfo | null> {
     try {
       const currentCycle = await this.getCurrentCycle();
-      
+
       // Check if cycle is valid (not 0)
       if (currentCycle === BigInt(0)) {
-        throw new Error('Cycle 0 does not exist');
+        console.log('⚠️ No active cycle found (cycle 0)');
+        return null;
       }
-      
+
       // Use getCycleStatus to get the full CycleInfo structure
       const result = await this.publicClient.readContract({
-        address: CONTRACTS.ODDYSSEY.address,
-        abi: CONTRACTS.ODDYSSEY.abi,
+        address: CONTRACTS.GAUNTLET.address,
+        abi: CONTRACTS.GAUNTLET.abi,
         functionName: 'getCycleStatus',
         args: [currentCycle],
       });
-      
+
       const [exists, state, endTime, _, cycleSlipCount, hasWinner] = result as [boolean, number, bigint, bigint, bigint, boolean];
-      
+
       if (!exists) {
         throw new Error(`Cycle ${currentCycle} does not exist`);
       }
-      
+
       // Get actual prize pool (includes rollover) using dailyPrizePools
       const actualPrizePool = await this.publicClient.readContract({
-        address: CONTRACTS.ODDYSSEY.address,
-        abi: CONTRACTS.ODDYSSEY.abi,
+        address: CONTRACTS.GAUNTLET.address,
+        abi: CONTRACTS.GAUNTLET.abi,
         functionName: 'dailyPrizePools',
         args: [currentCycle],
       });
-      
+
       // Get additional cycle info from cycleInfo mapping
       const cycleInfoResult = await this.publicClient.readContract({
-        address: CONTRACTS.ODDYSSEY.address,
-        abi: CONTRACTS.ODDYSSEY.abi,
+        address: CONTRACTS.GAUNTLET.address,
+        abi: CONTRACTS.GAUNTLET.abi,
         functionName: 'cycleInfo',
         args: [currentCycle],
       });
-      
+
       const cycleInfoData = cycleInfoResult as any;
-      
+
       // Calculate rollover amount
       const rolloverAmount = await this.calculateRolloverAmount(currentCycle);
-      
+
       return {
         cycleId: currentCycle,
         state,
@@ -236,7 +237,7 @@ class OddysseyService {
       };
     } catch (error) {
       console.error('Error getting current cycle info:', error);
-      
+
       // If cycle 0 error, return a default inactive cycle
       if (error instanceof Error && error.message.includes('Cycle 0 does not exist')) {
         console.log('🔄 No active cycle, returning default inactive cycle');
@@ -252,18 +253,18 @@ class OddysseyService {
           rolloverAmount: BigInt(0)
         };
       }
-      
+
       // Fallback to basic getCurrentCycleInfo if getCycleStatus fails
       try {
         const result = await this.publicClient.readContract({
-          address: CONTRACTS.ODDYSSEY.address,
-          abi: CONTRACTS.ODDYSSEY.abi,
+          address: CONTRACTS.GAUNTLET.address,
+          abi: CONTRACTS.GAUNTLET.abi,
           functionName: 'getCurrentCycleInfo',
           args: [],
         });
-        
+
         const [cycleId, state, endTime, prizePool, slipCount] = result as [bigint, number, bigint, bigint, bigint];
-        
+
         return {
           cycleId,
           state,
@@ -286,40 +287,40 @@ class OddysseyService {
   async calculateRolloverAmount(cycleId: bigint): Promise<bigint> {
     try {
       if (cycleId <= 1n) return BigInt(0);
-      
+
       const previousCycle = cycleId - 1n;
-      
+
       // Get previous cycle's leaderboard
       const leaderboard = await this.publicClient.readContract({
-        address: CONTRACTS.ODDYSSEY.address,
-        abi: CONTRACTS.ODDYSSEY.abi,
+        address: CONTRACTS.GAUNTLET.address,
+        abi: CONTRACTS.GAUNTLET.abi,
         functionName: 'getDailyLeaderboard',
         args: [previousCycle],
       });
-      
+
       // Check if previous cycle had a winner (top player with 7+ correct predictions)
       const topPlayer = (leaderboard as any[])[0];
-      const hasWinner = topPlayer && 
-                      topPlayer.player !== '0x0000000000000000000000000000000000000000' && 
-                      Number(topPlayer.correctCount) >= 7;
-      
+      const hasWinner = topPlayer &&
+        topPlayer.player !== '0x0000000000000000000000000000000000000000' &&
+        Number(topPlayer.correctCount) >= 7;
+
       if (!hasWinner) {
         // Get previous cycle's prize pool
         const previousPrizePool = await this.publicClient.readContract({
-          address: CONTRACTS.ODDYSSEY.address,
-          abi: CONTRACTS.ODDYSSEY.abi,
+          address: CONTRACTS.GAUNTLET.address,
+          abi: CONTRACTS.GAUNTLET.abi,
           functionName: 'dailyPrizePools',
           args: [previousCycle],
         });
-        
+
         // Calculate rollover: 95% of previous prize pool (5% fee deducted)
         const PRIZE_ROLLOVER_FEE_PERCENTAGE = 500; // 5% = 500 basis points
         const fee = (previousPrizePool as bigint * BigInt(PRIZE_ROLLOVER_FEE_PERCENTAGE)) / BigInt(10000);
         const rolloverAmount = (previousPrizePool as bigint) - fee;
-        
+
         return rolloverAmount;
       }
-      
+
       return BigInt(0);
     } catch (error) {
       console.error('Error calculating rollover amount:', error);
@@ -334,11 +335,11 @@ class OddysseyService {
       if (cycleId === BigInt(0)) {
         return false;
       }
-      
+
       // Try to get matches for the current cycle
       await this.publicClient.readContract({
-        address: CONTRACTS.ODDYSSEY.address,
-        abi: CONTRACTS.ODDYSSEY.abi,
+        address: CONTRACTS.GAUNTLET.address,
+        abi: CONTRACTS.GAUNTLET.abi,
         functionName: 'getDailyMatches',
         args: [cycleId],
       });
@@ -350,21 +351,21 @@ class OddysseyService {
   }
 
   // Get current cycle matches
-  async getCurrentCycleMatches(): Promise<OddysseyMatch[]> {
+  async getCurrentCycleMatches(): Promise<GauntletMatch[]> {
     try {
       const cycleId = await this.getCurrentCycle();
       console.log('🔍 Getting matches for cycle ID:', cycleId.toString());
-      
+
       // Check if contract is initialized
       const isInitialized = await this.isContractInitialized();
       if (!isInitialized) {
         console.warn('⚠️ Contract not initialized, returning empty matches');
         return [];
       }
-      
+
       const result = await this.publicClient.readContract({
-        address: CONTRACTS.ODDYSSEY.address,
-        abi: CONTRACTS.ODDYSSEY.abi,
+        address: CONTRACTS.GAUNTLET.address,
+        abi: CONTRACTS.GAUNTLET.abi,
         functionName: 'getDailyMatches',
         args: [cycleId],
       });
@@ -390,13 +391,13 @@ class OddysseyService {
       return matches;
     } catch (error) {
       console.error('❌ Error getting current cycle matches:', error);
-      
+
       // If the cycle doesn't exist or has no matches, return empty array
       if (error instanceof Error && error.message.includes('out of bounds')) {
         console.warn('⚠️ Cycle has no matches, returning empty array');
         return [];
       }
-      
+
       throw error;
     }
   }
@@ -405,8 +406,8 @@ class OddysseyService {
   async getEntryFee(): Promise<string> {
     try {
       const result = await this.publicClient.readContract({
-        address: CONTRACTS.ODDYSSEY.address,
-        abi: CONTRACTS.ODDYSSEY.abi,
+        address: CONTRACTS.GAUNTLET.address,
+        abi: CONTRACTS.GAUNTLET.abi,
         functionName: 'entryFee',
         args: [],
       });
@@ -448,18 +449,18 @@ class OddysseyService {
 
     try {
       console.log('🎯 Placing slip with predictions:', predictions);
-      
+
       // Fetch the actual entry fee from the contract
       const entryFeeResult = await this.publicClient.readContract({
-        address: CONTRACTS.ODDYSSEY.address,
-        abi: CONTRACTS.ODDYSSEY.abi,
+        address: CONTRACTS.GAUNTLET.address,
+        abi: CONTRACTS.GAUNTLET.abi,
         functionName: 'entryFee',
         args: [],
       });
-      
+
       const entryFeeBigInt = entryFeeResult as bigint;
       console.log(`💰 Entry fee from contract: ${formatEther(entryFeeBigInt)} BNB (${entryFeeBigInt.toString()} wei)`);
-      
+
       // Convert predictions to contract format
       // ⚠️ IMPORTANT: Only include fields that exist in contract's UserPrediction struct
       // Contract struct: {matchId, betType, selection, selectedOdd}
@@ -468,15 +469,15 @@ class OddysseyService {
         // The UI gets odds from contract matches which are already scaled
         // e.g., contract returns 2750 for 2.75x, UI stores 2750, we send 2750
         let scaledOdds = pred.odds;
-        
+
         // Validation: odds should be >= 1000 (representing 1.0x minimum)
         if (scaledOdds < 1000) {
           console.warn(`⚠️ Prediction ${index + 1}: Odds ${scaledOdds} seems too low, expected >= 1000. Assuming decimal format and scaling...`);
           scaledOdds = Math.floor(scaledOdds * 1000);
         }
-        
+
         console.log(`🔢 Match ${pred.matchId}: Odds ${pred.odds} -> ${scaledOdds}`);
-        
+
         return {
           matchId: BigInt(pred.matchId),
           betType: ['1', 'X', '2'].includes(pred.prediction) ? 0 : 1, // 0=MONEYLINE, 1=OVER_UNDER
@@ -489,8 +490,8 @@ class OddysseyService {
       console.log('📝 Contract predictions:', contractPredictions);
 
       const hash = await this.walletClient.writeContract({
-        address: CONTRACTS.ODDYSSEY.address,
-        abi: CONTRACTS.ODDYSSEY.abi,
+        address: CONTRACTS.GAUNTLET.address,
+        abi: CONTRACTS.GAUNTLET.abi,
         functionName: 'placeSlip',
         args: [contractPredictions],
         value: entryFeeBigInt, // ✅ Use actual entry fee from contract
@@ -502,11 +503,11 @@ class OddysseyService {
       return hash;
     } catch (error) {
       console.error('❌ Error placing slip:', error);
-      
+
       // Enhanced error handling for mobile devices
       if (error instanceof Error) {
         const errorMessage = error.message.toLowerCase();
-        
+
         // ✅ FIX: Check if transaction was actually successful despite error
         // On mobile MetaMask, sometimes we get errors even when tx succeeds
         if ('hash' in error || 'transactionHash' in error) {
@@ -514,13 +515,13 @@ class OddysseyService {
           const txHash = ('hash' in error ? (error as any).hash : (error as any).transactionHash) as `0x${string}`;
           return txHash;
         }
-        
+
         // Real user rejection errors
-        if (errorMessage.includes('user rejected') || 
-            errorMessage.includes('user denied') ||
-            errorMessage.includes('user cancelled') ||
-            errorMessage.includes('rejected by user') ||
-            errorMessage.includes('user disapproved')) {
+        if (errorMessage.includes('user rejected') ||
+          errorMessage.includes('user denied') ||
+          errorMessage.includes('user cancelled') ||
+          errorMessage.includes('rejected by user') ||
+          errorMessage.includes('user disapproved')) {
           throw new Error('Transaction was cancelled by user. Please try again if you want to place the slip.');
         } else if (errorMessage.includes('insufficient funds')) {
           throw new Error('Insufficient funds. Please ensure you have enough BNB tokens to pay the entry fee.');
@@ -532,32 +533,32 @@ class OddysseyService {
           throw new Error('Wallet error. Please ensure your wallet is properly connected and try again.');
         }
       }
-      
+
       throw error;
     }
   }
 
   // Get user slips for current cycle from contract
-  async getUserSlipsForCycleFromContract(userAddress: Address, cycleId: bigint): Promise<OddysseySlip[]> {
+  async getUserSlipsForCycleFromContract(userAddress: Address, cycleId: bigint): Promise<GauntletSlip[]> {
     try {
       // First, get the slip IDs for this user and cycle
       const slipIdsResult = await this.publicClient.readContract({
-        address: CONTRACTS.ODDYSSEY.address,
-        abi: CONTRACTS.ODDYSSEY.abi,
+        address: CONTRACTS.GAUNTLET.address,
+        abi: CONTRACTS.GAUNTLET.abi,
         functionName: 'getUserSlipsForCycle',
         args: [userAddress, cycleId],
       });
 
       const slipIds = slipIdsResult as bigint[];
       console.log('🔍 Contract returned slip IDs:', slipIds);
-      
+
       if (!slipIds || slipIds.length === 0) {
         console.log('⚠️ No slip IDs found for user');
         return [];
       }
 
       // Then, get the full slip data for each slip ID
-      const slips: OddysseySlip[] = [];
+      const slips: GauntletSlip[] = [];
       for (const slipId of slipIds) {
         try {
           const slipResult = await this.getSlip(slipId);
@@ -582,14 +583,14 @@ class OddysseyService {
   // Get all user slips with evaluation data for a specific cycle
   async getUserSlipsWithDataFromContract(userAddress: Address, cycleId: bigint): Promise<{
     slipIds: bigint[];
-    slipsData: OddysseySlip[];
+    slipsData: GauntletSlip[];
   }> {
     try {
       console.log('🔍 Getting user slips with data for cycle:', cycleId.toString(), 'user:', userAddress);
-      
+
       const result = await this.publicClient.readContract({
-        address: CONTRACTS.ODDYSSEY.address,
-        abi: CONTRACTS.ODDYSSEY.abi,
+        address: CONTRACTS.GAUNTLET.address,
+        abi: CONTRACTS.GAUNTLET.abi,
         functionName: 'getUserSlipsWithData',
         args: [userAddress, cycleId],
       });
@@ -597,26 +598,26 @@ class OddysseyService {
       console.log('🔍 Raw getUserSlipsWithData result:', result);
       console.log('🔍 Result type:', typeof result);
       console.log('🔍 Result is array:', Array.isArray(result));
-      
+
       const [slipIds, slipsData] = result as [bigint[], any[]];
-      
+
       console.log('🔍 Processed slip IDs:', slipIds);
       console.log('🔍 Processed slips data:', slipsData);
       console.log('🔍 Slip IDs length:', slipIds?.length);
       console.log('🔍 Slips data length:', slipsData?.length);
-      
+
       if (!slipIds || slipIds.length === 0) {
         console.log('⚠️ No slip IDs found for user in cycle', cycleId.toString());
         return { slipIds: [], slipsData: [] };
       }
-      
+
       const processedSlips = slipsData.map((slip, index) => {
         console.log(`🔍 Processing slip ${index}:`, slip);
         const processed = this.processSlipData(slip);
         console.log(`🔍 Processed slip ${index}:`, processed);
         return processed;
       });
-      
+
       return {
         slipIds,
         slipsData: processedSlips
@@ -630,12 +631,12 @@ class OddysseyService {
   // Get all user slips with evaluation data from backend API
   async getAllUserSlipsWithDataFromContract(userAddress: Address): Promise<{
     slipIds: bigint[];
-    slipsData: OddysseySlip[];
+    slipsData: GauntletSlip[];
   }> {
     try {
       console.log('🔍 Getting ALL user slips with data from backend for:', userAddress);
-      
-      const response = await fetch(`/api/oddyssey/user-slips/${userAddress}?limit=50&offset=0&t=${Date.now()}`, {
+
+      const response = await fetch(`/api/gauntlet/user-slips/${userAddress}?limit=50&offset=0&t=${Date.now()}`, {
         headers: {
           'Cache-Control': 'no-cache, no-store, must-revalidate',
           'Pragma': 'no-cache',
@@ -645,23 +646,23 @@ class OddysseyService {
       if (!response.ok) {
         throw new Error('Failed to fetch user slips from backend');
       }
-      
+
       const data = await response.json();
       console.log('🔍 Backend slips data:', data);
-      
-      // Transform backend data to match expected OddysseySlip format
+
+      // Transform backend data to match expected GauntletSlip format
       const backendSlips = data.data || [];
       console.log('🔍 Backend slips raw:', JSON.stringify(backendSlips[0], null, 2));
       console.log('🔍 First slip predictions:', JSON.stringify(backendSlips[0]?.predictions, null, 2));
-      
-      const slipsData: OddysseySlip[] = backendSlips.map((slip: any, index: number) => ({
+
+      const slipsData: GauntletSlip[] = backendSlips.map((slip: any, index: number) => ({
         id: slip.slipId || slip.slip_id || slip.id || index,
         player: (slip.playerAddress || slip.player_address || userAddress) as Address,
         cycleId: Number(slip.cycleId || slip.cycle_id || 0),
         placedAt: slip.created_at ? Math.floor(new Date(slip.created_at).getTime() / 1000) : 0,
         predictions: slip.predictions?.map((pred: any, predIndex: number) => {
           console.log(`🔍 Processing prediction ${predIndex}:`, pred);
-          
+
           // Determine bet type based on prediction value
           const prediction = pred.prediction || pred.pick || '';
           let betType = 0; // Default to MONEYLINE
@@ -670,7 +671,7 @@ class OddysseyService {
           } else if (['yes', 'no'].includes(prediction.toLowerCase())) {
             betType = 2; // BTTS
           }
-          
+
           const transformed = {
             matchId: BigInt(pred.matchId || pred.match_id || pred.id || 0),
             betType: betType,
@@ -686,8 +687,8 @@ class OddysseyService {
             homeTeam: pred.home_team || pred.team1 || '',
             awayTeam: pred.away_team || pred.team2 || '',
             leagueName: pred.league_name || '',
-            isCorrect: pred.isCorrect !== undefined ? Boolean(pred.isCorrect) : 
-                      (pred.is_correct !== undefined ? Boolean(pred.is_correct) : undefined)
+            isCorrect: pred.isCorrect !== undefined ? Boolean(pred.isCorrect) :
+              (pred.is_correct !== undefined ? Boolean(pred.is_correct) : undefined)
           };
           console.log(`🔍 Transformed prediction ${predIndex}:`, transformed);
           return transformed;
@@ -697,13 +698,13 @@ class OddysseyService {
         isEvaluated: Boolean(slip.isEvaluated || slip.is_evaluated || false),
         cycleResolved: Boolean(slip.cycleResolved || slip.cycle_resolved || false)
       }));
-      
+
       console.log('🔍 Transformed first slip:', JSON.stringify(slipsData[0], null, 2));
-      
+
       const slipIds = slipsData.map((slip, index) => BigInt(slip.id || index));
-      
+
       console.log('🔍 Transformed slips data:', slipsData);
-      
+
       return {
         slipIds,
         slipsData
@@ -715,11 +716,11 @@ class OddysseyService {
   }
 
   // Get evaluated slip data from backend
-  async getEvaluatedSlipData(slipId: number): Promise<OddysseySlip | null> {
+  async getEvaluatedSlipData(slipId: number): Promise<GauntletSlip | null> {
     try {
       console.log('🔍 Getting evaluated slip data for slip ID:', slipId);
-      
-      const response = await fetch(`/api/oddyssey/evaluated-slip/${slipId}?t=${Date.now()}`, {
+
+      const response = await fetch(`/api/gauntlet/evaluated-slip/${slipId}?t=${Date.now()}`, {
         headers: {
           'Cache-Control': 'no-cache, no-store, must-revalidate',
           'Pragma': 'no-cache',
@@ -729,13 +730,13 @@ class OddysseyService {
       if (!response.ok) {
         throw new Error('Failed to fetch evaluated slip data');
       }
-      
+
       const data = await response.json();
       console.log('🔍 Evaluated slip data:', data);
-      
+
       if (data.success && data.data) {
         const slip = data.data;
-        
+
         return {
           id: slip.slipId || slipId,
           player: '0x0000000000000000000000000000000000000000' as Address, // Will be filled by caller
@@ -756,7 +757,7 @@ class OddysseyService {
           isEvaluated: Boolean(slip.isEvaluated || true)
         };
       }
-      
+
       return null;
     } catch (error) {
       console.error('❌ Error getting evaluated slip data:', error);
@@ -767,7 +768,7 @@ class OddysseyService {
 
 
   // Process slip data from contract response
-  private processSlipData(rawSlip: any): OddysseySlip {
+  private processSlipData(rawSlip: any): GauntletSlip {
     console.log('🔍 Processing raw slip data:', rawSlip);
     console.log('🔍 Raw slip player:', rawSlip.player);
     console.log('🔍 Raw slip cycleId:', rawSlip.cycleId);
@@ -776,7 +777,7 @@ class OddysseyService {
     console.log('🔍 Raw slip finalScore:', rawSlip.finalScore);
     console.log('🔍 Raw slip correctCount:', rawSlip.correctCount);
     console.log('🔍 Raw slip isEvaluated:', rawSlip.isEvaluated);
-    
+
     const processed = {
       player: rawSlip.player,
       cycleId: Number(rawSlip.cycleId),
@@ -795,7 +796,7 @@ class OddysseyService {
       correctCount: Number(rawSlip.correctCount),
       isEvaluated: rawSlip.isEvaluated
     };
-    
+
     console.log('🔍 Processed slip:', processed);
     return processed;
   }
@@ -825,8 +826,8 @@ class OddysseyService {
   async getCycleMatchResults(cycleId: bigint): Promise<any[]> {
     try {
       const result = await this.publicClient.readContract({
-        address: CONTRACTS.ODDYSSEY.address,
-        abi: CONTRACTS.ODDYSSEY.abi,
+        address: CONTRACTS.GAUNTLET.address,
+        abi: CONTRACTS.GAUNTLET.abi,
         functionName: 'getDailyMatches',
         args: [cycleId],
       });
@@ -858,8 +859,8 @@ class OddysseyService {
   async getDailyLeaderboard(cycleId: bigint): Promise<LeaderboardEntry[]> {
     try {
       const result = await this.publicClient.readContract({
-        address: CONTRACTS.ODDYSSEY.address,
-        abi: CONTRACTS.ODDYSSEY.abi,
+        address: CONTRACTS.GAUNTLET.address,
+        abi: CONTRACTS.GAUNTLET.abi,
         functionName: 'getDailyLeaderboard',
         args: [cycleId],
       });
@@ -877,33 +878,33 @@ class OddysseyService {
     }
   }
 
-  // ===== DIRECT CONTRACT CALLS FOR PAGE STATS (Oddyssey Page + Statistics Tab) =====
+  // ===== DIRECT CONTRACT CALLS FOR PAGE STATS (Gauntlet Page + Statistics Tab) =====
   // These use contract directly and should NOT use backend API
-  
+
   /**
    * Get global stats from contract (for page display)
-   * Used on: Oddyssey page stats, Statistics tab global stats
+   * Used on: Gauntlet page stats, Statistics tab global stats
    */
   async getGlobalStatsFromContract(): Promise<{ success: boolean; data: any }> {
     try {
       // For GLOBAL stats (aggregate across ALL cycles), use backend API
       // Backend provides: avgPrizePool, totalCycles, avgAccuracy, etc.
-      const response = await fetch(`/api/oddyssey/stats?type=global&t=${Date.now()}`, {
+      const response = await fetch(`/api/gauntlet/stats?type=global&t=${Date.now()}`, {
         headers: {
           'Cache-Control': 'no-cache, no-store, must-revalidate',
           'Pragma': 'no-cache',
           'Expires': '0'
         }
       });
-      
+
       if (!response.ok) {
         console.warn('⚠️ Backend API call failed, falling back to contract');
         return this.getGlobalStatsFromContractFallback();
       }
-      
+
       const result = await response.json();
       console.log('📊 Global stats from backend API:', result.data);
-      
+
       return {
         success: result.success,
         data: result.data
@@ -922,8 +923,8 @@ class OddysseyService {
     try {
       // Get current cycle first
       const currentCycleIdResult = (await this.publicClient.readContract({
-        address: CONTRACTS.ODDYSSEY.address,
-        abi: CONTRACTS.ODDYSSEY.abi,
+        address: CONTRACTS.GAUNTLET.address,
+        abi: CONTRACTS.GAUNTLET.abi,
         functionName: 'getCurrentCycle',
         args: [],
       })) as bigint;
@@ -954,14 +955,14 @@ class OddysseyService {
       // Get current cycle status and daily stats
       const [cycleStatus, dailyStatsData] = await Promise.all([
         this.publicClient.readContract({
-          address: CONTRACTS.ODDYSSEY.address,
-          abi: CONTRACTS.ODDYSSEY.abi,
+          address: CONTRACTS.GAUNTLET.address,
+          abi: CONTRACTS.GAUNTLET.abi,
           functionName: 'getCycleStatus',
           args: [BigInt(currentCycleNum)],
         }),
         this.publicClient.readContract({
-          address: CONTRACTS.ODDYSSEY.address,
-          abi: CONTRACTS.ODDYSSEY.abi,
+          address: CONTRACTS.GAUNTLET.address,
+          abi: CONTRACTS.GAUNTLET.abi,
           functionName: 'getDailyStats',
           args: [BigInt(currentCycleNum)],
         })
@@ -969,7 +970,7 @@ class OddysseyService {
 
       const [_exists, _state, _endTime, _prizePool, cycleSlipCount, _hasWinner] = cycleStatus as any;
       const dailyStats = dailyStatsData as any;
-      
+
       console.log('📊 Global stats from contract (fallback):', {
         currentCycleId: currentCycleNum,
         slipCount: cycleSlipCount,
@@ -984,12 +985,12 @@ class OddysseyService {
       // Ensure proper wei to ether conversion
       const volumeInWei = Number(dailyStats?.volume || 0);
       const volumeInEther = volumeInWei / 1e18;
-      
-      console.log('🔍 Volume conversion:', { 
-        wei: volumeInWei, 
-        ether: volumeInEther 
+
+      console.log('🔍 Volume conversion:', {
+        wei: volumeInWei,
+        ether: volumeInEther
       });
-      
+
       return {
         success: true,
         data: {
@@ -1019,13 +1020,13 @@ class OddysseyService {
 
   /**
    * Get user stats from contract (for page display)
-   * Used on: Oddyssey page player stats, Statistics tab player stats
+   * Used on: Gauntlet page player stats, Statistics tab player stats
    */
   async getUserStatsFromContract(userAddress: Address): Promise<{ success: boolean; data: any }> {
     try {
       const [userStats, reputation, correctPredictions] = await this.publicClient.readContract({
-        address: CONTRACTS.ODDYSSEY.address,
-        abi: CONTRACTS.ODDYSSEY.abi,
+        address: CONTRACTS.GAUNTLET.address,
+        abi: CONTRACTS.GAUNTLET.abi,
         functionName: 'getUserData',
         args: [userAddress],
       }) as any;
@@ -1058,7 +1059,7 @@ class OddysseyService {
 
   // ===== BACKEND API CALLS (Analytics Tab ONLY) =====
   // These use backend API and should ONLY be used for analytics tab
-  
+
   /**
    * Get cycle-specific stats from backend API (CURRENT CYCLE HEADER DISPLAY)
    * Returns participants and stats for the current cycle only
@@ -1066,23 +1067,23 @@ class OddysseyService {
   async getCycleStatsForCurrentCycle(): Promise<{ success: boolean; data: any }> {
     try {
       console.log('📊 Fetching current cycle stats from backend...');
-      
-      const response = await fetch(`/api/oddyssey/stats?type=cycle&t=${Date.now()}`, {
+
+      const response = await fetch(`/api/gauntlet/stats?type=cycle&t=${Date.now()}`, {
         headers: {
           'Cache-Control': 'no-cache, no-store, must-revalidate',
           'Pragma': 'no-cache',
           'Expires': '0'
         }
       });
-      
+
       if (!response.ok) {
         console.warn('⚠️ Failed to fetch cycle stats, will use global data');
         return { success: false, data: null };
       }
-      
+
       const result = await response.json();
       console.log('📊 Cycle stats from backend:', result.data);
-      
+
       return {
         success: result.success,
         data: result.data
@@ -1100,41 +1101,41 @@ class OddysseyService {
   async getAnalyticsFromBackend(type: 'global' | 'user', userAddress?: Address): Promise<{ success: boolean; data: any }> {
     try {
       if (type === 'global') {
-        const response = await fetch(`/api/oddyssey/stats?type=global&t=${Date.now()}`, {
+        const response = await fetch(`/api/gauntlet/stats?type=global&t=${Date.now()}`, {
           headers: {
             'Cache-Control': 'no-cache, no-store, must-revalidate',
             'Pragma': 'no-cache',
             'Expires': '0'
           }
         });
-        
+
         if (!response.ok) throw new Error('Failed to fetch analytics from backend');
         const result = await response.json();
         console.log('📊 Analytics from backend:', result.data);
-        
+
         return {
           success: result.success,
           data: result.data
         };
       } else if (type === 'user' && userAddress) {
-        const response = await fetch(`/api/oddyssey/stats?type=user&address=${userAddress}&t=${Date.now()}`, {
+        const response = await fetch(`/api/gauntlet/stats?type=user&address=${userAddress}&t=${Date.now()}`, {
           headers: {
             'Cache-Control': 'no-cache, no-store, must-revalidate',
             'Pragma': 'no-cache',
             'Expires': '0'
           }
         });
-        
+
         if (!response.ok) throw new Error('Failed to fetch user analytics from backend');
         const result = await response.json();
         console.log('📊 User analytics from backend:', result.data);
-        
+
         return {
           success: result.success,
           data: result.data
         };
       }
-      
+
       return { success: false, data: null };
     } catch (error) {
       console.error('Error getting analytics from backend:', error);
@@ -1146,13 +1147,13 @@ class OddysseyService {
   // This kept for backwards compatibility but should NOT be used
   async getStats(type: 'global' | 'user', userAddress?: Address): Promise<{ success: boolean; data: any }> {
     console.warn('⚠️ getStats() is deprecated! Use getGlobalStatsFromContract() or getAnalyticsFromBackend() instead');
-    
+
     if (type === 'global') {
       return this.getGlobalStatsFromContract();
     } else if (type === 'user' && userAddress) {
       return this.getUserStatsFromContract(userAddress);
     }
-    
+
     return { success: false, data: null };
   }
 
@@ -1177,21 +1178,21 @@ class OddysseyService {
   // Get past/resolved cycles from backend
   async getPastCycles(): Promise<{ success: boolean; data: any }> {
     try {
-      const resultsResponse = await fetch(`/api/oddyssey/results/all?t=${Date.now()}`, {
+      const resultsResponse = await fetch(`/api/gauntlet/results/all?t=${Date.now()}`, {
         headers: {
           'Cache-Control': 'no-cache, no-store, must-revalidate',
           'Pragma': 'no-cache',
           'Expires': '0'
         }
       });
-      
+
       if (!resultsResponse.ok) {
         throw new Error(`Results API responded with status: ${resultsResponse.status}`);
       }
-      
+
       const resultsData = await resultsResponse.json();
-      console.log('🔍 Past cycles from /api/oddyssey/results/all:', resultsData);
-      
+      console.log('🔍 Past cycles from /api/gauntlet/results/all:', resultsData);
+
       if (resultsData.success && resultsData.data?.cycles) {
         return {
           success: true,
@@ -1215,21 +1216,21 @@ class OddysseyService {
   // Get available dates for calendar picker
   async getAvailableDates(): Promise<{ success: boolean; data: any }> {
     try {
-      const response = await fetch(`/api/oddyssey/available-dates?t=${Date.now()}`, {
+      const response = await fetch(`/api/gauntlet/available-dates?t=${Date.now()}`, {
         headers: {
           'Cache-Control': 'no-cache, no-store, must-revalidate',
           'Pragma': 'no-cache',
           'Expires': '0'
         }
       });
-      
+
       if (!response.ok) {
         throw new Error(`Available dates API responded with status: ${response.status}`);
       }
-      
+
       const data = await response.json();
       console.log('🔍 Available dates:', data);
-      
+
       return {
         success: true,
         data: data.data || { dates: [], totalDates: 0 }
@@ -1247,27 +1248,27 @@ class OddysseyService {
   async getCycleResults(cycleId: number): Promise<{ success: boolean; data: any }> {
     try {
       console.log(`🔍 Fetching results for cycle ${cycleId}...`);
-      
+
       // Try to get results for the specific cycle
-      // First, try the /api/oddyssey/results/all endpoint to get all cycles
-      const allResultsResponse = await fetch(`/api/oddyssey/results/all?t=${Date.now()}`, {
+      // First, try the /api/gauntlet/results/all endpoint to get all cycles
+      const allResultsResponse = await fetch(`/api/gauntlet/results/all?t=${Date.now()}`, {
         headers: {
           'Cache-Control': 'no-cache, no-store, must-revalidate',
           'Pragma': 'no-cache',
           'Expires': '0'
         }
       });
-      
+
       if (allResultsResponse.ok) {
         const allResultsData = await allResultsResponse.json();
         console.log('🔍 All results data:', allResultsData);
-        
+
         if (allResultsData.success && allResultsData.data?.cycles?.length > 0) {
           // Find the specific cycle
-          const targetCycle = allResultsData.data.cycles.find((cycle: any) => 
+          const targetCycle = allResultsData.data.cycles.find((cycle: any) =>
             Number(cycle.cycleId) === Number(cycleId)
           );
-          
+
           if (targetCycle) {
             console.log(`✅ Found cycle ${cycleId} results:`, targetCycle);
             return {
@@ -1328,17 +1329,17 @@ class OddysseyService {
           }
         }
       }
-      
+
       // Fallback to date-based lookup
       console.log(`🔄 Falling back to date-based lookup for cycle ${cycleId}`);
-      const response = await fetch(`/api/oddyssey/results/${new Date().toISOString().split('T')[0]}?t=${Date.now()}`, {
+      const response = await fetch(`/api/gauntlet/results/${new Date().toISOString().split('T')[0]}?t=${Date.now()}`, {
         headers: {
           'Cache-Control': 'no-cache, no-store, must-revalidate',
           'Pragma': 'no-cache',
           'Expires': '0'
         }
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         return {
@@ -1445,9 +1446,9 @@ class OddysseyService {
   // Get results by date from backend
   async getResultsByDate(date: string): Promise<{ success: boolean; data: any }> {
     try {
-      const response = await fetch(`https://predinex.fly.dev/api/oddyssey/results/${date}`);
+      const response = await fetch(`https://predinex.fly.dev/api/gauntlet/results/${date}`);
       const data = await response.json();
-      
+
       if (data.success && data.data) {
         return {
           success: true,
@@ -1474,7 +1475,7 @@ class OddysseyService {
           }
         };
       }
-      
+
       return {
         success: false,
         data: null
@@ -1491,9 +1492,9 @@ class OddysseyService {
   // Get leaderboard from backend
   async getLeaderboard(cycleId?: number): Promise<{ success: boolean; data: any }> {
     try {
-      const url = cycleId 
-        ? `https://predinex.fly.dev/api/oddyssey/leaderboard/${cycleId}`
-        : 'https://predinex.fly.dev/api/oddyssey/leaderboard';
+      const url = cycleId
+        ? `https://predinex.fly.dev/api/gauntlet/leaderboard/${cycleId}`
+        : 'https://predinex.fly.dev/api/gauntlet/leaderboard';
       const response = await fetch(url);
       const data = await response.json();
       return {
@@ -1512,7 +1513,7 @@ class OddysseyService {
   // Check cycle sync status
   async checkCycleSync(): Promise<{ success: boolean; data: any }> {
     try {
-      const response = await fetch('https://predinex.fly.dev/api/oddyssey/cycle-sync');
+      const response = await fetch('https://predinex.fly.dev/api/gauntlet/cycle-sync');
       const data = await response.json();
       return {
         success: true,
@@ -1530,7 +1531,7 @@ class OddysseyService {
   // Get cycle stats
   async getCycleStats(): Promise<{ success: boolean; data: any }> {
     try {
-      const response = await fetch('https://predinex.fly.dev/api/oddyssey/stats');
+      const response = await fetch('https://predinex.fly.dev/api/gauntlet/stats');
       const data = await response.json();
       return {
         success: true,
@@ -1548,7 +1549,7 @@ class OddysseyService {
   // Get user slips for cycle from backend
   async getUserSlipsForCycleFromBackend(cycleId: number, address: string): Promise<{ success: boolean; data: any }> {
     try {
-      const response = await fetch(`https://predinex.fly.dev/api/oddyssey/user-slips/${address}/${cycleId}`);
+      const response = await fetch(`https://predinex.fly.dev/api/gauntlet/user-slips/${address}/${cycleId}`);
       const data = await response.json();
       return {
         success: true,
@@ -1565,4 +1566,4 @@ class OddysseyService {
 }
 
 // Export singleton instance
-export const oddysseyService = new OddysseyService();
+export const gauntletService = new GauntletService();

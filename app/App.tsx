@@ -2,6 +2,8 @@
 
 import Footer from "@/components/footer";
 import Header from "@/components/header";
+import RecentBetsLane from "@/components/RecentBetsLane";
+import MobileBottomNav from "@/components/MobileBottomNav";
 import WalletConnectionDebug from "@/components/WalletConnectionDebug";
 
 export default function App({
@@ -12,10 +14,12 @@ export default function App({
   return (
     <>
       <Header />
-      <main className={`container-nav mx-auto my-16 grow`}>
+      <RecentBetsLane />
+      <main className={`container-nav mx-auto my-16 grow pb-20 lg:pb-0`}>
         {children}
       </main>
       <Footer />
+      <MobileBottomNav />
       <WalletConnectionDebug />
     </>
   );

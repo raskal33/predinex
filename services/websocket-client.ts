@@ -44,10 +44,10 @@ class WebSocketClient {
 
     try {
       this.isConnecting = true;
-      
+
       // ✅ FIX: Get WebSocket URL from environment - prioritize WS_URL
       let wsUrl = process.env.NEXT_PUBLIC_WS_URL;
-      
+
       // If WS_URL is not set, construct from API_URL
       if (!wsUrl) {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://predinex.fly.dev';
@@ -57,14 +57,14 @@ class WebSocketClient {
         // Ensure WS_URL uses correct protocol
         wsUrl = wsUrl.replace('http://', 'ws://').replace('https://', 'wss://');
       }
-      
+
       // ✅ FIX: Append /ws if not already present - PREVENT DOUBLE /ws
       if (!wsUrl.endsWith('/ws')) {
         wsUrl = `${wsUrl}/ws`;
       }
-      
+
       console.log('🔌 Connecting to WebSocket (websocket-client singleton):', wsUrl);
-      
+
       // ✅ FIX: Close existing connection if any
       if (this.ws) {
         try {
@@ -73,16 +73,16 @@ class WebSocketClient {
           // Ignore close errors
         }
       }
-      
+
       this.ws = new WebSocket(wsUrl);
-      
+
       this.ws.onopen = () => {
         console.log('✅ WebSocket connected successfully');
         this.isConnected = true;
         this.isConnecting = false;
         this.reconnectAttempts = 0;
         this.startHeartbeat();
-        
+
         // ✅ FIX: Resubscribe to all channels after reconnection
         this.resubscribeAll();
       };
@@ -90,12 +90,12 @@ class WebSocketClient {
       this.ws.onmessage = (event) => {
         try {
           const message: WebSocketMessage = JSON.parse(event.data);
-          
+
           // ✅ FIX: Handle pong responses
           if (message.type === 'pong') {
             return; // Heartbeat response, no need to process
           }
-          
+
           this.handleMessage(message);
         } catch (error) {
           console.error('Error parsing WebSocket message:', error);
@@ -107,7 +107,7 @@ class WebSocketClient {
         this.isConnected = false;
         this.isConnecting = false;
         this.stopHeartbeat();
-        
+
         // ✅ FIX: Don't reconnect on clean close (1000) or going away (1001)
         if (event.code !== 1000 && event.code !== 1001) {
           this.attemptReconnect();
@@ -187,7 +187,7 @@ class WebSocketClient {
 
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
-      
+
       // ✅ FIX: Exponential backoff with jitter
       const baseDelay = Math.min(
         this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1),
@@ -195,9 +195,9 @@ class WebSocketClient {
       );
       const jitter = Math.random() * 1000; // Add up to 1s jitter
       const delay = baseDelay + jitter;
-      
+
       console.log(`🔄 Reconnecting in ${Math.round(delay)}ms... (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
-      
+
       this.reconnectTimeout = setTimeout(() => {
         this.reconnectTimeout = null;
         if (!this.isConnecting && (!this.ws || this.ws.readyState !== WebSocket.OPEN)) {
@@ -208,7 +208,7 @@ class WebSocketClient {
       console.error('❌ Max reconnection attempts reached. WebSocket will not reconnect.');
     }
   }
-  
+
   // ✅ FIX: Resubscribe to all channels after reconnection
   private resubscribeAll() {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
@@ -232,13 +232,13 @@ class WebSocketClient {
   public subscribe(channel: string, callback: (data: any) => void) {
     // Ensure connection is established
     this.ensureConnection();
-    
+
     if (!this.subscriptions.has(channel)) {
       this.subscriptions.set(channel, []);
     }
-    
+
     this.subscriptions.get(channel)!.push({ channel, callback });
-    
+
     // ✅ FIX: Send subscription message to server (with retry if not connected)
     const sendSubscribe = () => {
       if (this.ws && this.ws.readyState === WebSocket.OPEN) {
@@ -260,9 +260,9 @@ class WebSocketClient {
         }, 500);
       }
     };
-    
+
     sendSubscribe();
-    
+
     return () => this.unsubscribe(channel, callback);
   }
 
@@ -291,8 +291,8 @@ class WebSocketClient {
     return this.subscribe(`pool:${poolId}:updates`, callback);
   }
 
-  // ===== ODDYSSEY SUBSCRIPTION METHODS =====
-  
+  // ===== GAUNTLET SUBSCRIPTION METHODS =====
+
   /**
    * Subscribe to user's slip events (placed, evaluated, prize claimed)
    * @param userAddress The user's wallet address
@@ -334,13 +334,13 @@ class WebSocketClient {
   }
 
   /**
-   * Subscribe to all Oddyssey events for a cycle
+   * Subscribe to all Gauntlet events for a cycle
    * @param cycleId The cycle ID
    * @param callback Callback function for cycle events
    */
-  public subscribeToOddysseyCycle(cycleId: number, callback: (data: any) => void) {
+  public subscribeToGauntletCycle(cycleId: number, callback: (data: any) => void) {
     console.log(`🎯 Subscribing to events for cycle: ${cycleId}`);
-    return this.subscribe(`oddyssey:cycle:${cycleId}`, callback);
+    return this.subscribe(`gauntlet:cycle:${cycleId}`, callback);
   }
 
   /**
@@ -350,7 +350,7 @@ class WebSocketClient {
    */
   public subscribeToLiveSlipEvaluation(slipId: number, callback: (data: any) => void) {
     console.log(`🎯 Subscribing to live evaluation for slip: ${slipId}`);
-    return this.subscribe(`oddyssey:slip:${slipId}:evaluation`, callback);
+    return this.subscribe(`gauntlet:slip:${slipId}:evaluation`, callback);
   }
 
   public getStats() {
@@ -367,11 +367,11 @@ class WebSocketClient {
       clearTimeout(this.reconnectTimeout);
       this.reconnectTimeout = null;
     }
-    
+
     this.stopHeartbeat();
     this.isConnecting = false;
     this.reconnectAttempts = 0;
-    
+
     if (this.ws) {
       try {
         this.ws.close(1000, 'Client disconnect'); // Clean close

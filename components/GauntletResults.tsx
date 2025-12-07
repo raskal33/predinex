@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  CalendarIcon, 
-  TrophyIcon, 
-  CheckCircleIcon, 
+import {
+  CalendarIcon,
+  TrophyIcon,
+  CheckCircleIcon,
   XCircleIcon,
   ClockIcon,
   EyeIcon
@@ -14,7 +14,7 @@ import { FaSpinner } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import { format, parseISO } from 'date-fns';
 
-import { oddysseyService, ResultsByDate } from '@/services/oddysseyService';
+import { gauntletService } from '@/services/gauntletService';
 import DatePicker from './DatePicker';
 
 interface MatchResult {
@@ -36,17 +36,17 @@ interface MatchResult {
   };
 }
 
-interface OddysseyResultsProps {
+interface GauntletResultsProps {
   className?: string;
 }
 
-export default function OddysseyResults({ className = "" }: OddysseyResultsProps) {
+export default function GauntletResults({ className = "" }: GauntletResultsProps) {
   const [selectedDate, setSelectedDate] = useState(() => {
     // Default to today's date
     return format(new Date(), 'yyyy-MM-dd');
   });
-  
-  const [results, setResults] = useState<ResultsByDate | null>(null);
+
+  const [results, setResults] = useState<any | null>(null);
   const [availableDates, setAvailableDates] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -54,8 +54,8 @@ export default function OddysseyResults({ className = "" }: OddysseyResultsProps
   // Fetch available dates for the date picker
   const fetchAvailableDates = useCallback(async () => {
     try {
-      const response = await oddysseyService.getAvailableDates();
-      
+      const response = await gauntletService.getAvailableDates();
+
       if (response.success && response.data) {
         setAvailableDates(response.data);
       }
@@ -69,8 +69,8 @@ export default function OddysseyResults({ className = "" }: OddysseyResultsProps
   const fetchResults = useCallback(async (date: string) => {
     try {
       setIsLoading(true);
-      const response = await oddysseyService.getResultsByDate(date);
-      
+      const response = await gauntletService.getResultsByDate(date);
+
       if (response.success && response.data) {
         setResults(response.data);
       } else {
@@ -128,7 +128,7 @@ export default function OddysseyResults({ className = "" }: OddysseyResultsProps
 
   const getOutcomeText = (outcome: string | null) => {
     if (!outcome) return 'Pending';
-    
+
     // ✅ FIXED: Handle normalized format (Home/Draw/Away, Over/Under) AND legacy format
     switch (outcome) {
       // New normalized format
@@ -167,7 +167,7 @@ export default function OddysseyResults({ className = "" }: OddysseyResultsProps
 
   const getOutcomeColor = (outcome: string | null) => {
     if (!outcome) return 'text-text-muted';
-    
+
     // ✅ FIXED: Handle normalized format (Home/Draw/Away, Over/Under) AND legacy format
     switch (outcome) {
       // New normalized format
@@ -204,9 +204,9 @@ export default function OddysseyResults({ className = "" }: OddysseyResultsProps
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div className="flex items-center">
           <TrophyIcon className="w-6 h-6 text-yellow-500 mr-2" />
-          <h2 className="text-xl font-bold text-white">Oddyssey Results</h2>
+          <h2 className="text-xl font-bold text-white">Gauntlet Results</h2>
         </div>
-        
+
         {/* Date Picker */}
         <div className="w-full sm:w-48 min-w-0">
           <DatePicker
@@ -217,7 +217,7 @@ export default function OddysseyResults({ className = "" }: OddysseyResultsProps
         </div>
       </div>
 
-              {/* Loading State */}
+      {/* Loading State */}
       {isLoading && (
         <div className="flex items-center justify-center py-12">
           <FaSpinner className="w-8 h-8 text-primary animate-spin mr-3" />
@@ -235,7 +235,7 @@ export default function OddysseyResults({ className = "" }: OddysseyResultsProps
             transition={{ duration: 0.3 }}
           >
             {/* Results Summary */}
-            <div className="glass-card p-4 mb-6">
+            <div className="glass-card p-4 mb-6 bg-white/5 border border-white/10 rounded-xl backdrop-blur-md">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-white">{results.totalMatches}</div>
@@ -266,7 +266,7 @@ export default function OddysseyResults({ className = "" }: OddysseyResultsProps
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="glass-card p-4 hover:bg-primary/5 transition-all duration-200 border-l-2 border-transparent hover:border-primary/50"
+                  className="glass-card p-4 hover:bg-white/5 transition-all duration-200 border border-white/5 hover:border-primary/30 rounded-xl"
                 >
                   <div className="flex items-center justify-between">
                     {/* Match Info */}
@@ -280,11 +280,11 @@ export default function OddysseyResults({ className = "" }: OddysseyResultsProps
                           {format(parseISO(match.match_date || ''), 'HH:mm')}
                         </span>
                       </div>
-                      
+
                       <div className="text-lg font-semibold text-white mb-1">
                         {match.home_team} vs {match.away_team}
                       </div>
-                      
+
                       <div className="text-sm text-text-secondary">
                         {match.league_name}
                       </div>
@@ -295,7 +295,7 @@ export default function OddysseyResults({ className = "" }: OddysseyResultsProps
                       {match.result?.is_finished ? (
                         <div className="space-y-1">
                           <div className="text-lg font-bold text-white">
-                            {match.result?.home_score !== null && match.result?.away_score !== null 
+                            {match.result?.home_score !== null && match.result?.away_score !== null
                               ? `${match.result.home_score} - ${match.result.away_score}`
                               : 'Score unavailable'
                             }

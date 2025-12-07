@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { 
+import {
   TrophyIcon,
   UserIcon,
   ClockIcon,
@@ -10,7 +10,7 @@ import {
   ChartBarIcon,
   CurrencyDollarIcon
 } from '@heroicons/react/24/outline';
-import { oddysseyService } from '@/services/oddysseyService';
+import { gauntletService } from '@/services/gauntletService';
 
 interface LeaderboardEntry {
   rank: number;
@@ -22,12 +22,12 @@ interface LeaderboardEntry {
   prizePercentage: number;
 }
 
-interface OddysseyLeaderboardProps {
+interface GauntletLeaderboardProps {
   cycleId?: number;
   className?: string;
 }
 
-export default function OddysseyLeaderboard({ cycleId, className = '' }: OddysseyLeaderboardProps) {
+export default function GauntletLeaderboard({ cycleId, className = '' }: GauntletLeaderboardProps) {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,9 +41,9 @@ export default function OddysseyLeaderboard({ cycleId, className = '' }: Oddysse
     try {
       setLoading(true);
       setError(null);
-      
-      const response = await oddysseyService.getLeaderboard(cycleId);
-      
+
+      const response = await gauntletService.getLeaderboard(cycleId);
+
       if (response.success && response.data) {
         setLeaderboard(response.data.leaderboard || []);
         setLeaderboardInfo({
@@ -127,7 +127,7 @@ export default function OddysseyLeaderboard({ cycleId, className = '' }: Oddysse
           <ExclamationTriangleIcon className="h-12 w-12 mx-auto mb-4 text-red-400" />
           <h3 className="text-lg font-semibold text-white mb-2">Error Loading Leaderboard</h3>
           <p className="text-text-muted">{error}</p>
-          <button 
+          <button
             onClick={fetchLeaderboard}
             className="mt-4 px-4 py-2 bg-primary text-black rounded-button hover:bg-primary/80 transition-colors"
           >
@@ -145,7 +145,7 @@ export default function OddysseyLeaderboard({ cycleId, className = '' }: Oddysse
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-card p-4"
+          className="glass-card p-4 bg-white/5 border border-white/10 rounded-xl backdrop-blur-md"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -175,7 +175,7 @@ export default function OddysseyLeaderboard({ cycleId, className = '' }: Oddysse
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
-            className={`glass-card p-4 border ${getRankColor(entry.rank)}`}
+            className={`glass-card p-4 border rounded-xl hover:bg-white/5 transition-all duration-200 ${getRankColor(entry.rank)}`}
           >
             <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
               {/* Rank */}

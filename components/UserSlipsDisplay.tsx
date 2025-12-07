@@ -203,37 +203,37 @@ export default function UserSlipsDisplay({ userAddress, className = "" }: UserSl
         unsubscribe = websocketClient.subscribeToUserSlips(userAddress.toLowerCase(), (data: any) => {
           console.log('📡 WebSocket message:', data);
 
-          if (data.type === 'slip:evaluated') {
-            console.log('🎯 Slip evaluated:', data);
-            
-            // Update the specific slip with evaluation data
-            setSlips(prevSlips =>
-              prevSlips.map(slip => {
-                if (slip.cycleId === data.cycleId) {
-                  const wonOdds = calculateWonOdds(slip.predictions);
-                  toast.success(`🎉 Slip evaluated! ${data.correctPredictions}/10 correct`, {
-                    duration: 5000,
-                    icon: data.correctPredictions >= 7 ? '🏆' : '📊'
-                  });
-                  return {
-                    ...slip,
-                    isEvaluated: true,
-                    correctCount: data.correctPredictions,
-                    wonOdds,
-                    finalScore: wonOdds
-                  };
-                }
-                return slip;
-              })
-            );
+              if (data.type === 'slip:evaluated') {
+                console.log('🎯 Slip evaluated:', data);
+                
+                // Update the specific slip with evaluation data
+                setSlips(prevSlips =>
+                  prevSlips.map(slip => {
+                    if (slip.cycleId === data.cycleId) {
+                      const wonOdds = calculateWonOdds(slip.predictions);
+                      toast.success(`🎉 Slip evaluated! ${data.correctPredictions}/10 correct`, {
+                        duration: 5000,
+                        icon: data.correctPredictions >= 7 ? '🏆' : '📊'
+                      });
+                      return {
+                        ...slip,
+                        isEvaluated: true,
+                        correctCount: data.correctPredictions,
+                        wonOdds,
+                        finalScore: wonOdds
+                      };
+                    }
+                    return slip;
+                  })
+                );
 
-            // Refetch to get detailed evaluation data
-            setTimeout(() => fetchUserData(), 2000);
-          } else if (data.type === 'slip:placed') {
-            console.log('✅ New slip placed:', data);
-            toast.success('Slip placed successfully!', { duration: 3000 });
-            fetchUserData();
-          }
+                // Refetch to get detailed evaluation data
+                setTimeout(() => fetchUserData(), 2000);
+              } else if (data.type === 'slip:placed') {
+                console.log('✅ New slip placed:', data);
+                toast.success('Slip placed successfully!', { duration: 3000 });
+                fetchUserData();
+              }
         });
 
         // Update connection status based on singleton client
