@@ -182,7 +182,7 @@ function CreateMarketPageContent() {
   const [data, setData] = useState<GuidedMarketData>({
     category: '',
     odds: 200, // 2.0x default
-    creatorStake: 1, // Default to minimum BNB stake (1 BNB)
+    creatorStake: 0.5, // ✅ FIX: Default to minimum BNB stake (0.5 BNB for Diamond contract)
     description: ''
   });
 
@@ -547,13 +547,13 @@ function CreateMarketPageContent() {
       successProcessedRef.current = currentTxHash;
       
       // Capture current values to avoid dependency issues
-      const currentUsePrix = usePrix;
       const currentBoostTier = data.boostTier;
       const currentCategory = data.category;
       const currentTxHashValue = currentTxHash;
       
-      // Calculate total cost for display
-      const creationFee = currentUsePrix ? '50 PRIX' : '0.01 BNB';
+      // ✅ FIX: Calculate total cost for display
+      // Creation fee is always in BNB (with discounts), regardless of pool currency
+      const creationFee = '0.01 BNB'; // Base fee, discounts apply on-chain
       const boostCost = currentBoostTier && currentBoostTier !== 'NONE' 
         ? `${currentBoostTier === 'BRONZE' ? '2' : currentBoostTier === 'SILVER' ? '3' : '5'} BNB`
         : '0';
@@ -858,14 +858,17 @@ function CreateMarketPageContent() {
         newErrors.odds = 'Odds must be between 1.01x and 100.0x';
       }
       
-      // Contract minimum stake requirements - match UI expectations
-      const minStakeBNB = 1; // 1 BNB minimum from contract
-      const minStakePRIX = 1000; // 1000 PRIX minimum from contract
-      const minStake = usePrix ? minStakePRIX : minStakeBNB;
+      // ✅ FIX: Contract minimum stake requirements - match contract constants
+      // Diamond pattern: 0.5 BNB, 1000 PRIX, 500 USDT
+      const minStakeBNB = 0.5; // 0.5 BNB (5e17) minimum from Diamond contract
+      const minStakePRIX = 1000; // 1000 PRIX (1000e18) minimum from contract
+      const minStakeUSDT = 500; // 500 USDT (500e18) minimum from contract
+      const minStake = currency === 'BNB' ? minStakeBNB : currency === 'PRIX' ? minStakePRIX : minStakeUSDT;
       
       if (!data.creatorStake || data.creatorStake < minStake) {
-        console.log('❌ Creator stake validation failed:', data.creatorStake, 'min:', minStake);
-        newErrors.creatorStake = `Creator stake must be at least ${minStake} ${usePrix ? 'PRIX' : getCurrencyName()}`;
+        console.log('❌ Creator stake validation failed:', data.creatorStake, 'min:', minStake, 'currency:', currency);
+        const currencyName = currency === 'BNB' ? getCurrencyName() : currency;
+        newErrors.creatorStake = `⚠️ Creator stake must be at least ${minStake} ${currencyName}. You entered ${data.creatorStake} ${currencyName}.`;
       }
 
       if (!data.predictionOutcome) {
@@ -1103,25 +1106,31 @@ function CreateMarketPageContent() {
         const eventEndTime = new Date(eventStartTime.getTime() + 2 * 60 * 60 * 1000); // 2 hours after start
         
         // Validate minimum stake requirements
-        const minStakePRIX = parseUnits("1000", 18); // 1000 PRIX minimum
-        const minStakeBNB = parseUnits("1", 18); // ✅ FIX: 1 BNB minimum (matches contract)
+        // ✅ FIX: Validate minimum stake requirements - match Diamond contract constants
+        const minStakePRIX = parseUnits("1000", 18); // 1000 PRIX minimum (1000e18)
+        const minStakeBNB = parseUnits("0.5", 18); // 0.5 BNB minimum (5e17) - Diamond contract
+        const minStakeUSDT = parseUnits("500", 18); // 500 USDT minimum (500e18)
         const creatorStake = parseUnits(data.creatorStake.toString(), 18);
         
-        if (usePrix && creatorStake < minStakePRIX) {
-          throw new Error(`Minimum stake for PRIX pools is 1000 PRIX. You provided ${data.creatorStake} PRIX.`);
+        // ✅ NEW: Map currency to currencyType
+        const currencyType: 0 | 1 | 2 = currency === 'BNB' ? 0 : currency === 'PRIX' ? 1 : 2;
+        
+        // ✅ FIX: Validate based on selected currency
+        if (currencyType === 1 && creatorStake < minStakePRIX) {
+          throw new Error(`⚠️ Minimum stake for PRIX pools is 1000 PRIX. You provided ${data.creatorStake} PRIX.`);
         }
-        if (!usePrix && creatorStake < minStakeBNB) {
-          throw new Error(`Minimum stake for BNB pools is 1 BNB. You provided ${data.creatorStake} BNB.`);
+        if (currencyType === 0 && creatorStake < minStakeBNB) {
+          throw new Error(`⚠️ Minimum stake for BNB pools is 0.5 BNB. You provided ${data.creatorStake} BNB.`);
+        }
+        if (currencyType === 2 && creatorStake < minStakeUSDT) {
+          throw new Error(`⚠️ Minimum stake for USDT pools is 500 USDT. You provided ${data.creatorStake} USDT.`);
         }
         
         // Validate odds (stored as basis points: 101-10000)
         const oddsBasisPoints = typeof data.odds === 'number' ? data.odds : parseFloat(String(data.odds));
         if (oddsBasisPoints < 101 || oddsBasisPoints > 10000) {
-          throw new Error(`Odds must be between 1.01x and 100x (101-10000 basis points). You provided ${oddsBasisPoints}.`);
+          throw new Error(`⚠️ Odds must be between 1.01x and 100x (101-10000 basis points). You provided ${oddsBasisPoints}.`);
         }
-        
-        // ✅ NEW: Map currency to currencyType
-        const currencyType: 0 | 1 | 2 = currency === 'BNB' ? 0 : currency === 'PRIX' ? 1 : 2;
         
         const poolData = {
           predictedOutcome: predictedOutcome,
@@ -1163,8 +1172,9 @@ function CreateMarketPageContent() {
         });
         console.log('🔍 Stake validation:', {
           creatorStake: poolData.creatorStake.toString(),
-          minRequired: usePrix ? '1000000000000000000000' : '1000000000000000000', // ✅ FIX: 1 BNB minimum
-          meetsMinimum: usePrix ? poolData.creatorStake >= BigInt('1000000000000000000000') : poolData.creatorStake >= BigInt('1000000000000000000') // ✅ FIX: 1 BNB minimum
+          currencyType: currencyType,
+          minRequired: currencyType === 1 ? '1000000000000000000000' : currencyType === 2 ? '500000000000000000000' : '500000000000000000', // ✅ FIX: 0.5 BNB, 1000 PRIX, 500 USDT
+          meetsMinimum: currencyType === 1 ? poolData.creatorStake >= BigInt('1000000000000000000000') : currencyType === 2 ? poolData.creatorStake >= BigInt('500000000000000000000') : poolData.creatorStake >= BigInt('500000000000000000') // ✅ FIX: Correct minimums
         });
         
         showInfo('Creating Market', 'Preparing market creation transaction...');
@@ -1198,7 +1208,7 @@ function CreateMarketPageContent() {
         
         // Validate minimum stake requirements
         const minStakePRIX = parseUnits("1000", 18); // 1000 PRIX minimum
-        const minStakeBNB = parseUnits("1", 18); // ✅ FIX: 1 BNB minimum (matches contract)
+        const minStakeBNB = parseUnits("0.5", 18); // ✅ FIX: 0.5 BNB minimum (5e17) - Diamond contract
         const creatorStake = parseUnits(data.creatorStake.toString(), 18);
         
         if (usePrix && creatorStake < minStakePRIX) {
@@ -1727,9 +1737,11 @@ function CreateMarketPageContent() {
               value={data.creatorStake.toString()}
               onChange={(value) => {
                 const numValue = parseFloat(value);
-                const minStakeBNB = 1; // 1 BNB minimum from contract
+                // ✅ FIX: Use correct minimums based on selected currency
+                const minStakeBNB = 0.5; // 0.5 BNB (5e17) minimum from Diamond contract
                 const minStakePRIX = 1000; // 1000 PRIX minimum from contract
-                const minStake = usePrix ? minStakePRIX : minStakeBNB;
+                const minStakeUSDT = 500; // 500 USDT minimum from contract
+                const minStake = currency === 'BNB' ? minStakeBNB : currency === 'PRIX' ? minStakePRIX : minStakeUSDT;
                 if (!isNaN(numValue) && numValue >= minStake && numValue <= 1000000) {
                   handleInputChange('creatorStake', numValue);
                   // Clear error when valid amount is entered
@@ -1743,16 +1755,19 @@ function CreateMarketPageContent() {
                 } else if (!isNaN(numValue) && numValue < minStake) {
                   // Show warning for amounts below minimum
                   handleInputChange('creatorStake', numValue);
+                  const currencyName = currency === 'BNB' ? getCurrencyName() : currency;
                   setErrors(prev => ({
                     ...prev,
-                    creatorStake: `⚠️ Minimum stake is ${minStake} ${usePrix ? 'PRIX' : getCurrencyName()}. You entered ${numValue} ${usePrix ? 'PRIX' : getCurrencyName()}.`
+                    creatorStake: `⚠️ Minimum stake is ${minStake} ${currencyName}. You entered ${numValue} ${currencyName}.`
                   }));
                 }
               }}
               onValueChange={(numValue) => {
-                const minStakeBNB = 1;
-                const minStakePRIX = 1000;
-                const minStake = usePrix ? minStakePRIX : minStakeBNB;
+                // ✅ FIX: Use correct minimums based on selected currency
+                const minStakeBNB = 0.5; // 0.5 BNB minimum
+                const minStakePRIX = 1000; // 1000 PRIX minimum
+                const minStakeUSDT = 500; // 500 USDT minimum
+                const minStake = currency === 'BNB' ? minStakeBNB : currency === 'PRIX' ? minStakePRIX : minStakeUSDT;
                 if (numValue >= minStake && numValue <= 1000000) {
                   handleInputChange('creatorStake', numValue);
                   // Clear error when valid amount is entered
@@ -1765,20 +1780,21 @@ function CreateMarketPageContent() {
                   }
                 } else if (numValue < minStake) {
                   // Show warning for amounts below minimum
+                  const currencyName = currency === 'BNB' ? getCurrencyName() : currency;
                   setErrors(prev => ({
                     ...prev,
-                    creatorStake: `⚠️ Minimum stake is ${minStake} ${usePrix ? 'PRIX' : getCurrencyName()}. You entered ${numValue} ${usePrix ? 'PRIX' : getCurrencyName()}.`
+                    creatorStake: `⚠️ Minimum stake is ${minStake} ${currencyName}. You entered ${numValue} ${currencyName}.`
                   }));
                 }
               }}
-              placeholder={usePrix ? "1000.0" : "1.0"}
-              min={usePrix ? 1000 : 1}
+              placeholder={currency === 'PRIX' ? "1000.0" : currency === 'USDT' ? "500.0" : "0.5"}
+              min={currency === 'PRIX' ? 1000 : currency === 'USDT' ? 500 : 0.5}
               max={1000000}
               step={0.1}
               allowDecimals={true}
               decimals={2}
-              currency={usePrix ? 'PRIX' : getCurrencyName()}
-              help={`Your stake that acts as liquidity for the market. Minimum: ${usePrix ? '1000 PRIX' : `1 ${getCurrencyName()}`}`}
+              currency={currency === 'BNB' ? getCurrencyName() : currency}
+              help={`Your stake that acts as liquidity for the market. Minimum: ${currency === 'PRIX' ? '1000 PRIX' : currency === 'USDT' ? '500 USDT' : `0.5 ${getCurrencyName()}`}`}
             />
             {errors.creatorStake && (
               <p className={`text-sm ${errors.creatorStake.includes('⚠️') ? 'text-yellow-400' : 'text-red-400'}`}>
@@ -1795,13 +1811,13 @@ function CreateMarketPageContent() {
               onChange={(newCurrency: CurrencyType) => {
                 setCurrency(newCurrency);
                 setUsePrix(newCurrency === 'PRIX'); // Legacy support
-                // Update stake to minimum for selected currency
-                if (newCurrency === 'BNB' && data.creatorStake < 1) {
-                  handleInputChange('creatorStake', 1);
+                // ✅ FIX: Update stake to minimum for selected currency
+                if (newCurrency === 'BNB' && data.creatorStake < 0.5) {
+                  handleInputChange('creatorStake', 0.5);
                 } else if (newCurrency === 'PRIX' && data.creatorStake < 1000) {
                   handleInputChange('creatorStake', 1000);
-                } else if (newCurrency === 'USDT' && data.creatorStake < 1) {
-                  handleInputChange('creatorStake', 1);
+                } else if (newCurrency === 'USDT' && data.creatorStake < 500) {
+                  handleInputChange('creatorStake', 500);
                 }
               }}
             />
@@ -1831,7 +1847,7 @@ function CreateMarketPageContent() {
             <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
               Creation Fee
             </label>
-            <FeeDisplay baseFee={parseEther('0.01')} />
+            <FeeDisplay baseFee={parseEther('0.01')} currency={currency} />
           </div>
         </div>
 
@@ -1994,7 +2010,7 @@ function CreateMarketPageContent() {
               }`}
             >
               <div className="font-semibold text-sm">🥉 Bronze</div>
-              <div className="text-xs mt-1">2 {usePrix ? 'PRIX' : getCurrencyName()}</div>
+              <div className="text-xs mt-1">2 BNB {/* ✅ FIX: Boost always in BNB */}</div>
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.02 }}
@@ -2006,7 +2022,7 @@ function CreateMarketPageContent() {
               }`}
             >
               <div className="font-semibold text-sm">🥈 Silver</div>
-              <div className="text-xs mt-1">5 {usePrix ? 'PRIX' : getCurrencyName()}</div>
+              <div className="text-xs mt-1">3 BNB {/* ✅ FIX: Boost always in BNB */}</div>
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.02 }}
@@ -2018,7 +2034,7 @@ function CreateMarketPageContent() {
               }`}
             >
               <div className="font-semibold text-sm">🥇 Gold</div>
-              <div className="text-xs mt-1">10 {usePrix ? 'PRIX' : getCurrencyName()}</div>
+              <div className="text-xs mt-1">5 BNB {/* ✅ FIX: Boost always in BNB */}</div>
             </motion.button>
           </div>
 

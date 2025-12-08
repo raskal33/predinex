@@ -63,11 +63,22 @@ export function calculateFeeDiscount(prixBalance: bigint): FeeCalculation {
 
 /**
  * Get minimum stake requirements for each currency
+ * Matches contract constants from LibAppStorage.sol
  */
 export const MIN_STAKES = {
-  BNB: parseEther('0.1'), // 0.1 BNB
-  PRIX: parseEther('100'), // 100 PRIX
-  USDT: parseEther('10'), // 10 USDT (assuming 18 decimals)
+  BNB: parseEther('0.5'), // 0.5 BNB (5e17) - Diamond pattern
+  PRIX: parseEther('1000'), // 1000 PRIX (1000e18)
+  USDT: parseEther('500'), // 500 USDT (500e18)
+} as const;
+
+/**
+ * Get minimum stake requirements for combo pools
+ * Matches PredinexComboPools.sol constants
+ */
+export const MIN_STAKES_COMBO = {
+  BNB: parseEther('2'), // 2 BNB
+  PRIX: parseEther('5000'), // 5000 PRIX
+  USDT: parseEther('2000'), // 2000 USDT
 } as const;
 
 /**

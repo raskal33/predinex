@@ -12,9 +12,11 @@ import {
   CheckCircleIcon
 } from '@heroicons/react/24/outline';
 import { toast } from 'react-hot-toast';
+import { parseEther } from 'viem';
 import Button from '@/components/button';
 import AmountInput from '@/components/AmountInput';
 import Textarea from '@/components/textarea';
+import { FeeDisplay } from '@/components/FeeDisplay';
 import { useComboPools } from '@/hooks/useComboPools';
 import { useWalletConnection } from '@/hooks/useWalletConnection';
 import { useReputationStore } from '@/stores/useReputationStore';
@@ -69,7 +71,7 @@ export default function ComboPoolCreationForm({ onSuccess, onClose }: {
   const [formData, setFormData] = useState<ComboPoolFormData>({
     title: '',
     description: '',
-    creatorStake: 100,
+    creatorStake: 2, // ✅ FIX: Default to minimum BNB stake for combo pools (2 BNB)
     combinedOdds: 2.0,
     maxBetPerUser: 1000,
     usePrix: false,
@@ -153,8 +155,15 @@ export default function ComboPoolCreationForm({ onSuccess, onClose }: {
       }
     });
 
-    if (formData.creatorStake < 50) {
-      newErrors.creatorStake = 'Minimum creator stake is 50 tokens';
+    // ✅ FIX: Use correct minimum stakes for combo pools based on currency
+    // Combo pools have higher minimums: 2 BNB, 5000 PRIX, 2000 USDT
+    const minStakeBNB = 2; // 2 BNB for combo pools
+    const minStakePRIX = 5000; // 5000 PRIX for combo pools
+    // const minStakeUSDT = 2000; // 2000 USDT for combo pools (TODO: Add USDT support)
+    const minStake = formData.usePrix ? minStakePRIX : minStakeBNB;
+    
+    if (formData.creatorStake < minStake) {
+      newErrors.creatorStake = `⚠️ Minimum creator stake for combo pools is ${minStake} ${formData.usePrix ? 'PRIX' : 'BNB'}. You entered ${formData.creatorStake} ${formData.usePrix ? 'PRIX' : 'BNB'}.`;
     }
 
     if (formData.combinedOdds < 1.01 || formData.combinedOdds > 500) {
@@ -373,13 +382,13 @@ export default function ComboPoolCreationForm({ onSuccess, onClose }: {
             label="Creator Stake *"
             value={formData.creatorStake.toString()}
             onChange={(value) => setFormData(prev => ({ ...prev, creatorStake: parseFloat(value || '0') }))}
-            placeholder="100.0"
-            min={50}
+            placeholder={formData.usePrix ? "5000.0" : "2.0"}
+            min={formData.usePrix ? 5000 : 2}
             max={1000000}
             step={0.1}
             allowDecimals={true}
             currency={formData.usePrix ? 'PRIX' : 'BNB'}
-            help="Your stake that acts as liquidity for the pool"
+            help={`Your stake that acts as liquidity for the pool. Minimum: ${formData.usePrix ? '5000 PRIX' : '2 BNB'} for combo pools.`}
             error={errors.creatorStake}
           />
         </div>
@@ -425,7 +434,16 @@ export default function ComboPoolCreationForm({ onSuccess, onClose }: {
           </label>
           <div className="grid grid-cols-2 gap-3">
             <button
-              onClick={() => setFormData(prev => ({ ...prev, usePrix: false }))}
+              onClick={() => {
+                setFormData(prev => {
+                  const newData = { ...prev, usePrix: false };
+                  // ✅ FIX: Update stake to minimum for BNB if below minimum
+                  if (newData.creatorStake < 2) {
+                    newData.creatorStake = 2; // 2 BNB minimum for combo pools
+                  }
+                  return newData;
+                });
+              }}
               className={`p-3 rounded-xl border text-center transition-all ${
                 !formData.usePrix
                   ? 'border-primary bg-primary/10 text-primary'
@@ -436,7 +454,16 @@ export default function ComboPoolCreationForm({ onSuccess, onClose }: {
               <div className="text-xs mt-1">Somnia Network</div>
             </button>
             <button
-              onClick={() => setFormData(prev => ({ ...prev, usePrix: true }))}
+              onClick={() => {
+                setFormData(prev => {
+                  const newData = { ...prev, usePrix: true };
+                  // ✅ FIX: Update stake to minimum for PRIX if below minimum
+                  if (newData.creatorStake < 5000) {
+                    newData.creatorStake = 5000; // 5000 PRIX minimum for combo pools
+                  }
+                  return newData;
+                });
+              }}
               className={`p-3 rounded-xl border text-center transition-all ${
                 formData.usePrix
                   ? 'border-primary bg-primary/10 text-primary'
@@ -447,6 +474,14 @@ export default function ComboPoolCreationForm({ onSuccess, onClose }: {
               <div className="text-xs mt-1">Reduced fees</div>
             </button>
           </div>
+        </div>
+
+        {/* ✅ NEW: Fee Display for Combo Pools */}
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-text-secondary mb-2">
+            Creation Fee
+          </label>
+          <FeeDisplay baseFee={parseEther('0.01')} currency={formData.usePrix ? 'PRIX' : 'BNB'} isComboPool={true} />
         </div>
 
         {/* Privacy */}

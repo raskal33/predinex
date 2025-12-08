@@ -3,44 +3,60 @@
 import { useTokenDiscounts } from '@/hooks/useTokenDiscounts';
 import { formatEther } from 'viem';
 import { useMemo } from 'react';
+import type { CurrencyType } from '@/utils/feeCalculator';
 
 interface FeeDisplayProps {
   baseFee: bigint;
   showDiscount?: boolean;
+  currency?: CurrencyType; // ✅ NEW: Support all currencies
+  isComboPool?: boolean; // ✅ NEW: Different fees for combo pools
 }
 
-export function FeeDisplay({ baseFee, showDiscount = true }: FeeDisplayProps) {
+export function FeeDisplay({ 
+  baseFee, 
+  showDiscount = true, 
+  currency = 'BNB',
+  isComboPool = false 
+}: FeeDisplayProps) {
   const { feeCalculation, discountTier, discountPercent } = useTokenDiscounts();
 
+  // ✅ NEW: Creation fee is always in BNB (with discounts), regardless of pool currency
+  // Combo pools may have different base fees, but discounts still apply
   const adjustedFee = useMemo(() => {
-    if (!feeCalculation) return baseFee;
+    if (!feeCalculation || currency !== 'BNB') return baseFee;
     return feeCalculation.adjustedFee;
-  }, [feeCalculation, baseFee]);
+  }, [feeCalculation, baseFee, currency]);
 
   const savings = useMemo(() => {
-    if (!feeCalculation) return 0n;
+    if (!feeCalculation || currency !== 'BNB') return 0n;
     return feeCalculation.savings;
-  }, [feeCalculation]);
+  }, [feeCalculation, currency]);
 
-  const hasDiscount = discountPercent > 0;
+  const hasDiscount = discountPercent > 0 && currency === 'BNB'; // Discounts only apply to BNB fees
+
+  // ✅ NEW: Show currency-specific fee information
+  const feeCurrency = 'BNB'; // Creation fee is always in BNB
+  const poolCurrency = currency; // Pool stake currency
 
   return (
     <div className="space-y-2 p-3 sm:p-4 bg-[var(--bg-card)] rounded-lg border border-[var(--border-card)]">
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <span className="text-xs sm:text-sm text-[var(--text-muted)] font-medium">Creation Fee:</span>
+        <span className="text-xs sm:text-sm text-[var(--text-muted)] font-medium">
+          Creation Fee {isComboPool ? '(Combo Pool)' : ''}:
+        </span>
         <div className="flex items-center gap-2 flex-wrap">
           {hasDiscount && showDiscount ? (
             <>
               <span className="text-xs sm:text-sm line-through text-[var(--text-muted)] opacity-60">
-                {formatEther(baseFee)} BNB
+                {formatEther(baseFee)} {feeCurrency}
               </span>
               <span className="text-sm sm:text-base font-bold text-[var(--market-rise)]">
-                {formatEther(adjustedFee)} BNB
+                {formatEther(adjustedFee)} {feeCurrency}
               </span>
             </>
           ) : (
             <span className="text-sm sm:text-base font-semibold text-[var(--text-primary)]">
-              {formatEther(baseFee)} BNB
+              {formatEther(baseFee)} {feeCurrency}
             </span>
           )}
         </div>
@@ -51,8 +67,17 @@ export function FeeDisplay({ baseFee, showDiscount = true }: FeeDisplayProps) {
             Discount <span className="font-semibold text-[var(--bsc-yellow)]">{discountTier}</span>:
           </span>
           <span className="text-[var(--market-rise)] font-semibold">
-            -{discountPercent}% (Save {formatEther(savings)} BNB)
+            -{discountPercent}% (Save {formatEther(savings)} {feeCurrency})
           </span>
+        </div>
+      )}
+      {poolCurrency !== 'BNB' && (
+        <div className="text-xs sm:text-sm text-[var(--text-muted)] pt-2 border-t border-[var(--border-card)]">
+          <p className="text-[var(--text-secondary)]">
+            💡 Creation fee is always paid in <span className="font-semibold text-[var(--bsc-yellow)]">BNB</span>.
+            {poolCurrency === 'PRIX' && ' Pool stake is paid in PRIX tokens.'}
+            {poolCurrency === 'USDT' && ' Pool stake is paid in USDT tokens.'}
+          </p>
         </div>
       )}
     </div>
