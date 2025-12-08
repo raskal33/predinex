@@ -38,16 +38,16 @@ export default function MobileBottomNav() {
       iconSolid: ChartBarIconSolid,
     },
     {
+      href: "/h2h",
+      label: "H2H",
+      icon: UserIcon,
+      iconSolid: UserIconSolid,
+    },
+    {
       href: "/create-prediction",
       label: "Create",
       icon: SparklesIcon,
       iconSolid: SparklesIconSolid,
-    },
-    {
-      href: "/my-slips",
-      label: "Activity",
-      icon: ClockIcon,
-      iconSolid: ClockIconSolid,
     },
     {
       href: isConnected && address ? "/profile" : "#",

@@ -120,6 +120,7 @@ export default function Header() {
 
   const navItems = [
     { href: "/gauntlet", label: "Gauntlet", icon: FireIcon, iconSolid: FireIconSolid, segment: "gauntlet", color: "from-[#FFC107] to-[#F7B600]" },
+    { href: "/h2h", label: "H2H", icon: UsersIcon, iconSolid: UsersIcon, segment: "h2h", color: "from-[#8B5CF6] to-[#7C3AED]" },
     { href: "/stats", label: "Stats", icon: ChartBarIcon, iconSolid: ChartBarIcon, segment: "stats", color: "from-[#3B82F6] to-[#2563EB]" },
     { href: "/rewards", label: "Prize", icon: TrophyIcon, iconSolid: TrophyIconSolid, segment: "rewards", color: "from-[#FFC107] to-[#F7B600]" },
     { href: "/staking", label: "Staking", icon: SparklesIcon, iconSolid: SparklesIconSolid, segment: "staking", color: "from-[#10B981] to-[#059669]" },
