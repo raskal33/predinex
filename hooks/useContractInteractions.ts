@@ -119,7 +119,7 @@ export function usePoolCore() {
     homeTeam?: string;
     awayTeam?: string;
     title?: string;
-    boostTier?: 'NONE' | 'BRONZE' | 'SILVER' | 'GOLD'; // ✅ FIX: Add boost tier support
+    enableBoost?: boolean; // ✅ FIX: Single tier boost system - 300 PRIX (150 PRIX with discount)
   }) => {
     try {
       // Convert predictedOutcome to bytes32 string (not hash) for proper storage and retrieval
@@ -138,19 +138,9 @@ export function usePoolCore() {
       const creationFeePRIX = 50n * 10n**18n; // 50 PRIX base fee (contract constant)
       const baseCreationFeeBNB = 1n * 10n**16n; // 0.01 BNB base fee (contract constant)
       
-      // ✅ FIX: Calculate boost cost (always in BNB, even for PRIX pools)
-      // Boost costs: BRONZE = 2 BNB, SILVER = 3 BNB, GOLD = 5 BNB
-      let boostCost = 0n;
-      const hasBoost = poolData.boostTier && poolData.boostTier !== 'NONE';
-      if (hasBoost) {
-        if (poolData.boostTier === 'BRONZE') {
-          boostCost = 2n * 10n**18n; // 2 BNB
-        } else if (poolData.boostTier === 'SILVER') {
-          boostCost = 3n * 10n**18n; // 3 BNB
-        } else if (poolData.boostTier === 'GOLD') {
-          boostCost = 5n * 10n**18n; // 5 BNB
-        }
-      }
+      // ✅ FIX: Boost cost is handled by contract (300 PRIX or 150 PRIX with discount)
+      // Boost is paid in PRIX tokens, not BNB
+      const hasBoost = poolData.enableBoost || false;
       
       // ✅ NEW: Calculate discount based on PRIX balance (applies to all pools, fee always in BNB)
       let creationFeeBNB = baseCreationFeeBNB;
@@ -183,28 +173,25 @@ export function usePoolCore() {
         }
       }
       
-      // ✅ FIX: For PRIX pools, totalRequired does NOT include boostCost (boost is paid in BNB separately)
-      // For BNB pools WITHOUT boost: totalRequired = creatorStake + creationFeeBNB (with discount applied)
-      // For BNB pools WITH boost: we don't support this yet (factory has bugs)
+      // ✅ FIX: Boost cost is 300 PRIX (or 150 PRIX with 100k+ PRIX balance discount)
+      // Boost is always paid in PRIX tokens, not BNB
+      const boostCostPRIX = hasBoost ? 300n * 10n**18n : 0n; // Max boost cost (contract applies discount)
+      
+      // ✅ FIX: For PRIX pools, totalRequired includes boost cost (paid in PRIX)
+      // For BNB pools: totalRequired = creatorStake + creationFeeBNB (with discount applied)
       const totalRequired = poolData.usePrix 
-        ? poolData.creatorStake + creationFeePRIX  // Only creation fee + stake in PRIX (boost is in BNB)
+        ? poolData.creatorStake + creationFeePRIX + boostCostPRIX  // Stake + fee + boost (all in PRIX)
         : poolData.creatorStake + creationFeeBNB;   // ✅ FIX: For BNB pools, use adjusted fee with discount
       
-      // ✅ FIX: Transaction value for msg.value
-      // PRIX pools with boost: only send boost cost (in BNB) as msg.value (creation fee + stake are transferred as PRIX tokens)
-      // BNB pools: send creatorStake + creationFeeBNB (no boost support yet - factory has bugs)
-      // PRIX pools without boost: value is 0 (token transfer handles it)
+      // ✅ FIX: Transaction value calculation for factory
+      // Factory expects: BNB pools = stake + fee, PRIX pools = fee only (stake via token transfer)
+      // Boost cost is handled by factory (transfers PRIX from user)
       const transactionValue = poolData.usePrix 
-        ? (hasBoost ? boostCost : 0n)  // PRIX pools: boost cost in BNB if boost, otherwise 0
-        : totalRequired; // BNB pools: creatorStake + creationFeeBNB (no boost)
+        ? creationFeeBNB  // PRIX pools: only creation fee in BNB (stake + boost via PRIX transfer)
+        : totalRequired; // BNB pools: creatorStake + creationFeeBNB (boost via PRIX transfer)
       
-      // ✅ FIX: Prevent BNB pools with boost (factory has bugs - wrong fees and boost cost)
-      if (!poolData.usePrix && hasBoost) {
-        const errorMsg = 'BNB pools with boost are not currently supported. Please create a PRIX pool if you want to use boost, or create a BNB pool without boost.';
-        console.error(`❌ ${errorMsg}`);
-        toast.error(errorMsg);
-        throw new Error(errorMsg);
-      }
+      // ✅ FIX: Boost is available for both BNB and PRIX pools
+      // Boost is paid in PRIX tokens via the factory's createPoolWithBoost function
 
       // ✅ FIX: For BNB pools, check BNB balance before attempting transaction
       if (!poolData.usePrix && address) {
@@ -212,7 +199,6 @@ export function usePoolCore() {
         console.log(`   Base Creation Fee: ${baseCreationFeeBNB / BigInt(10**16)} BNB`);
         console.log(`   Adjusted Creation Fee: ${creationFeeBNB / BigInt(10**16)} BNB`);
         console.log(`   Creator Stake: ${poolData.creatorStake / BigInt(10**18)} BNB`);
-        console.log(`   Boost Cost: ${boostCost / BigInt(10**18)} BNB`);
         console.log(`   Total Required: ${totalRequired / BigInt(10**18)} BNB`);
         
         // Check BNB balance
@@ -237,14 +223,16 @@ export function usePoolCore() {
         console.log(`   Base Creation Fee: ${creationFeePRIX / BigInt(10**18)} PRIX (discounts may apply on-chain)`);
         console.log(`   Creator Stake: ${poolData.creatorStake / BigInt(10**18)} PRIX`);
         console.log(`   Total Required: ${totalRequired / BigInt(10**18)} PRIX`);
-        if (boostCost > 0n) {
-          console.log(`   Boost Cost: ${boostCost / BigInt(10**18)} BNB (paid in native BNB)`);
+        if (boostCostPRIX > 0n) {
+          console.log(`   Boost Cost: ${boostCostPRIX / BigInt(10**18)} PRIX (300 PRIX max, 150 PRIX with 100k+ PRIX discount)`);
         }
         
         // Check PRIX balance first (for creation fee + creator stake only, NOT boost cost)
         const balance = await getBalance();
         console.log(`🔍 PRIX Balance Check: ${balance / BigInt(10**18)} PRIX (required: ${totalRequired / BigInt(10**18)} PRIX)`);
-        console.log(`   Note: Boost cost (${boostCost / BigInt(10**18)} BNB) is paid separately in native BNB`);
+        if (boostCostPRIX > 0n) {
+          console.log(`   Note: Boost cost (${boostCostPRIX / BigInt(10**18)} PRIX max) is included in total required`);
+        }
         
         if (balance < totalRequired) {
           const shortfall = totalRequired - balance;
@@ -254,17 +242,8 @@ export function usePoolCore() {
           throw new Error(errorMsg);
         }
         
-        // ✅ FIX: For PRIX pools with boost, check BNB balance for boost payment
-        if (boostCost > 0n && address) {
-          const bnbBalance = await publicClient?.getBalance({ address });
-          if (!bnbBalance || bnbBalance < boostCost) {
-            const errorMsg = `Insufficient BNB balance for boost. You need ${boostCost / BigInt(10**18)} BNB but have ${bnbBalance ? bnbBalance / BigInt(10**18) : 0} BNB`;
-            console.error(`❌ ${errorMsg}`);
-            toast.error(errorMsg);
-            throw new Error(errorMsg);
-          }
-          console.log(`✅ BNB balance check passed for boost: ${bnbBalance / BigInt(10**18)} BNB >= ${boostCost / BigInt(10**18)} BNB`);
-        }
+        // Note: Boost cost is handled by factory contract (paid in PRIX tokens)
+        // No separate BNB balance check needed for boost
         
         console.log(`✅ Balance check passed`);
         
@@ -431,28 +410,14 @@ export function usePoolCore() {
         isGuidedMarket: poolData.oracleType === 0
       });
 
-      // ✅ FIX: Convert boost tier string to enum number (0=NONE, 1=BRONZE, 2=SILVER, 3=GOLD)
-      let boostTierEnum = 0; // NONE
-      if (hasBoost) {
-        if (poolData.boostTier === 'BRONZE') {
-          boostTierEnum = 1;
-        } else if (poolData.boostTier === 'SILVER') {
-          boostTierEnum = 2;
-        } else if (poolData.boostTier === 'GOLD') {
-          boostTierEnum = 3;
-        }
-      }
-
       // Log critical validation info before sending transaction
       console.log('🔍 Pre-transaction validation:', {
         address: address,
         usePrix: poolData.usePrix,
         creatorStake: poolData.creatorStake.toString(),
         totalRequired: totalRequired.toString(),
-        boostCost: boostCost.toString(),
         transactionValue: transactionValue.toString(),
-        boostTier: poolData.boostTier,
-        boostTierEnum,
+        enableBoost: poolData.enableBoost,
         hasBoost,
         usingFactory: hasBoost,
         oracleType: poolData.oracleType,
@@ -461,10 +426,9 @@ export function usePoolCore() {
         gracePeriodBuffer: Number(poolData.eventStartTime) - Math.floor(Date.now() / 1000),
       });
 
-      // ✅ FIX: For BNB pools without boost, always use POOL_CORE directly (factory has fee mismatches)
-      // For BNB pools with boost, we need to use factory but it has bugs - for now, disable boost for BNB pools
-      // For PRIX pools, use factory if boost is selected
-      const shouldUseFactory = hasBoost && poolData.usePrix; // Only use factory for PRIX pools with boost
+      // ✅ FIX: Use factory for pools with boost (both BNB and PRIX pools can be boosted)
+      // Factory handles boost payment in PRIX tokens
+      const shouldUseFactory = hasBoost; // Use factory if boost is enabled
       
       const txHash = shouldUseFactory
         ? await writeContractAsync({
@@ -485,13 +449,14 @@ export function usePoolCore() {
               titleBytes32,
               poolData.isPrivate,
               poolData.maxBetPerUser,
-              poolData.usePrix,
+              finalCurrencyType, // ✅ FIX: Use currencyType (0=BNB, 1=PRIX, 2=USDT) instead of usePrix bool
+              finalLeverage, // ✅ FIX: Add leverage parameter
               poolData.oracleType,
               marketIdString,
               poolData.marketType,
-              true, // ✅ FIX: Factory expects bool _applyBoost, not enum
+              hasBoost, // ✅ FIX: Use hasBoost boolean (enableBoost flag)
             ],
-            value: transactionValue, // For PRIX pools with boost: value = boostCost (in BNB)
+            value: transactionValue, // For PRIX pools: value = creationFeeBNB, for BNB pools: value = totalRequired
             gas: BigInt(12000000), // Slightly higher gas for factory function
           })
         : await writeContractAsync({

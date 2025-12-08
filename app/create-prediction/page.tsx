@@ -125,7 +125,7 @@ interface GuidedMarketData {
   direction?: 'above' | 'below';
   
   // Boost and privacy options
-  boostTier?: 'NONE' | 'BRONZE' | 'SILVER' | 'GOLD';
+  enableBoost?: boolean; // Single tier boost system - 300 PRIX (150 PRIX with discount)
   isPrivate?: boolean;
   maxBetPerUser?: number;
   
@@ -547,17 +547,17 @@ function CreateMarketPageContent() {
       successProcessedRef.current = currentTxHash;
       
       // Capture current values to avoid dependency issues
-      const currentBoostTier = data.boostTier;
+      const currentEnableBoost = data.enableBoost;
       const currentCategory = data.category;
       const currentTxHashValue = currentTxHash;
       
       // ✅ FIX: Calculate total cost for display
       // Creation fee is always in BNB (with discounts), regardless of pool currency
       const creationFee = '0.01 BNB'; // Base fee, discounts apply on-chain
-      const boostCost = currentBoostTier && currentBoostTier !== 'NONE' 
-        ? `${currentBoostTier === 'BRONZE' ? '2' : currentBoostTier === 'SILVER' ? '3' : '5'} BNB`
+      const boostCost = currentEnableBoost
+        ? (token.rawBalance && token.rawBalance >= BigInt('100000000000000000000000') ? '150 PRIX' : '300 PRIX')
         : '0';
-      const totalCost = currentBoostTier && currentBoostTier !== 'NONE' 
+      const totalCost = currentEnableBoost
         ? `${boostCost} + ${creationFee}`
         : creationFee;
       
@@ -569,7 +569,7 @@ function CreateMarketPageContent() {
         'Market Created Successfully!', 
         `Your ${categoryName} market has been created and is now live on the blockchain!`, 
         currentTxHashValue,
-        currentBoostTier,
+        undefined, // boostTier removed - using enableBoost
         totalCost
       );
       setDeploymentHash(currentTxHashValue);
@@ -1151,7 +1151,7 @@ function CreateMarketPageContent() {
           homeTeam: data.selectedFixture.homeTeam.name,
           awayTeam: data.selectedFixture.awayTeam.name,
           title: `${data.selectedFixture.homeTeam.name} vs ${data.selectedFixture.awayTeam.name}`,
-          boostTier: data.boostTier || 'NONE', // ✅ FIX: Pass boost tier to createPool
+          enableBoost: data.enableBoost || false, // ✅ FIX: Pass boost flag to createPool
           isDynamicOdds: isDynamicOdds // ✅ NEW: Dynamic odds mode
         };
 
@@ -1250,7 +1250,7 @@ function CreateMarketPageContent() {
           homeTeam: data.selectedCrypto.symbol,
           awayTeam: 'USD',
           title: `${data.selectedCrypto.symbol} Price Prediction`,
-          boostTier: data.boostTier || 'NONE', // ✅ FIX: Pass boost tier to createPool
+          enableBoost: data.enableBoost || false, // ✅ FIX: Pass boost flag to createPool
           isDynamicOdds: isDynamicOdds // ✅ NEW: Dynamic odds mode
         };
 
@@ -1986,65 +1986,51 @@ function CreateMarketPageContent() {
             Boost your market for better visibility and higher rewards. Boost fees are distributed to winners.
           </p>
           
-          {/* Boost Tier Selection */}
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-4">
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              onClick={() => handleInputChange('boostTier', 'NONE')}
-              className={`p-3 rounded-lg border text-center transition-all ${
-                (!data.boostTier || data.boostTier === 'NONE')
-                  ? 'border-cyan-500 bg-cyan-500/10 text-cyan-400'
-                  : 'border-gray-600 bg-gray-800/50 text-gray-300 hover:border-cyan-400'
-              }`}
-            >
-              <div className="font-semibold text-sm">No Boost</div>
-              <div className="text-xs mt-1">Free</div>
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              onClick={() => handleInputChange('boostTier', 'BRONZE')}
-              className={`p-3 rounded-lg border text-center transition-all ${
-                data.boostTier === 'BRONZE'
-                  ? 'border-orange-500 bg-orange-500/10 text-orange-400'
-                  : 'border-gray-600 bg-gray-800/50 text-gray-300 hover:border-orange-400'
-              }`}
-            >
-              <div className="font-semibold text-sm">🥉 Bronze</div>
-              <div className="text-xs mt-1">2 BNB {/* ✅ FIX: Boost always in BNB */}</div>
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              onClick={() => handleInputChange('boostTier', 'SILVER')}
-              className={`p-3 rounded-lg border text-center transition-all ${
-                data.boostTier === 'SILVER'
-                  ? 'border-gray-500 bg-gray-500/10 text-gray-400'
-                  : 'border-gray-600 bg-gray-800/50 text-gray-300 hover:border-gray-400'
-              }`}
-            >
-              <div className="font-semibold text-sm">🥈 Silver</div>
-              <div className="text-xs mt-1">3 BNB {/* ✅ FIX: Boost always in BNB */}</div>
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              onClick={() => handleInputChange('boostTier', 'GOLD')}
-              className={`p-3 rounded-lg border text-center transition-all ${
-                data.boostTier === 'GOLD'
-                  ? 'border-yellow-500 bg-yellow-500/10 text-yellow-400'
-                  : 'border-gray-600 bg-gray-800/50 text-gray-300 hover:border-yellow-400'
-              }`}
-            >
-              <div className="font-semibold text-sm">🥇 Gold</div>
-              <div className="text-xs mt-1">5 BNB {/* ✅ FIX: Boost always in BNB */}</div>
-            </motion.button>
+          {/* Boost Toggle */}
+          <div className="flex items-center justify-between p-4 rounded-lg border border-[var(--border-card)] bg-[var(--bg-card)]">
+            <div className="flex items-center gap-3">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => handleInputChange('enableBoost', !data.enableBoost)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  data.enableBoost ? 'bg-[var(--bsc-yellow)]' : 'bg-gray-600'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    data.enableBoost ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </motion.button>
+              <div>
+                <div className="font-semibold text-sm text-white">Enable Boost</div>
+                <div className="text-xs text-gray-400">
+                  {data.enableBoost ? 'Boost enabled - Enhanced visibility' : 'No boost - Standard listing'}
+                </div>
+              </div>
+            </div>
+            {data.enableBoost && (
+              <div className="text-right">
+                <div className="text-sm font-bold text-white">
+                  {token.rawBalance && token.rawBalance >= BigInt('100000000000000000000000') // 100,000 PRIX
+                    ? '150 PRIX'
+                    : '300 PRIX'}
+                </div>
+                {token.rawBalance && token.rawBalance >= BigInt('100000000000000000000000') && (
+                  <div className="text-xs text-green-400">50% discount applied</div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Boost Cost Preview */}
-          {data.boostTier && data.boostTier !== 'NONE' && (
+          {data.enableBoost && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="p-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-lg"
+              className="p-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-lg mt-3"
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -2052,19 +2038,15 @@ function CreateMarketPageContent() {
                     Boost Cost Preview
                   </h4>
                   <p className="text-xs text-gray-400">
-                    {data.boostTier === 'BRONZE' && '🥉 Bronze Boost - Enhanced visibility'}
-                    {data.boostTier === 'SILVER' && '🥈 Silver Boost - Premium placement'}
-                    {data.boostTier === 'GOLD' && '🥇 Gold Boost - Maximum exposure'}
+                    Boost fee is paid in PRIX tokens. Get 50% off if you hold 100,000+ PRIX.
                   </p>
                 </div>
                 <div className="text-right">
                   <div className="text-lg font-bold text-white">
-                    {data.boostTier === 'BRONZE' && '2'}
-                    {data.boostTier === 'SILVER' && '3'}
-                    {data.boostTier === 'GOLD' && '5'}
-                    <span className="text-sm text-gray-400 ml-1">
-                      BNB {/* ✅ FIX: Boost is always paid in BNB, not PRIX */}
-                    </span>
+                    {token.rawBalance && token.rawBalance >= BigInt('100000000000000000000000')
+                      ? '150'
+                      : '300'}
+                    <span className="text-sm text-gray-400 ml-1">PRIX</span>
                   </div>
                   <div className="text-xs text-gray-400">
                     + Creation Fee
@@ -2325,23 +2307,24 @@ function CreateMarketPageContent() {
                 <span className="text-gray-300">Creation Fee:</span>
                 <span className="text-white">{usePrix ? '50 PRIX' : '0.01 BNB'}</span>
               </div>
-              {data.boostTier && data.boostTier !== 'NONE' && (
+              {data.enableBoost && (
                 <div className="flex justify-between">
-                  <span className="text-gray-300">Boost Fee ({data.boostTier}):</span>
+                  <span className="text-gray-300">Boost Fee:</span>
                   <span className="text-white">
-                    {data.boostTier === 'BRONZE' ? '2' : data.boostTier === 'SILVER' ? '3' : '5'} BNB
+                    {token.rawBalance && token.rawBalance >= BigInt('100000000000000000000000')
+                      ? '150 PRIX'
+                      : '300 PRIX'}
+                    {token.rawBalance && token.rawBalance >= BigInt('100000000000000000000000') && (
+                      <span className="text-xs text-green-400 ml-1">(50% off)</span>
+                    )}
                   </span>
                 </div>
               )}
               <div className="flex justify-between border-t border-gray-600 pt-1">
                 <span className="text-gray-300 font-semibold">Total Cost:</span>
                 <span className="text-white font-bold">
-                  {data.boostTier && data.boostTier !== 'NONE' 
-                    ? `${(() => {
-                        const boostAmount = data.boostTier === 'BRONZE' ? 2 : data.boostTier === 'SILVER' ? 3 : 5;
-                        const creationAmount = usePrix ? 50 : 0.01;
-                        return `${boostAmount} BNB + ${creationAmount} ${usePrix ? 'PRIX' : 'BNB'}`;
-                      })()}`
+                  {data.enableBoost
+                    ? `${token.rawBalance && token.rawBalance >= BigInt('100000000000000000000000') ? '150' : '300'} PRIX + ${usePrix ? '50 PRIX' : '0.01 BNB'}`
                     : `${usePrix ? '50 PRIX' : '0.01 BNB'}`}
                 </span>
               </div>

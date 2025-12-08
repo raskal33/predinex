@@ -14,6 +14,7 @@ import PredinexStakingArtifact from './abis/PredinexStaking.json';
 import ReputationSystemArtifact from './abis/ReputationSystem.json';
 import OddysseyArtifact from './abis/Oddyssey.json'; // Updated Oddyssey ABI
 import GauntletArtifact from './abis/Gauntlet.json'; // Legacy alias
+import PredinexH2HArtifact from './abis/PredinexH2H.json';
 
 // Extract ABI arrays from artifacts (ABI files are arrays directly, not objects with .abi property)
 const PredinexTokenABI = PredinexTokenArtifact as any;
@@ -29,6 +30,7 @@ const PredinexStakingABI = PredinexStakingArtifact as any;
 const ReputationSystemABI = ReputationSystemArtifact as any;
 const OddysseyABI = OddysseyArtifact as any; // Updated Oddyssey ABI
 const GauntletABI = GauntletArtifact as any; // Legacy alias (may be same as Oddyssey)
+const PredinexH2HABI = PredinexH2HArtifact as any;
 
 // Contract configurations - Updated for Modular Architecture
 export const CONTRACTS = {
@@ -88,6 +90,10 @@ export const CONTRACTS = {
   GAUNTLET: {
     address: CONTRACT_ADDRESSES.ODDYSSEY, // Legacy alias - same as Oddyssey
     abi: OddysseyABI, // Use Oddyssey ABI instead of legacy Gauntlet
+  },
+  H2H: {
+    address: CONTRACT_ADDRESSES.H2H,
+    abi: PredinexH2HABI,
   },
 
   // Legacy support (for backward compatibility) - DEPRECATED: Use POOL_CORE instead

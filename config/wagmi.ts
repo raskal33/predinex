@@ -98,6 +98,7 @@ export const CONTRACT_ADDRESSES = {
   // System Contracts
   REPUTATION_SYSTEM: (process.env.NEXT_PUBLIC_REPUTATION_SYSTEM_ADDRESS || '0xfA1b053303Bf828526931f26C193266436C4F14F') as `0x${string}`,
   STAKING_CONTRACT: (process.env.NEXT_PUBLIC_STAKING_CONTRACT_ADDRESS || '0xE3745b9212B4a588e0E7AF310676e3F2445aa245') as `0x${string}`,
+  H2H: (process.env.NEXT_PUBLIC_H2H_ADDRESS || '0x925d026F27eD571e0239de7F4Dda40B45F38b983') as `0x${string}`, // PredinexH2H (BSC Testnet)
   FAUCET: (process.env.NEXT_PUBLIC_FAUCET_ADDRESS || '') as `0x${string}`, // No longer deployed
   ODDYSSEY: (process.env.NEXT_PUBLIC_ODDYSSEY_ADDRESS || '0xD1bAfb2349059Cf6ee20f305583D20Ab46588738') as `0x${string}`,
   
