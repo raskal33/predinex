@@ -41,6 +41,7 @@ import { useReputationCheck } from "@/hooks/useReputationCheck";
 import { CurrencySelector } from "@/components/CurrencySelector";
 import { LeverageSelector } from "@/components/LeverageSelector";
 import { FeeDisplay } from "@/components/FeeDisplay";
+import { DynamicOddsSelector } from "@/components/DynamicOddsSelector";
 import { parseEther } from "viem";
 import type { CurrencyType } from "@/utils/feeCalculator";
 
@@ -185,9 +186,10 @@ function CreateMarketPageContent() {
     description: ''
   });
 
-  // ✅ NEW: Currency and leverage state
+  // ✅ NEW: Currency, leverage, and dynamic odds state
   const [currency, setCurrency] = useState<'BNB' | 'PRIX' | 'USDT'>('BNB');
   const [leverage, setLeverage] = useState<1 | 2 | 3 | 4 | 5>(1);
+  const [isDynamicOdds, setIsDynamicOdds] = useState<boolean>(false); // ✅ NEW: Dynamic odds mode
   const [usePrix, setUsePrix] = useState<boolean>(false); // Legacy support - maps to currency
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -1140,7 +1142,8 @@ function CreateMarketPageContent() {
           homeTeam: data.selectedFixture.homeTeam.name,
           awayTeam: data.selectedFixture.awayTeam.name,
           title: `${data.selectedFixture.homeTeam.name} vs ${data.selectedFixture.awayTeam.name}`,
-          boostTier: data.boostTier || 'NONE' // ✅ FIX: Pass boost tier to createPool
+          boostTier: data.boostTier || 'NONE', // ✅ FIX: Pass boost tier to createPool
+          isDynamicOdds: isDynamicOdds // ✅ NEW: Dynamic odds mode
         };
 
         console.log('🔍 Pool Creation Debug:', {
@@ -1237,7 +1240,8 @@ function CreateMarketPageContent() {
           homeTeam: data.selectedCrypto.symbol,
           awayTeam: 'USD',
           title: `${data.selectedCrypto.symbol} Price Prediction`,
-          boostTier: data.boostTier || 'NONE' // ✅ FIX: Pass boost tier to createPool
+          boostTier: data.boostTier || 'NONE', // ✅ FIX: Pass boost tier to createPool
+          isDynamicOdds: isDynamicOdds // ✅ NEW: Dynamic odds mode
         };
 
         console.log('🔍 Crypto Pool Creation Debug:', {
@@ -1809,6 +1813,16 @@ function CreateMarketPageContent() {
             <LeverageSelector
               value={leverage}
               onChange={setLeverage}
+            />
+          </div>
+
+          {/* ✅ NEW: Dynamic Odds Selection */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">Odds Type</label>
+            <DynamicOddsSelector
+              value={isDynamicOdds}
+              onChange={setIsDynamicOdds}
+              initialOdds={data.odds / 100}
             />
           </div>
 

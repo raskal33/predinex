@@ -112,6 +112,7 @@ export function usePoolCore() {
     usePrix: boolean; // Legacy support
     currencyType?: 0 | 1 | 2; // ✅ NEW: 0=BNB, 1=PRIX, 2=USDT
     leverage?: 1 | 2 | 3 | 4 | 5; // ✅ NEW: 1x to 5x leverage
+    isDynamicOdds?: boolean; // ✅ NEW: Dynamic odds mode
     oracleType: number;
     marketId: string;
     marketType: number;
@@ -498,23 +499,24 @@ export function usePoolCore() {
             abi: CONTRACTS.POOL_CORE.abi,
             functionName: 'createPool', // ✅ Use main createPool function (for both BNB and PRIX pools without boost)
             args: [
-              predictedOutcomeBytes32,
-              poolData.odds,
               poolData.creatorStake,
+              Number(poolData.odds), // Convert to number for uint16
+              predictedOutcomeBytes32,
               poolData.eventStartTime,
               poolData.eventEndTime,
+              poolData.isPrivate,
+              poolData.maxBetPerUser,
+              poolData.oracleType,
+              poolData.marketType,
+              finalCurrencyType, // ✅ NEW: Currency type (0=BNB, 1=PRIX, 2=USDT)
               leagueBytes32, // 🎯 bytes32 encoded league
               categoryBytes32, // 🎯 bytes32 encoded category
               homeTeamBytes32, // 🎯 bytes32 encoded home team
               awayTeamBytes32, // 🎯 bytes32 encoded away team
               titleBytes32, // 🎯 bytes32 encoded title
-              poolData.isPrivate,
-              poolData.maxBetPerUser,
-              finalCurrencyType, // ✅ NEW: Currency type (0=BNB, 1=PRIX, 2=USDT)
               finalLeverage, // ✅ NEW: Leverage (1-5)
-              poolData.oracleType,
-              poolData.marketType,
               marketIdString, // 🎯 Market ID: keccak256(fixtureId) for guided, raw string for custom
+              poolData.isDynamicOdds || false, // ✅ NEW: Dynamic odds mode
             ],
             value: finalCurrencyType === 0 ? (poolData.creatorStake + creationFeeBNB) : creationFeeBNB, // ✅ NEW: BNB pools send stake+fee, token pools send only fee
             gas: BigInt(10000000), // ✅ Reduced gas limit for lightweight function (10M instead of 14M)
