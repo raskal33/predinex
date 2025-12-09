@@ -430,6 +430,18 @@ export function usePoolCore() {
       // Factory handles boost payment in PRIX tokens
       const shouldUseFactory = hasBoost; // Use factory if boost is enabled
       
+      // ✅ DEBUG: Log transaction details before sending
+      console.log('🚀 Sending createPool transaction:', {
+        shouldUseFactory,
+        functionName: shouldUseFactory ? 'createPoolWithBoost' : 'createPool',
+        address: shouldUseFactory ? CONTRACT_ADDRESSES.FACTORY : CONTRACT_ADDRESSES.POOL_CORE,
+        abiType: shouldUseFactory ? typeof CONTRACTS.FACTORY.abi : typeof CONTRACTS.POOL_CORE.abi,
+        abiIsArray: shouldUseFactory ? Array.isArray(CONTRACTS.FACTORY.abi) : Array.isArray(CONTRACTS.POOL_CORE.abi),
+        abiLength: shouldUseFactory ? (Array.isArray(CONTRACTS.FACTORY.abi) ? CONTRACTS.FACTORY.abi.length : 'N/A') : (Array.isArray(CONTRACTS.POOL_CORE.abi) ? CONTRACTS.POOL_CORE.abi.length : 'N/A'),
+        argsCount: shouldUseFactory ? 19 : 18,
+        value: shouldUseFactory ? transactionValue.toString() : (finalCurrencyType === 0 ? (poolData.creatorStake + creationFeeBNB).toString() : creationFeeBNB.toString()),
+      });
+      
       const txHash = shouldUseFactory
         ? await writeContractAsync({
             address: CONTRACT_ADDRESSES.FACTORY,
@@ -485,14 +497,44 @@ export function usePoolCore() {
             ],
             value: finalCurrencyType === 0 ? (poolData.creatorStake + creationFeeBNB) : creationFeeBNB, // ✅ NEW: BNB pools send stake+fee, token pools send only fee
             gas: BigInt(10000000), // ✅ Reduced gas limit for lightweight function (10M instead of 14M)
+            // ✅ FIX: Explicitly disable gas estimation to avoid RPC errors
+            gasPrice: BigInt(3000000000), // 3 gwei for BSC testnet
           });
       
-      console.log('Pool creation transaction submitted:', txHash);
+      console.log('✅ Pool creation transaction submitted:', txHash);
       // ✅ FIX: Return hash immediately so wagmi hooks can track transaction state
       // Don't wait for receipt here - let the component track it via useWaitForTransactionReceipt
       return txHash;
     } catch (error) {
-      console.error('Error creating pool:', error);
+      console.error('❌ Error creating pool:', error);
+      
+      // Log detailed error information for debugging
+      if (error instanceof Error) {
+        console.error('Error name:', error.name);
+        console.error('Error message:', error.message);
+        if (error.stack) {
+          console.error('Error stack:', error.stack);
+        }
+        
+        // Check for RPC-specific errors
+        if (error.message.includes('RPC endpoint') || error.message.includes('HTTP client error')) {
+          console.error('🔴 RPC Error detected - This is likely an RPC endpoint issue, not a contract issue');
+          console.error('   The transaction parameters are correct, but the RPC call failed');
+          console.error('   Possible causes:');
+          console.error('   1. RPC endpoint is down or rate-limited');
+          console.error('   2. Network connectivity issues');
+          console.error('   3. Request timeout or malformed request');
+          console.error('   4. ABI encoding issue (check if ABI is properly extracted)');
+          console.error('   Try again in a few moments or check RPC endpoint status');
+        }
+        
+        // Check for ABI-related errors
+        if (error.message.includes('filter is not a function') || error.message.includes('r.filter')) {
+          console.error('🔴 ABI Error detected - ABI extraction issue');
+          console.error('   This suggests the ABI is not in the correct format');
+          console.error('   The frontend needs to be rebuilt with the latest ABI extraction fix');
+        }
+      }
       
       // Dismiss loading toast
       toast.dismiss('pool-creation');
@@ -507,11 +549,15 @@ export function usePoolCore() {
           toast.error('Transaction reverted. Check your parameters and try again.');
         } else if (error.message.includes('Transaction failed with status')) {
           toast.error('Transaction failed on-chain. Please check your parameters and try again.');
+        } else if (error.message.includes('RPC endpoint') || error.message.includes('HTTP client error')) {
+          toast.error('RPC endpoint error. The transaction was not sent. Please try again in a moment.');
+        } else if (error.message.includes('filter is not a function')) {
+          toast.error('ABI error detected. Please refresh the page and try again.');
         } else {
           toast.error(`Failed to create pool: ${error.message}`);
         }
       } else {
-        toast.error('Failed to create pool');
+        toast.error('Failed to create pool. Please try again.');
       }
       
       throw error;
