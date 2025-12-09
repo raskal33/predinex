@@ -323,6 +323,11 @@
         "internalType": "string",
         "name": "_marketId",
         "type": "string"
+      },
+      {
+        "internalType": "bool",
+        "name": "_isDynamicOdds",
+        "type": "bool"
       }
     ],
     "name": "createPool",
