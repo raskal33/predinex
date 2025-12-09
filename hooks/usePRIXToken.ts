@@ -60,7 +60,7 @@ export function usePRIXToken() {
     if (stakingAllowance !== undefined && stakingAllowance !== null && CONTRACTS.PREDINEX_STAKING?.address) {
       setAllowances(prev => ({
         ...prev,
-        [CONTRACTS.PREDINEX_STAKING.address]: stakingAllowance as bigint
+        [CONTRACTS.PREDINEX_STAKING.address]: stakingAllowance as unknown as bigint
       }));
     }
   }, [stakingAllowance]);
@@ -69,7 +69,7 @@ export function usePRIXToken() {
     if (faucetAllowance !== undefined && faucetAllowance !== null && CONTRACTS.FAUCET?.address) {
       setAllowances(prev => ({
         ...prev,
-        [CONTRACTS.FAUCET.address]: faucetAllowance as bigint
+        [CONTRACTS.FAUCET.address]: faucetAllowance as unknown as bigint
       }));
     }
   }, [faucetAllowance]);
@@ -116,7 +116,7 @@ export function usePRIXToken() {
 
   const formatTotalSupply = (): string => {
     if (!totalSupply || !decimals) return '0';
-    return formatUnits(totalSupply as bigint, Number(decimals));
+    return formatUnits(totalSupply as unknown as bigint, Number(decimals));
   };
 
   const refetchAll = () => {
@@ -133,14 +133,14 @@ export function usePRIXToken() {
     totalSupply: formatTotalSupply(),
     
     // User balance
-    balance: formatBalance(balance as bigint),
-    rawBalance: balance as bigint,
+    balance: formatBalance(balance as unknown as bigint),
+    rawBalance: balance as unknown as bigint,
     refetchBalance,
     
     // Allowances
     getAllowance,
-    stakingAllowance: stakingAllowance as bigint,
-    faucetAllowance: faucetAllowance as bigint,
+    stakingAllowance: stakingAllowance as unknown as bigint,
+    faucetAllowance: faucetAllowance as unknown as bigint,
     
     // Actions
     transfer,

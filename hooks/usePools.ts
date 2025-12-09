@@ -149,7 +149,7 @@ export function usePools() {
         functionName: 'allowance',
         args: [owner, spender],
       });
-      return result as bigint;
+      return result as unknown as bigint;
     } catch (error) {
       console.error('❌ Error getting PRIX allowance:', error);
       return 0n;
@@ -311,7 +311,7 @@ export function usePools() {
       
       // Convert bytes32 fields to human-readable strings
       const pool = rawPool && typeof rawPool === 'object' && rawPool !== null 
-        ? convertPoolToReadableEnhanced(rawPool as Record<string, unknown>) 
+        ? convertPoolToReadableEnhanced(rawPool as unknown as Record<string, unknown>) 
         : null;
       return { pool: pool as unknown as Pool, refetch: async () => getPool(poolId) };
     } catch (error) {
@@ -335,7 +335,7 @@ export function usePools() {
       
       // Convert bytes32 fields to human-readable strings
       const comboPool = rawComboPool && typeof rawComboPool === 'object' && rawComboPool !== null 
-        ? convertPoolToReadableEnhanced(rawComboPool as Record<string, unknown>) 
+        ? convertPoolToReadableEnhanced(rawComboPool as unknown as Record<string, unknown>) 
         : null;
       return { comboPool: comboPool as unknown as ComboPool, refetch: async () => getComboPool(comboPoolId) };
     } catch (error) {
@@ -356,7 +356,7 @@ export function usePools() {
         functionName: 'poolWhitelist',
         args: [BigInt(poolId), address],
       });
-      return { whitelisted: whitelisted as boolean, refetch: async () => isWhitelisted(poolId) };
+      return { whitelisted: whitelisted as unknown as boolean, refetch: async () => isWhitelisted(poolId) };
     } catch (error) {
       console.error('Error checking whitelist:', error);
       return { whitelisted: false, refetch: async () => isWhitelisted(poolId) };
@@ -375,7 +375,7 @@ export function usePools() {
         functionName: 'bettorStakes',
         args: [BigInt(poolId), address],
       });
-      return { stake: stake as bigint, refetch: async () => getUserStake(poolId) };
+      return { stake: stake as unknown as bigint, refetch: async () => getUserStake(poolId) };
     } catch (error) {
       console.error('Error fetching user stake:', error);
       return { stake: BigInt(0), refetch: async () => getUserStake(poolId) };
@@ -393,7 +393,7 @@ export function usePools() {
         functionName: 'comboBettorStakes',
         args: [BigInt(comboPoolId), address],
       });
-      return { stake: stake as bigint, refetch: async () => getComboStake(comboPoolId) };
+      return { stake: stake as unknown as bigint, refetch: async () => getComboStake(comboPoolId) };
     } catch (error) {
       console.error('Error fetching combo stake:', error);
       return { stake: BigInt(0), refetch: async () => getComboStake(comboPoolId) };
@@ -412,7 +412,7 @@ export function usePools() {
         functionName: 'poolBoostTier',
         args: [BigInt(poolId)],
       });
-      return { boostTier: boostTier as number, refetch: async () => getPoolBoost(poolId) };
+      return { boostTier: boostTier as unknown as number, refetch: async () => getPoolBoost(poolId) };
     } catch (error) {
       console.error('Error fetching pool boost:', error);
       return { boostTier: 0, refetch: async () => getPoolBoost(poolId) };
@@ -468,7 +468,7 @@ export function usePools() {
       });
     } else {
       // Calculate total required (creation fee + stake) for BNB pools
-      const totalRequired = (creationFeeBNB as bigint) + stakeWei;
+      const totalRequired = (creationFeeBNB as unknown as bigint) + stakeWei;
       writeContract({
         ...CONTRACTS.POOL_CORE,
         functionName: 'createPool',
@@ -701,7 +701,7 @@ export function usePools() {
         ...getTransactionOptions(),
       });
     } else {
-      const totalRequired = (creationFeeBNB as bigint) + stakeWei;
+      const totalRequired = (creationFeeBNB as unknown as bigint) + stakeWei;
       writeContract({
         ...CONTRACTS.POOL_CORE,
         functionName: 'createComboPool',
@@ -812,10 +812,10 @@ export function usePools() {
     // Contract data
     poolCount: Number(poolCount || 0),
     comboPoolCount: Number(comboPoolCount || 0),
-    minBetAmount: formatAmount(minBetAmount as bigint),
-    minPoolStake: formatAmount(minPoolStake as bigint),
-    creationFeeBNB: formatAmount(creationFeeBNB as bigint),
-    creationFeePRIX: formatAmount(creationFeePRIX as bigint),
+    minBetAmount: formatAmount(minBetAmount as unknown as bigint),
+    minPoolStake: formatAmount(minPoolStake as unknown as bigint),
+    creationFeeBNB: formatAmount(creationFeeBNB as unknown as bigint),
+    creationFeePRIX: formatAmount(creationFeePRIX as unknown as bigint),
     
     // Pool functions
     getPool,

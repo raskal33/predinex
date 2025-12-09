@@ -77,11 +77,11 @@ export function useCreatorYield() {
 
   const formattedTotalClaimable = useMemo(() => {
     if (!totalClaimable) return '0';
-    return formatEther(totalClaimable as bigint);
+    return formatEther(totalClaimable as unknown as bigint);
   }, [totalClaimable]);
 
   return {
-    totalClaimable: totalClaimable as bigint | undefined,
+    totalClaimable: totalClaimable as unknown as bigint | undefined,
     formattedTotalClaimable,
     claimYield,
     getPoolYield,

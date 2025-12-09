@@ -167,7 +167,7 @@ class GauntletService {
         functionName: 'dailyCycleId',
         args: [],
       });
-      const cycleId = result as bigint;
+      const cycleId = result as unknown as bigint;
       console.log('📅 Current cycle ID:', cycleId.toString());
       return cycleId;
     } catch (error) {
@@ -229,7 +229,7 @@ class GauntletService {
         state,
         startTime: cycleInfoData.startTime || BigInt(0),
         endTime,
-        prizePool: actualPrizePool as bigint, // Use correct prize pool with rollover
+        prizePool: actualPrizePool as unknown as bigint, // Use correct prize pool with rollover
         slipCount: cycleSlipCount,
         evaluatedSlips: cycleInfoData.evaluatedSlips || BigInt(0),
         hasWinner,
@@ -315,8 +315,8 @@ class GauntletService {
 
         // Calculate rollover: 95% of previous prize pool (5% fee deducted)
         const PRIZE_ROLLOVER_FEE_PERCENTAGE = 500; // 5% = 500 basis points
-        const fee = (previousPrizePool as bigint * BigInt(PRIZE_ROLLOVER_FEE_PERCENTAGE)) / BigInt(10000);
-        const rolloverAmount = (previousPrizePool as bigint) - fee;
+        const fee = (previousPrizePool as unknown as bigint * BigInt(PRIZE_ROLLOVER_FEE_PERCENTAGE)) / BigInt(10000);
+        const rolloverAmount = (previousPrizePool as unknown as bigint) - fee;
 
         return rolloverAmount;
       }
@@ -411,7 +411,7 @@ class GauntletService {
         functionName: 'entryFee',
         args: [],
       });
-      return formatEther(result as bigint);
+      return formatEther(result as unknown as bigint);
     } catch (error) {
       console.error('Error getting entry fee:', error);
       throw error;
@@ -458,7 +458,7 @@ class GauntletService {
         args: [],
       });
 
-      const entryFeeBigInt = entryFeeResult as bigint;
+      const entryFeeBigInt = entryFeeResult as unknown as bigint;
       console.log(`💰 Entry fee from contract: ${formatEther(entryFeeBigInt)} BNB (${entryFeeBigInt.toString()} wei)`);
 
       // Convert predictions to contract format
@@ -549,7 +549,7 @@ class GauntletService {
         args: [userAddress, cycleId],
       });
 
-      const slipIds = slipIdsResult as bigint[];
+      const slipIds = slipIdsResult as unknown as bigint[];
       console.log('🔍 Contract returned slip IDs:', slipIds);
 
       if (!slipIds || slipIds.length === 0) {
@@ -927,7 +927,7 @@ class GauntletService {
         abi: CONTRACTS.GAUNTLET.abi,
         functionName: 'getCurrentCycle',
         args: [],
-      })) as bigint;
+      })) as unknown as bigint;
 
       const currentCycleNum = Number(currentCycleIdResult);
       if (currentCycleNum === 0) {

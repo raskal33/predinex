@@ -61,7 +61,7 @@ export function usePrixToken() {
           args: [owner, spender],
         });
       });
-      return result as bigint;
+      return result as unknown as bigint;
     } catch (error) {
       console.error('Error getting PRIX allowance:', error);
       return 0n;
@@ -78,7 +78,7 @@ export function usePrixToken() {
           args: [account || address || '0x0'],
         });
       });
-      return result as bigint;
+      return result as unknown as bigint;
     } catch (error) {
       console.error('Error getting PRIX balance:', error);
       return 0n;
@@ -431,13 +431,22 @@ export function usePoolCore() {
       const shouldUseFactory = hasBoost; // Use factory if boost is enabled
       
       // ✅ DEBUG: Log transaction details before sending
+      const abiToUse = shouldUseFactory ? CONTRACTS.FACTORY.abi : CONTRACTS.POOL_CORE.abi;
+      const abiIsValid = Array.isArray(abiToUse);
+      
+      if (!abiIsValid) {
+        const errorMsg = `❌ Invalid ABI format: Expected array, got ${typeof abiToUse}. The ABI extraction may have failed.`;
+        console.error(errorMsg);
+        console.error('ABI value:', abiToUse);
+        throw new Error('Invalid ABI format. Please refresh the page and try again.');
+      }
+      
       console.log('🚀 Sending createPool transaction:', {
         shouldUseFactory,
         functionName: shouldUseFactory ? 'createPoolWithBoost' : 'createPool',
         address: shouldUseFactory ? CONTRACT_ADDRESSES.FACTORY : CONTRACT_ADDRESSES.POOL_CORE,
-        abiType: shouldUseFactory ? typeof CONTRACTS.FACTORY.abi : typeof CONTRACTS.POOL_CORE.abi,
-        abiIsArray: shouldUseFactory ? Array.isArray(CONTRACTS.FACTORY.abi) : Array.isArray(CONTRACTS.POOL_CORE.abi),
-        abiLength: shouldUseFactory ? (Array.isArray(CONTRACTS.FACTORY.abi) ? CONTRACTS.FACTORY.abi.length : 'N/A') : (Array.isArray(CONTRACTS.POOL_CORE.abi) ? CONTRACTS.POOL_CORE.abi.length : 'N/A'),
+        abiIsValid: true,
+        abiLength: abiToUse.length,
         argsCount: shouldUseFactory ? 19 : 18,
         value: shouldUseFactory ? transactionValue.toString() : (finalCurrencyType === 0 ? (poolData.creatorStake + creationFeeBNB).toString() : creationFeeBNB.toString()),
       });
@@ -679,7 +688,7 @@ export function useBoostSystem() {
           args: [poolId],
         });
       });
-      return result as boolean;
+      return result as unknown as boolean;
     } catch (error) {
       console.error('Error checking boost eligibility:', error);
       return false;
@@ -757,7 +766,7 @@ export function useReputationSystem() {
           args: [userAddress || address || '0x0'],
         });
       });
-      return result as {
+      return result as unknown as {
         reputation: bigint;
         tier: number;
         influenceScore: bigint;
@@ -780,7 +789,7 @@ export function useReputationSystem() {
           args: [userAddress || address || '0x0'],
         });
       });
-      return result as {
+      return result as unknown as {
         totalPools: bigint;
         totalBets: bigint;
         totalWinnings: bigint;
@@ -840,7 +849,7 @@ export function useFaucet() {
           args: [address],
         });
       });
-      return result as boolean;
+      return result as unknown as boolean;
     } catch (error) {
       console.error('Error checking faucet eligibility:', error);
       return false;

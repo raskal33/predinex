@@ -361,7 +361,7 @@ export function useStaking() {
           const currentAPY = (baseAPY + durationBonus * 100) / 100; // Convert from basis points
           
           // Calculate if can unstake with safety checks
-          const durationOptionsArray = durationOptions as bigint[];
+          const durationOptionsArray = durationOptions as unknown as bigint[];
           let durationInSeconds = 0;
           
           if (durationOptionsArray && Array.isArray(durationOptionsArray) && 
@@ -546,11 +546,11 @@ export function useStaking() {
 
   return {
     // Contract data
-    totalStaked: formatAmount(totalStaked as bigint),
-    totalRewardsPaid: formatReward(totalRewardsPaid as bigint),
-    totalRevenuePaid: formatReward(totalRevenuePaid as bigint),
+    totalStaked: formatAmount(totalStaked as unknown as bigint),
+    totalRewardsPaid: formatReward(totalRewardsPaid as unknown as bigint),
+    totalRevenuePaid: formatReward(totalRevenuePaid as unknown as bigint),
     tiers: tiers as Tier[],
-    durationOptions: durationOptions as bigint[],
+    durationOptions: durationOptions as unknown as bigint[],
     userStakes: userStakes as Stake[],
     
     // Calculated data
@@ -562,12 +562,12 @@ export function useStaking() {
     nextTierThreshold: formatAmount(getNextTierThreshold()),
     
     // Revenue sharing
-    pendingRevenuePRIX: formatReward(pendingRevenuePRIX as bigint),
-    pendingRevenueBNB: formatReward(pendingRevenueBNB as bigint),
+    pendingRevenuePRIX: formatReward(pendingRevenuePRIX as unknown as bigint),
+    pendingRevenueBNB: formatReward(pendingRevenueBNB as unknown as bigint),
     
     // ✅ FIX: Add raw values for debugging
-    pendingRevenuePRIX_raw: pendingRevenuePRIX as bigint | undefined,
-    pendingRevenueBNB_raw: pendingRevenueBNB as bigint | undefined,
+    pendingRevenuePRIX_raw: pendingRevenuePRIX as unknown as bigint | undefined,
+    pendingRevenueBNB_raw: pendingRevenueBNB as unknown as bigint | undefined,
     
     // Actions
     stake,

@@ -101,15 +101,15 @@ export function useFaucet() {
   // Parse eligibility tuple into object
   const eligibilityInfo: EligibilityInfo | undefined = eligibilityTuple && Array.isArray(eligibilityTuple)
     ? {
-        eligible: eligibilityTuple[0] as boolean,
+        eligible: eligibilityTuple[0] as unknown as boolean,
         reason: eligibilityTuple[1] as string,
-        oddysseySlips: eligibilityTuple[2] as bigint,
+        oddysseySlips: eligibilityTuple[2] as unknown as bigint,
       }
     : undefined;
 
   const canClaim = (): boolean => {
-    const stats = faucetStats as FaucetStats;
-    const info = userInfo as UserInfo;
+    const stats = faucetStats as unknown as FaucetStats;
+    const info = userInfo as unknown as UserInfo;
     
     // Use contract's checkEligibility result as source of truth
     if (eligibilityInfo) {
@@ -130,8 +130,8 @@ export function useFaucet() {
       return eligibilityInfo.reason;
     }
     
-    const stats = faucetStats as FaucetStats;
-    const info = userInfo as UserInfo;
+    const stats = faucetStats as unknown as FaucetStats;
+    const info = userInfo as unknown as UserInfo;
     
     if (!stats?.active) return 'Faucet is inactive';
     if (info?.claimed) return 'Already claimed';
@@ -156,22 +156,22 @@ export function useFaucet() {
 
   return {
     // Contract data
-    faucetAmount: formatAmount(faucetAmount as bigint),
+    faucetAmount: formatAmount(faucetAmount as unknown as bigint),
     minOddysseySlips: requiredSlips,
-    faucetStats: faucetStats as FaucetStats,
-    userInfo: userInfo as UserInfo,
+    faucetStats: faucetStats as unknown as FaucetStats,
+    userInfo: userInfo as unknown as UserInfo,
     eligibilityInfo: eligibilityInfo,
     oddysseySlipCount: currentSlipCount,
-    hasSufficientBalance: hasSufficientBalance as boolean,
+    hasSufficientBalance: hasSufficientBalance as unknown as boolean,
     maxPossibleClaims: Number(maxPossibleClaims || 0),
     
     // Calculated data
-    faucetBalance: formatAmount((faucetStats as FaucetStats)?.balance),
-    totalDistributed: formatAmount((faucetStats as FaucetStats)?.totalDistributed),
-    userCount: Number((faucetStats as FaucetStats)?.userCount || 0),
-    isActive: (faucetStats as FaucetStats)?.active || false,
-    hasClaimed: (userInfo as UserInfo)?.claimed || false,
-    claimDate: formatDate((userInfo as UserInfo)?.claimTime || BigInt(0)),
+    faucetBalance: formatAmount((faucetStats as unknown as FaucetStats)?.balance),
+    totalDistributed: formatAmount((faucetStats as unknown as FaucetStats)?.totalDistributed),
+    userCount: Number((faucetStats as unknown as FaucetStats)?.userCount || 0),
+    isActive: (faucetStats as unknown as FaucetStats)?.active || false,
+    hasClaimed: (userInfo as unknown as UserInfo)?.claimed || false,
+    claimDate: formatDate((userInfo as unknown as UserInfo)?.claimTime || BigInt(0)),
     canClaim: canClaim(),
     claimStatus: getClaimStatus(),
     

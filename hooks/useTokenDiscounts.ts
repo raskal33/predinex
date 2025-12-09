@@ -22,7 +22,7 @@ export function useTokenDiscounts() {
   // Calculate fee discount
   const feeCalculation: FeeCalculation | null = useMemo(() => {
     if (!prixBalance) return null;
-    return calculateFeeDiscount(prixBalance as bigint);
+    return calculateFeeDiscount(prixBalance as unknown as bigint);
   }, [prixBalance]);
 
   // Get adjusted fee rate from contract (if available)
@@ -35,9 +35,9 @@ export function useTokenDiscounts() {
   });
 
   return {
-    prixBalance: prixBalance as bigint | undefined,
+    prixBalance: prixBalance as unknown as bigint | undefined,
     feeCalculation,
-    adjustedFeeRate: adjustedFeeRate as bigint | undefined,
+    adjustedFeeRate: adjustedFeeRate as unknown as bigint | undefined,
     discountTier: feeCalculation?.tier || 'NONE',
     discountPercent: feeCalculation?.discountPercent || 0,
     refetchBalance,
