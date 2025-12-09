@@ -76,14 +76,29 @@ export class GuidedMarketWalletService {
       // 🚨 CRITICAL FIX: Override with new optimized contract address
       transactionData.contractAddress = CONTRACT_ADDRESSES.POOL_CORE;
       
+      // ✅ FIXED: Ensure parameters is an array to prevent "r.filter is not a function" error
+      if (!Array.isArray(transactionData.parameters)) {
+        console.error('❌ transactionData.parameters is not an array:', transactionData.parameters);
+        return {
+          success: false,
+          error: 'Invalid transaction data: parameters must be an array'
+        };
+      }
+      
+      // ✅ FIXED: Updated marketId index based on parameter count
+      // Diamond createPool: marketId at index 16 (18 params total)
+      // Factory createPoolWithBoost: marketId at index 17 (19 params total)
+      const marketIdIndex = transactionData.parameters.length === 19 ? 17 : 16;
+      
       // 🔧 CRITICAL FIX: Override marketId with actual SportMonks fixture ID (not hex hash)
-      if (transactionData.parameters && transactionData.parameters.length > 16) {
+      if (transactionData.parameters && transactionData.parameters.length > marketIdIndex) {
         // Replace the hex marketId with the actual SportMonks fixture ID
-        const originalMarketId = transactionData.parameters[16];
-        transactionData.parameters[16] = marketData.fixtureId;
+        const originalMarketId = transactionData.parameters[marketIdIndex];
+        transactionData.parameters[marketIdIndex] = marketData.fixtureId;
         console.log(`🔧 Overriding marketId with SportMonks fixture ID:`);
         console.log(`   Original (hex): ${originalMarketId}`);
         console.log(`   New (fixture ID): ${marketData.fixtureId}`);
+        console.log(`   Parameter count: ${transactionData.parameters.length}, marketId index: ${marketIdIndex}`);
       }
       
       console.log('✅ Transaction data prepared:', {
@@ -243,65 +258,85 @@ export class GuidedMarketWalletService {
    * Hash string parameters to bytes32 for the optimized contract
    */
   private static hashStringParameters(parameters: any[]): any[] {
+    // ✅ FIXED: Updated for new createPool signature with 18 parameters
     // The createPool function expects these parameters in order:
-    // [predictedOutcome, odds, creatorStake, eventStartTime, eventEndTime, 
-    //  leagueHash, categoryHash, homeTeamHash, awayTeamHash, titleHash,
-    //  isPrivate, maxBetPerUser, usePrix, oracleType, marketType, marketId]
-    // Note: Contract signature is: createPool(..., bytes32 _league, bytes32 _category, bytes32 _homeTeam, bytes32 _awayTeam, bytes32 _title, bool _isPrivate, uint256 _maxBetPerUser, bool _usePrix, OracleType _oracleType, MarketType _marketType, string memory _marketId)
+    // [creatorStake, odds, predictedOutcome, eventStartTime, eventEndTime,
+    //  isPrivate, maxBetPerUser, oracleType, marketType, currencyType,
+    //  league, category, homeTeam, awayTeam, title, leverage, marketId, isDynamicOdds]
+    // Note: Contract signature is: createPool(uint256 _creatorStake, uint16 _odds, bytes32 _predictedOutcome, ...)
+    
+    // ✅ FIXED: Support both 18 parameters (Diamond createPool) and 19 parameters (Factory createPoolWithBoost)
+    if (!Array.isArray(parameters)) {
+      console.error('❌ Parameters is not an array:', typeof parameters, parameters);
+      return [];
+    }
     
     if (parameters.length < 17) {
-      console.warn('⚠️ Expected 17 parameters for createPool, got:', parameters.length);
+      console.warn('⚠️ Expected at least 17 parameters, got:', parameters.length);
       return parameters;
     }
     
     const hashedParameters = [...parameters];
     
-    // Hash string parameters (indices 5-10 are the string fields that need hashing)
-    const stringFields = [5, 6, 7, 8, 9, 10]; // league, category, region, homeTeam, awayTeam, title
-    const fieldNames = ['league', 'category', 'region', 'homeTeam', 'awayTeam', 'title'];
+    // ✅ FIXED: Updated string field indices for new createPool signature
+    // Diamond createPool parameter order (18 params):
+    // [0: creatorStake, 1: odds, 2: predictedOutcome, 3: eventStartTime, 4: eventEndTime,
+    //  5: isPrivate, 6: maxBetPerUser, 7: oracleType, 8: marketType, 9: currencyType,
+    //  10: league (bytes32), 11: category (bytes32), 12: homeTeam (bytes32), 13: awayTeam (bytes32), 14: title (bytes32),
+    //  15: leverage, 16: marketId (string), 17: isDynamicOdds]
     
-    for (let i = 0; i < stringFields.length; i++) {
-      const paramIndex = stringFields[i];
-      const fieldName = fieldNames[i];
-      const paramValue = parameters[paramIndex];
-      
-      if (typeof paramValue === 'string' && paramValue.length > 0) {
-        console.log(`🔤 Hashing ${fieldName}: "${paramValue}" -> bytes32`);
-        hashedParameters[paramIndex] = ethers.keccak256(ethers.toUtf8Bytes(paramValue));
-      } else {
-        console.log(`⚠️ ${fieldName} is not a valid string:`, paramValue);
-        // Use empty string hash as fallback
-        hashedParameters[paramIndex] = ethers.keccak256(ethers.toUtf8Bytes(''));
+    // ✅ FIXED: String fields are already hashed by backend, but we need to ensure they're bytes32
+    // Backend sends: leagueHash, categoryHash, homeTeamHash, awayTeamHash, titleHash (indices 10-14)
+    // These should already be bytes32 hashes, but we verify they're not plain strings
+    
+    // Note: Backend already hashes these, so we just pass them through
+    // But if somehow they're still strings, we hash them
+    const stringFieldIndices = parameters.length === 19 
+      ? [6, 7, 9, 10, 11] // Factory: leagueHash, categoryHash, homeTeamHash, awayTeamHash, titleHash
+      : [10, 11, 12, 13, 14]; // Diamond: league, category, homeTeam, awayTeam, title
+    
+    for (const paramIndex of stringFieldIndices) {
+      if (paramIndex < parameters.length) {
+        const paramValue = parameters[paramIndex];
+        // If it's a string (not already hashed), hash it
+        if (typeof paramValue === 'string' && paramValue.length > 0 && !paramValue.startsWith('0x')) {
+          console.log(`🔤 Hashing parameter at index ${paramIndex}: "${paramValue}" -> bytes32`);
+          hashedParameters[paramIndex] = ethers.keccak256(ethers.toUtf8Bytes(paramValue));
+        }
       }
     }
     
-    // 🔧 CRITICAL FIX: Ensure marketId (index 15) is always a string, not hex
-    // Parameter order: ...oracleType (13), marketType (14), marketId (15)
-    const marketIdIndex = 15;
+    // ✅ FIXED: Updated marketId index for new parameter order
+    // Diamond createPool (18 params): marketId at index 16 (string)
+    // Factory createPoolWithBoost (19 params): marketId at index 17 (bytes32)
+    const marketIdIndex = parameters.length === 19 ? 17 : 16;
+    
     if (hashedParameters.length > marketIdIndex) {
       const marketId = hashedParameters[marketIdIndex];
-      console.log(`🔍 MarketId before final check: ${marketId} (type: ${typeof marketId})`);
+      console.log(`🔍 MarketId before final check (index ${marketIdIndex}): ${marketId} (type: ${typeof marketId})`);
       
-      // If it's still a hex string, convert it to a regular string
-      if (typeof marketId === 'string' && marketId.startsWith('0x')) {
-        console.log(`🔧 Converting hex marketId to string: ${marketId}`);
-        // Try to parse as hex number first
-        try {
-          const numericValue = parseInt(marketId, 16);
-          hashedParameters[marketIdIndex] = numericValue.toString();
-        } catch {
-          // If conversion fails, remove the 0x prefix
-          hashedParameters[marketIdIndex] = marketId.replace('0x', '');
+      // For Diamond (18 params), marketId should be a string
+      if (parameters.length === 18) {
+        if (typeof marketId === 'string' && marketId.startsWith('0x')) {
+          console.log(`🔧 Converting hex marketId to string: ${marketId}`);
+          // Try to parse as hex number first
+          try {
+            const numericValue = parseInt(marketId, 16);
+            hashedParameters[marketIdIndex] = numericValue.toString();
+          } catch {
+            // If conversion fails, remove the 0x prefix
+            hashedParameters[marketIdIndex] = marketId.replace('0x', '');
+          }
+        } else if (typeof marketId === 'number') {
+          // If it's a number, convert to string
+          hashedParameters[marketIdIndex] = marketId.toString();
         }
-      } else if (typeof marketId === 'number') {
-        // If it's a number, convert to string
-        hashedParameters[marketIdIndex] = marketId.toString();
+        console.log(`📝 Final marketId: ${hashedParameters[marketIdIndex]} (type: ${typeof hashedParameters[marketIdIndex]})`);
+      } else {
+        // Factory (19 params): marketId is bytes32, keep as is
+        console.log(`📝 Factory marketId (bytes32): ${hashedParameters[marketIdIndex]}`);
       }
-      
-      console.log(`📝 Final marketId: ${hashedParameters[marketIdIndex]} (type: ${typeof hashedParameters[marketIdIndex]})`);
     }
-    
-    // Note: marketType (index 15) is an enum, so we don't hash it either
     
     return hashedParameters;
   }
@@ -325,20 +360,33 @@ export class GuidedMarketWalletService {
         gasEstimate: transactionData.gasEstimate
       });
       
+      // ✅ FIXED: Ensure parameters is an array before processing
+      if (!Array.isArray(transactionData.parameters)) {
+        console.error('❌ transactionData.parameters is not an array in executeTransaction:', transactionData.parameters);
+        throw new Error('Invalid transaction data: parameters must be an array');
+      }
+      
       // Hash string parameters for the optimized contract
       console.log('🔍 Raw parameters before hashing:', transactionData.parameters);
+      console.log('🔍 Parameter count:', transactionData.parameters.length);
       const hashedParameters = this.hashStringParameters(transactionData.parameters);
       console.log('🔤 Hashed parameters:', hashedParameters);
+      console.log('🔤 Hashed parameter count:', hashedParameters.length);
+      
+      // ✅ FIXED: Updated marketId index based on parameter count
+      // Diamond createPool: marketId at index 16 (18 params total)
+      // Factory createPoolWithBoost: marketId at index 17 (19 params total)
+      const marketIdIndex = hashedParameters.length === 19 ? 17 : 16;
       
       // 🔧 DEBUG: Check the marketId parameter specifically
-      if (hashedParameters.length > 16) {
-        console.log('🔍 MarketId parameter (index 16):', hashedParameters[16]);
-        console.log('🔍 MarketId type:', typeof hashedParameters[16]);
+      if (hashedParameters.length > marketIdIndex) {
+        console.log(`🔍 MarketId parameter (index ${marketIdIndex}):`, hashedParameters[marketIdIndex]);
+        console.log('🔍 MarketId type:', typeof hashedParameters[marketIdIndex]);
         
         // 🔧 FINAL OVERRIDE: Force the marketId to be the fixture ID string
-        if (marketData && hashedParameters[16] && hashedParameters[16] !== marketData.fixtureId) {
-          console.log(`🔧 FINAL OVERRIDE: Replacing ${hashedParameters[16]} with ${marketData.fixtureId}`);
-          hashedParameters[16] = marketData.fixtureId;
+        if (marketData && hashedParameters[marketIdIndex] && hashedParameters[marketIdIndex] !== marketData.fixtureId) {
+          console.log(`🔧 FINAL OVERRIDE: Replacing ${hashedParameters[marketIdIndex]} with ${marketData.fixtureId}`);
+          hashedParameters[marketIdIndex] = marketData.fixtureId;
         }
       }
       
