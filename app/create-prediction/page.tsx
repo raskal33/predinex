@@ -2304,6 +2304,10 @@ function CreateMarketPageContent() {
             <h5 className="text-sm font-semibold text-white mb-2">Cost Breakdown</h5>
             <div className="space-y-1 text-sm">
               <div className="flex justify-between">
+                <span className="text-gray-300">Creator Stake:</span>
+                <span className="text-white">{data.creatorStake} {usePrix ? 'PRIX' : getCurrencyName()}</span>
+              </div>
+              <div className="flex justify-between">
                 <span className="text-gray-300">Creation Fee:</span>
                 <span className="text-white">{usePrix ? '50 PRIX' : '0.01 BNB'}</span>
               </div>
@@ -2323,9 +2327,15 @@ function CreateMarketPageContent() {
               <div className="flex justify-between border-t border-gray-600 pt-1">
                 <span className="text-gray-300 font-semibold">Total Cost:</span>
                 <span className="text-white font-bold">
-                  {data.enableBoost
-                    ? `${token.rawBalance && token.rawBalance >= BigInt('100000000000000000000000') ? '150' : '300'} PRIX + ${usePrix ? '50 PRIX' : '0.01 BNB'}`
-                    : `${usePrix ? '50 PRIX' : '0.01 BNB'}`}
+                  {(() => {
+                    const stakeDisplay = `${data.creatorStake} ${usePrix ? 'PRIX' : getCurrencyName()}`;
+                    const feeDisplay = usePrix ? '50 PRIX' : '0.01 BNB';
+                    const boostDisplay = data.enableBoost
+                      ? ` + ${token.rawBalance && token.rawBalance >= BigInt('100000000000000000000000') ? '150' : '300'} PRIX`
+                      : '';
+                    
+                    return `${stakeDisplay} + ${feeDisplay}${boostDisplay}`;
+                  })()}
                 </span>
               </div>
               <div className="flex justify-between mt-2 pt-2 border-t border-gray-600">
