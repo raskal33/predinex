@@ -26,8 +26,14 @@ const extractABI = (artifact: any): any[] => {
   if (artifact && typeof artifact === 'object' && Array.isArray(artifact.abi)) {
     return artifact.abi; // Extract from .abi property
   }
-  // Fallback: return as-is (might already be correct)
-  return artifact;
+  // ✅ FIX: If we can't extract, log error and return empty array to prevent runtime errors
+  console.error('⚠️ Failed to extract ABI from artifact:', {
+    isArray: Array.isArray(artifact),
+    hasAbi: !!(artifact && typeof artifact === 'object' && artifact.abi),
+    abiIsArray: !!(artifact && typeof artifact === 'object' && Array.isArray(artifact.abi)),
+    artifactKeys: artifact && typeof artifact === 'object' ? Object.keys(artifact) : 'not an object',
+  });
+  return []; // Return empty array to prevent "filter is not a function" errors
 };
 
 const PredinexTokenABI = extractABI(PredinexTokenArtifact);
@@ -45,74 +51,83 @@ const OddysseyABI = extractABI(OddysseyArtifact); // Updated Oddyssey ABI
 const GauntletABI = extractABI(GauntletArtifact); // Legacy alias (may be same as Oddyssey)
 const PredinexH2HABI = extractABI(PredinexH2HArtifact);
 
+// ✅ Runtime validation: Ensure all ABIs are arrays
+const validateABI = (abi: any, name: string): any[] => {
+  if (!Array.isArray(abi)) {
+    console.error(`❌ CRITICAL: ${name} ABI is not an array! Type: ${typeof abi}, Value:`, abi);
+    return [];
+  }
+  return abi;
+};
+
 // Contract configurations - Updated for Modular Architecture
 export const CONTRACTS = {
   // Core Contracts
   PRIX_TOKEN: {
     address: CONTRACT_ADDRESSES.PRIX_TOKEN,
-    abi: PredinexTokenABI,
+    abi: validateABI(PredinexTokenABI, 'PRIX_TOKEN'),
   },
   POOL_CORE: {
     address: CONTRACT_ADDRESSES.POOL_CORE,
-    abi: PredinexDiamondABI, // Use Diamond ABI (includes all facet functions)
+    abi: validateABI(PredinexDiamondABI, 'POOL_CORE'), // Use Diamond ABI (includes all facet functions)
   },
   PREDINEX_DIAMOND: {
     address: CONTRACT_ADDRESSES.PREDINEX_DIAMOND,
-    abi: PredinexDiamondABI, // Main Diamond proxy
+    abi: validateABI(PredinexDiamondABI, 'PREDINEX_DIAMOND'), // Main Diamond proxy
   },
   BOOST_SYSTEM: {
     address: CONTRACT_ADDRESSES.BOOST_SYSTEM,
-    abi: PredinexBoostSystemABI,
+    abi: validateABI(PredinexBoostSystemABI, 'BOOST_SYSTEM'),
   },
   COMBO_POOLS: {
     address: CONTRACT_ADDRESSES.COMBO_POOLS,
-    abi: PredinexComboPoolsABI,
+    abi: validateABI(PredinexComboPoolsABI, 'COMBO_POOLS'),
   },
   FACTORY: {
     address: CONTRACT_ADDRESSES.FACTORY,
-    abi: PredinexPoolFactoryABI,
+    abi: validateABI(PredinexPoolFactoryABI, 'FACTORY'),
   },
 
   // Oracle Contracts
   GUIDED_ORACLE: {
     address: CONTRACT_ADDRESSES.GUIDED_ORACLE,
-    abi: GuidedOracleABI,
+    abi: validateABI(GuidedOracleABI, 'GUIDED_ORACLE'),
   },
   OPTIMISTIC_ORACLE: {
     address: CONTRACT_ADDRESSES.OPTIMISTIC_ORACLE,
-    abi: OptimisticOracleABI,
+    abi: validateABI(OptimisticOracleABI, 'OPTIMISTIC_ORACLE'),
   },
 
   // System Contracts
   REPUTATION_SYSTEM: {
     address: CONTRACT_ADDRESSES.REPUTATION_SYSTEM,
-    abi: ReputationSystemABI,
+    abi: validateABI(ReputationSystemABI, 'REPUTATION_SYSTEM'),
   },
   STAKING_CONTRACT: {
     address: CONTRACT_ADDRESSES.STAKING_CONTRACT,
-    abi: PredinexStakingABI,
+    abi: validateABI(PredinexStakingABI, 'STAKING_CONTRACT'),
   },
   FAUCET: {
     address: CONTRACT_ADDRESSES.FAUCET,
-    abi: PrixFaucetABI,
+    abi: validateABI(PrixFaucetABI, 'FAUCET'),
   },
   ODDYSSEY: {
     address: CONTRACT_ADDRESSES.ODDYSSEY,
-    abi: OddysseyABI, // Updated Oddyssey ABI
+    abi: validateABI(OddysseyABI, 'ODDYSSEY'), // Updated Oddyssey ABI
   },
   GAUNTLET: {
     address: CONTRACT_ADDRESSES.ODDYSSEY, // Legacy alias - same as Oddyssey
-    abi: OddysseyABI, // Use Oddyssey ABI instead of legacy Gauntlet
+    abi: validateABI(OddysseyABI, 'GAUNTLET'), // Use Oddyssey ABI instead of legacy Gauntlet
   },
   H2H: {
     address: CONTRACT_ADDRESSES.H2H,
-    abi: PredinexH2HABI,
+    abi: validateABI(PredinexH2HABI, 'H2H'),
   },
 
   // Legacy support (for backward compatibility) - DEPRECATED: Use POOL_CORE instead
   PREDINEX_POOL: {
     address: CONTRACT_ADDRESSES.PREDINEX_POOL, // DEPRECATED: Use POOL_CORE (points to Diamond)
-    abi: PredinexDiamondABI, // DEPRECATED: Use POOL_CORE.abi (now Diamond ABI)
+    abi: validateABI(PredinexDiamondABI, 'PREDINEX_POOL'), // DEPRECATED: Use POOL_CORE.abi (now Diamond ABI)
   },
   PREDINEX_STAKING: {
     address: CONTRACT_ADDRESSES.PREDINEX_STAKING,
