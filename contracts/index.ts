@@ -16,21 +16,34 @@ import OddysseyArtifact from './abis/Oddyssey.json'; // Updated Oddyssey ABI
 import GauntletArtifact from './abis/Gauntlet.json'; // Legacy alias
 import PredinexH2HArtifact from './abis/PredinexH2H.json';
 
-// Extract ABI arrays from artifacts (ABI files are arrays directly, not objects with .abi property)
-const PredinexTokenABI = PredinexTokenArtifact as any;
-const PrixFaucetABI = PrixFaucetArtifact as any;
-const GuidedOracleABI = GuidedOracleArtifact as any;
-const OptimisticOracleABI = OptimisticOracleArtifact as any;
-const PredinexDiamondABI = PredinexDiamondArtifact as any; // Diamond ABI (master ABI with all facets)
-const PredinexPoolCoreABI = PredinexPoolCoreArtifact as any; // Legacy fallback
-const PredinexBoostSystemABI = PredinexBoostSystemArtifact as any;
-const PredinexComboPoolsABI = PredinexComboPoolsArtifact as any;
-const PredinexPoolFactoryABI = PredinexPoolFactoryArtifact as any;
-const PredinexStakingABI = PredinexStakingArtifact as any;
-const ReputationSystemABI = ReputationSystemArtifact as any;
-const OddysseyABI = OddysseyArtifact as any; // Updated Oddyssey ABI
-const GauntletABI = GauntletArtifact as any; // Legacy alias (may be same as Oddyssey)
-const PredinexH2HABI = PredinexH2HArtifact as any;
+// Extract ABI arrays from artifacts - handle both formats:
+// 1. Direct array: [ {...}, {...} ]
+// 2. Object with .abi property: { "abi": [ {...}, {...} ] }
+const extractABI = (artifact: any): any[] => {
+  if (Array.isArray(artifact)) {
+    return artifact; // Already an array
+  }
+  if (artifact && typeof artifact === 'object' && Array.isArray(artifact.abi)) {
+    return artifact.abi; // Extract from .abi property
+  }
+  // Fallback: return as-is (might already be correct)
+  return artifact;
+};
+
+const PredinexTokenABI = extractABI(PredinexTokenArtifact);
+const PrixFaucetABI = extractABI(PrixFaucetArtifact);
+const GuidedOracleABI = extractABI(GuidedOracleArtifact);
+const OptimisticOracleABI = extractABI(OptimisticOracleArtifact);
+const PredinexDiamondABI = extractABI(PredinexDiamondArtifact); // Diamond ABI (master ABI with all facets)
+const PredinexPoolCoreABI = extractABI(PredinexPoolCoreArtifact); // Legacy fallback
+const PredinexBoostSystemABI = extractABI(PredinexBoostSystemArtifact);
+const PredinexComboPoolsABI = extractABI(PredinexComboPoolsArtifact);
+const PredinexPoolFactoryABI = extractABI(PredinexPoolFactoryArtifact);
+const PredinexStakingABI = extractABI(PredinexStakingArtifact);
+const ReputationSystemABI = extractABI(ReputationSystemArtifact);
+const OddysseyABI = extractABI(OddysseyArtifact); // Updated Oddyssey ABI
+const GauntletABI = extractABI(GauntletArtifact); // Legacy alias (may be same as Oddyssey)
+const PredinexH2HABI = extractABI(PredinexH2HArtifact);
 
 // Contract configurations - Updated for Modular Architecture
 export const CONTRACTS = {
