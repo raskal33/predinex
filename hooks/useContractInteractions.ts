@@ -370,9 +370,25 @@ export function usePoolCore() {
       const safeEncodeBytes32 = (str: string, fieldName: string): string => {
         if (!str) return ethers.encodeBytes32String('');
         
-        // Ensure string is exactly 31 characters or less
-        const truncated = str.slice(0, 31);
-        console.log(`🔍 Encoding ${fieldName}: "${truncated}" (${truncated.length} chars)`);
+        // Truncate to ensure UTF-8 encoded bytes fit in 31 bytes (bytes32 = 32 bytes, last byte is null terminator)
+        // We need to count bytes, not characters, since multi-byte UTF-8 chars (like ø) take more than 1 byte
+        let truncated = '';
+        let byteLength = 0;
+        const maxBytes = 31; // bytes32 can hold 31 bytes of UTF-8 data (last byte is null terminator)
+        
+        for (let i = 0; i < str.length; i++) {
+          const char = str[i];
+          const charByteLength = new TextEncoder().encode(char).length;
+          
+          if (byteLength + charByteLength > maxBytes) {
+            break; // Stop if adding this char would exceed max bytes
+          }
+          
+          truncated += char;
+          byteLength += charByteLength;
+        }
+        
+        console.log(`🔍 Encoding ${fieldName}: "${truncated}" (${truncated.length} chars, ${byteLength} bytes)`);
         
         try {
           return ethers.encodeBytes32String(truncated);
