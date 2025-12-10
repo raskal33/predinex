@@ -82,29 +82,31 @@ export const appKit = createAppKit({
 export const config = wagmiAdapter.wagmiConfig
 
 // Contract addresses for smart contract integration - BSC TESTNET DEPLOYMENT (Diamond Pattern)
+// ✅ UPDATED: New deployment addresses (January 2025)
 export const CONTRACT_ADDRESSES = {
-  // Core Contracts (BSC TESTNET) - Updated with Diamond deployment
-  PRIX_TOKEN: (process.env.NEXT_PUBLIC_PRIX_TOKEN_ADDRESS || '0xAf7424a80520F9E6696D7fc5E40b59ac63aCF4eC') as `0x${string}`,
-  POOL_CORE: (process.env.NEXT_PUBLIC_POOL_CORE_ADDRESS || '0xd43Ff2F8aB39D3536e30a0F03C25c2d16DE2B8D9') as `0x${string}`, // PredinexDiamond
-  PREDINEX_DIAMOND: (process.env.NEXT_PUBLIC_POOL_CORE_ADDRESS || '0xd43Ff2F8aB39D3536e30a0F03C25c2d16DE2B8D9') as `0x${string}`, // Main Diamond proxy
-  BOOST_SYSTEM: (process.env.NEXT_PUBLIC_BOOST_SYSTEM_ADDRESS || '0x05C2DD1BA38760DCf0dF2F355A43D6fAfAe42aEf') as `0x${string}`,
-  COMBO_POOLS: (process.env.NEXT_PUBLIC_COMBO_POOLS_ADDRESS || '0x56C82e12e63fA526405Aa44419E3d6257Ce48971') as `0x${string}`,
-  FACTORY: (process.env.NEXT_PUBLIC_FACTORY_ADDRESS || '0xE2c37B6c5e30AAacdEdeE91d54aa018bDa129c30') as `0x${string}`,
+  // Core Contracts (BSC TESTNET) - Updated with NEW Diamond deployment
+  PRIX_TOKEN: (process.env.NEXT_PUBLIC_PRIX_TOKEN_ADDRESS || '0x4675C0B7ab27805Eb91192Adaefc80f6A4d07771') as `0x${string}`,
+  POOL_CORE: (process.env.NEXT_PUBLIC_POOL_CORE_ADDRESS || '0x735DE180558679E6132F51e410387A8f7d10c07E') as `0x${string}`, // PredinexDiamond
+  PREDINEX_DIAMOND: (process.env.NEXT_PUBLIC_POOL_CORE_ADDRESS || '0x735DE180558679E6132F51e410387A8f7d10c07E') as `0x${string}`, // Main Diamond proxy
+  BOOST_SYSTEM: (process.env.NEXT_PUBLIC_BOOST_SYSTEM_ADDRESS || '0xe97e95D7c6d4973E998c5FF446Cd7D0A21b18bDe') as `0x${string}`,
+  COMBO_POOLS: (process.env.NEXT_PUBLIC_COMBO_POOLS_ADDRESS || '0x8FFaEf1FCa8C9FDba38D60fb0606136ccc405Da3') as `0x${string}`,
+  FACTORY: (process.env.NEXT_PUBLIC_FACTORY_ADDRESS || '0xd016d1F5814Ef331112D8334A03b7D4142D0650A') as `0x${string}`,
   
   // Oracle Contracts
-  GUIDED_ORACLE: (process.env.NEXT_PUBLIC_GUIDED_ORACLE_ADDRESS || '0x77E436123f35749c9a4CdeEA7d0498f6992c7041') as `0x${string}`,
-  OPTIMISTIC_ORACLE: (process.env.NEXT_PUBLIC_OPTIMISTIC_ORACLE_ADDRESS || '0xa1F340c0EdEF2770E14A5c53310fC85B90e6973D') as `0x${string}`,
+  GUIDED_ORACLE: (process.env.NEXT_PUBLIC_GUIDED_ORACLE_ADDRESS || '0xa77EC39Ea46b12Ef37c19565066Cf2B74347bB1d') as `0x${string}`,
+  OPTIMISTIC_ORACLE: (process.env.NEXT_PUBLIC_OPTIMISTIC_ORACLE_ADDRESS || '0x2cD2f828d392945AbCbe1d2e3f35AC703de633E1') as `0x${string}`,
   
   // System Contracts
-  REPUTATION_SYSTEM: (process.env.NEXT_PUBLIC_REPUTATION_SYSTEM_ADDRESS || '0xfA1b053303Bf828526931f26C193266436C4F14F') as `0x${string}`,
-  STAKING_CONTRACT: (process.env.NEXT_PUBLIC_STAKING_CONTRACT_ADDRESS || '0xE3745b9212B4a588e0E7AF310676e3F2445aa245') as `0x${string}`,
+  REPUTATION_SYSTEM: (process.env.NEXT_PUBLIC_REPUTATION_SYSTEM_ADDRESS || '0x27Bd891EA40DE45d4da18e52D7f6CD3EB804f833') as `0x${string}`,
+  STAKING_CONTRACT: (process.env.NEXT_PUBLIC_STAKING_CONTRACT_ADDRESS || '0xfBb8cBb91D5c4fBF47a5dbdd9EE809CeaaBc5ee7') as `0x${string}`,
   H2H: (process.env.NEXT_PUBLIC_H2H_ADDRESS || '0x925d026F27eD571e0239de7F4Dda40B45F38b983') as `0x${string}`, // PredinexH2H (BSC Testnet)
   FAUCET: (process.env.NEXT_PUBLIC_FAUCET_ADDRESS || '') as `0x${string}`, // No longer deployed
-  ODDYSSEY: (process.env.NEXT_PUBLIC_ODDYSSEY_ADDRESS || '0xD1bAfb2349059Cf6ee20f305583D20Ab46588738') as `0x${string}`,
+  ODDYSSEY: (process.env.NEXT_PUBLIC_ODDYSSEY_ADDRESS || '0x4B2FcfaC9b8ABF108699c63d2648AF8943673954') as `0x${string}`,
+  GAUNTLET: (process.env.NEXT_PUBLIC_GAUNTLET_ADDRESS || '0x363EB5395d824d7D04Ff574b990c555198aa7b97') as `0x${string}`,
   
-  // Legacy support (for backward compatibility) - UPDATED TO BSC TESTNET ADDRESSES
-  PREDINEX_POOL: (process.env.NEXT_PUBLIC_PREDINEX_POOL_ADDRESS || '0xd43Ff2F8aB39D3536e30a0F03C25c2d16DE2B8D9') as `0x${string}`, // Points to Diamond
-  PREDINEX_STAKING: (process.env.NEXT_PUBLIC_STAKING_CONTRACT_ADDRESS || '0xE3745b9212B4a588e0E7AF310676e3F2445aa245') as `0x${string}`,
+  // Legacy support (for backward compatibility) - UPDATED TO NEW BSC TESTNET ADDRESSES
+  PREDINEX_POOL: (process.env.NEXT_PUBLIC_PREDINEX_POOL_ADDRESS || '0x735DE180558679E6132F51e410387A8f7d10c07E') as `0x${string}`, // Points to Diamond
+  PREDINEX_STAKING: (process.env.NEXT_PUBLIC_STAKING_CONTRACT_ADDRESS || '0xfBb8cBb91D5c4fBF47a5dbdd9EE809CeaaBc5ee7') as `0x${string}`,
   
   // Token Contracts
   USDT_TOKEN: (process.env.NEXT_PUBLIC_USDT_TOKEN_ADDRESS || '0x55d398326f99059fF775485246999027B3197955') as `0x${string}`, // USDT on BSC (testnet/mainnet)
