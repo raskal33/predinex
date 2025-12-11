@@ -1549,7 +1549,7 @@ export default function OddysseyPage() {
           className="relative mb-6"
         >
           {/* Compact Glassmorphism Hero Card */}
-          <div className="relative overflow-hidden rounded-xl backdrop-blur-xl bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 shadow-lg p-4 md:p-6">
+          <div className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-4 md:p-6">
             <div className="relative z-10 text-center">
               {/* Icon and Title */}
               <div className="flex items-center justify-center gap-3 mb-3">
@@ -1622,63 +1622,39 @@ export default function OddysseyPage() {
                 transition={{ duration: 0.6, delay: 0.2 }}
                 className="lg:col-span-2"
               >
-                <div className="relative overflow-hidden rounded-2xl backdrop-blur-2xl bg-gradient-to-br from-[#FFC107]/20 via-[#F7B600]/15 to-[#FFC107]/10 border border-[#FFC107]/30 shadow-2xl p-6 md:p-8 h-full">
-                  {/* Animated shine effect */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 animate-shimmer"></div>
-                  
-                  {/* Decorative elements */}
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-[#FFC107]/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-                  <div className="absolute bottom-0 left-0 w-48 h-48 bg-[#10B981]/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
-                  
+                <div className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-4 md:p-5 h-full">
                   <div className="relative z-10 flex flex-col justify-between h-full">
                     {/* Top Section: Icon and Label */}
                     <div>
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ delay: 0.4, type: "spring", stiffness: 200 }}
-                        className="inline-flex items-center gap-3 mb-4"
-                      >
-                        <div className="p-3 rounded-xl bg-gradient-to-br from-[#FFC107]/30 to-[#F7B600]/30 backdrop-blur-sm border border-[#FFC107]/40 shadow-lg">
-                          <GiftIcon className="h-8 w-8 text-[#FFC107]" />
-                        </div>
+                      <div className="inline-flex items-center gap-2 mb-3">
+                        <GiftIcon className="h-5 w-5 text-[#FFC107]" />
                         <div>
-                          <p className="text-sm font-semibold text-gray-300 uppercase tracking-wider">Current Prize Pool</p>
-                          <div className="flex items-center gap-3 mt-1">
-                            <span className="px-2 py-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-xs">
+                          <p className="text-xs font-semibold text-gray-300 uppercase tracking-wider">Prize Pool</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="px-2 py-0.5 rounded-full bg-white/10 border border-white/20 text-[10px]">
                               Cycle {currentPrizePool.cycleId}
                             </span>
-                            <span className="px-2 py-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-xs">
+                            <span className="px-2 py-0.5 rounded-full bg-white/10 border border-white/20 text-[10px]">
                               {currentPrizePool.matchesCount} Matches
                             </span>
                           </div>
                         </div>
-                      </motion.div>
+                      </div>
                     </div>
                     
                     {/* Middle Section: Prize Amount */}
-                    <div className="my-4">
-                      <motion.h2
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.5 }}
-                        className="text-4xl md:text-5xl lg:text-6xl font-black bg-gradient-to-r from-[#FFC107] via-[#F7B600] to-[#FFC107] bg-clip-text text-transparent tracking-tight"
-                      >
+                    <div className="my-2">
+                      <h2 className="text-2xl md:text-3xl font-black bg-gradient-to-r from-[#FFC107] via-[#F7B600] to-[#FFC107] bg-clip-text text-transparent tracking-tight">
                         {currentPrizePool.formattedPrizePool}
-                      </motion.h2>
+                      </h2>
                     </div>
                     
                     {/* Bottom Section: Active Status */}
                     {currentPrizePool.isActive && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.8, type: "spring" }}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-[#10B981]/20 to-[#059669]/20 backdrop-blur-sm border border-[#10B981]/40 text-[#10B981] font-semibold text-sm w-fit"
-                      >
-                        <BoltIcon className="h-4 w-4 animate-pulse" />
-                        <span>Active Cycle</span>
-                      </motion.div>
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-[#10B981]/20 to-[#059669]/20 border border-[#10B981]/40 text-[#10B981] font-semibold text-xs w-fit">
+                        <BoltIcon className="h-3 w-3" />
+                        <span>Active</span>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -1695,69 +1671,53 @@ export default function OddysseyPage() {
               >
                 {/* Total Slips Card */}
                 <motion.div
-                  whileHover={{ scale: 1.05, y: -4 }}
+                  whileHover={{ scale: 1.02 }}
                   transition={{ type: "spring", stiffness: 300 }}
-                  className="relative overflow-hidden rounded-xl backdrop-blur-xl bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 shadow-xl p-4 text-center group"
+                  className="relative overflow-hidden rounded-lg backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-3 text-center"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-[#FFC107]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   <div className="relative z-10">
-                    <div className="inline-flex items-center justify-center p-2 rounded-lg bg-gradient-to-br from-[#FFC107]/20 to-[#F7B600]/20 backdrop-blur-sm border border-[#FFC107]/30 mb-3">
-                      <CurrencyDollarIcon className="h-5 w-5 text-[#FFC107]" />
-                    </div>
-                    <h3 className="text-2xl md:text-3xl font-black text-white mb-1">{(stats.currentCycleSlips || 0).toLocaleString()}</h3>
-                    <p className="text-xs font-semibold text-gray-300 mb-0.5 uppercase tracking-wider">Total Slips</p>
-                    <p className="text-[10px] text-gray-400">Current Cycle</p>
+                    <CurrencyDollarIcon className="h-4 w-4 text-[#FFC107] mx-auto mb-2" />
+                    <h3 className="text-xl font-black text-white mb-0.5">{(stats.currentCycleSlips || 0).toLocaleString()}</h3>
+                    <p className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Total Slips</p>
                   </div>
                 </motion.div>
 
                 {/* Total Players Card */}
                 <motion.div
-                  whileHover={{ scale: 1.05, y: -4 }}
+                  whileHover={{ scale: 1.02 }}
                   transition={{ type: "spring", stiffness: 300 }}
-                  className="relative overflow-hidden rounded-xl backdrop-blur-xl bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 shadow-xl p-4 text-center group"
+                  className="relative overflow-hidden rounded-lg backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-3 text-center"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-[#10B981]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   <div className="relative z-10">
-                    <div className="inline-flex items-center justify-center p-2 rounded-lg bg-gradient-to-br from-[#10B981]/20 to-[#059669]/20 backdrop-blur-sm border border-[#10B981]/30 mb-3">
-                      <UsersIcon className="h-5 w-5 text-[#10B981]" />
-                    </div>
-                    <h3 className="text-2xl md:text-3xl font-black text-white mb-1">{(cycleStats?.participants || stats?.totalPlayers || 0).toLocaleString()}</h3>
-                    <p className="text-xs font-semibold text-gray-300 mb-0.5 uppercase tracking-wider">Total Players</p>
-                    <p className="text-[10px] text-gray-400">Current cycle</p>
+                    <UsersIcon className="h-4 w-4 text-[#10B981] mx-auto mb-2" />
+                    <h3 className="text-xl font-black text-white mb-0.5">{(cycleStats?.participants || stats?.totalPlayers || 0).toLocaleString()}</h3>
+                    <p className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Players</p>
                   </div>
                 </motion.div>
 
                 {/* Win Rate Card */}
                 <motion.div
-                  whileHover={{ scale: 1.05, y: -4 }}
+                  whileHover={{ scale: 1.02 }}
                   transition={{ type: "spring", stiffness: 300 }}
-                  className="relative overflow-hidden rounded-xl backdrop-blur-xl bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 shadow-xl p-4 text-center group"
+                  className="relative overflow-hidden rounded-lg backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-3 text-center"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-[#8B5CF6]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   <div className="relative z-10">
-                    <div className="inline-flex items-center justify-center p-2 rounded-lg bg-gradient-to-br from-[#8B5CF6]/20 to-[#7C3AED]/20 backdrop-blur-sm border border-[#8B5CF6]/30 mb-3">
-                      <TrophyIcon className="h-5 w-5 text-[#8B5CF6]" />
-                    </div>
-                    <h3 className="text-2xl md:text-3xl font-black text-white mb-1">{(stats.winRate || 0).toFixed(2)}%</h3>
-                    <p className="text-xs font-semibold text-gray-300 mb-0.5 uppercase tracking-wider">Win Rate</p>
-                    <p className="text-[10px] text-gray-400">Previous cycle</p>
+                    <TrophyIcon className="h-4 w-4 text-[#8B5CF6] mx-auto mb-2" />
+                    <h3 className="text-xl font-black text-white mb-0.5">{(stats.winRate || 0).toFixed(2)}%</h3>
+                    <p className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Win Rate</p>
                   </div>
                 </motion.div>
 
                 {/* Average Odds Card */}
                 <motion.div
-                  whileHover={{ scale: 1.05, y: -4 }}
+                  whileHover={{ scale: 1.02 }}
                   transition={{ type: "spring", stiffness: 300 }}
-                  className="relative overflow-hidden rounded-xl backdrop-blur-xl bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 shadow-xl p-4 text-center group"
+                  className="relative overflow-hidden rounded-lg backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-3 text-center"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-[#06B6D4]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   <div className="relative z-10">
-                    <div className="inline-flex items-center justify-center p-2 rounded-lg bg-gradient-to-br from-[#06B6D4]/20 to-[#0891B2]/20 backdrop-blur-sm border border-[#06B6D4]/30 mb-3">
-                      <EyeIcon className="h-5 w-5 text-[#06B6D4]" />
-                    </div>
-                    <h3 className="text-2xl md:text-3xl font-black text-white mb-1">{parseFloat(stats.averageOdds || '0').toFixed(2)}x</h3>
-                    <p className="text-xs font-semibold text-gray-300 mb-0.5 uppercase tracking-wider">Average Odds</p>
-                    <p className="text-[10px] text-gray-400">Current cycle</p>
+                    <EyeIcon className="h-4 w-4 text-[#06B6D4] mx-auto mb-2" />
+                    <h3 className="text-xl font-black text-white mb-0.5">{parseFloat(stats.averageOdds || '0').toFixed(2)}x</h3>
+                    <p className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Avg Odds</p>
                   </div>
                 </motion.div>
               </motion.div>
@@ -1847,7 +1807,7 @@ export default function OddysseyPage() {
 
         {/* Icon-Based Tab Navigation - Predinex Style */}
         <div className="mb-8">
-          <nav className="flex items-center justify-center gap-2 bg-[#0F1419]/80 backdrop-blur-xl border border-white/5 rounded-2xl p-2 shadow-2xl">
+          <nav className="flex items-center justify-center gap-2 bg-[#0F1419]/80 backdrop-blur-md border border-white/5 rounded-2xl p-2">
             {[
               { id: "today", icon: TableCellsIcon, label: "Matches", color: "from-[#FFC107] to-[#F7B600]" },
               { id: "slips", icon: TrophyIcon, label: "My Slips", color: "from-cyan-500 to-blue-500", badge: allSlips.filter(slip => slip.isEvaluated && slip.correctCount >= 8 && slip.status === 'won').length },
@@ -1873,13 +1833,13 @@ export default function OddysseyPage() {
                   <div
                     className={`relative flex items-center justify-center w-12 h-12 rounded-xl transition-all duration-300 ${
                       isActive
-                        ? "bg-white/10 text-white shadow-lg"
+                        ? "bg-white/10 text-white"
                         : "text-gray-400 hover:text-white hover:bg-white/5"
                     }`}
                   >
                     <Icon className="h-5 w-5 relative z-10" />
                     {tab.badge && tab.badge > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-black text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold shadow-lg">
+                      <span className="absolute -top-1 -right-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-black text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
                         {tab.badge}
                       </span>
                     )}
@@ -1892,7 +1852,7 @@ export default function OddysseyPage() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 10 }}
-                        className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-[#0F1419] border border-white/10 rounded-lg text-xs font-medium text-white whitespace-nowrap shadow-xl z-50"
+                        className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1.5 bg-[#0F1419] border border-white/10 rounded-lg text-xs font-medium text-white whitespace-nowrap z-50"
                       >
                         {tab.label}
                       </motion.div>
@@ -1931,7 +1891,7 @@ export default function OddysseyPage() {
                     {/* Date Tabs */}
                     <div className="flex items-center justify-center gap-1 md:gap-2 mb-4 md:mb-6 flex-wrap">
                       <button
-                        className="px-2 md:px-4 py-2 md:py-3 rounded-button font-semibold transition-all duration-300 flex flex-col items-center gap-1 min-w-[80px] md:min-w-[100px] text-xs md:text-sm bg-gradient-primary text-black shadow-lg scale-105"
+                        className="px-2 md:px-4 py-2 md:py-3 rounded-button font-semibold transition-all duration-300 flex flex-col items-center gap-1 min-w-[80px] md:min-w-[100px] text-xs md:text-sm bg-gradient-primary text-black scale-105"
                       >
                         <CalendarDaysIcon className="h-3 w-3 md:h-4 md:w-4" />
                         <span className="font-bold">Today</span>
@@ -1956,10 +1916,10 @@ export default function OddysseyPage() {
                       
                       {/* Professional Warning Banner */}
                       {hasStartedMatches && (
-                        <div className="mb-6 p-4 bg-gradient-to-r from-red-500/15 to-orange-500/15 border border-red-500/30 rounded-xl backdrop-blur-sm shadow-lg">
+                        <div className="mb-6 p-4 bg-gradient-to-r from-red-500/15 to-orange-500/15 border border-red-500/30 rounded-xl backdrop-blur-sm">
                           <div className="flex items-start gap-4">
                             <div className="flex-shrink-0 mt-1">
-                              <div className="w-3 h-3 bg-red-400 rounded-full animate-pulse shadow-lg"></div>
+                              <div className="w-3 h-3 bg-red-400 rounded-full animate-pulse"></div>
                             </div>
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-2">
@@ -2008,7 +1968,7 @@ export default function OddysseyPage() {
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ delay: index * 0.1 }}
-                              className="relative overflow-hidden rounded-xl backdrop-blur-xl bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 shadow-lg p-4 md:p-6 hover:border-white/30 transition-all duration-300"
+                              className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-4 md:p-6 hover:border-white/30 transition-all duration-300"
                             >
                               {/* Mobile Layout */}
                               <div className="md:hidden space-y-4">
@@ -2052,7 +2012,7 @@ export default function OddysseyPage() {
                                         isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired
                                           ? "bg-slate-700/30 text-slate-400 cursor-not-allowed opacity-50"
                                           : picks.find(p => p.id === matchId && p.pick === "home")
-                                          ? "bg-gradient-primary text-black shadow-md scale-105"
+                                          ? "bg-gradient-primary text-black scale-105"
                                           : "bg-primary/10 text-white hover:bg-primary/20 hover:text-primary border border-transparent hover:border-primary/30"
                                       }`}
                                     >
@@ -2067,7 +2027,7 @@ export default function OddysseyPage() {
                                         isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired
                                           ? "bg-slate-700/30 text-slate-400 cursor-not-allowed opacity-50"
                                           : picks.find(p => p.id === matchId && p.pick === "draw")
-                                          ? "bg-gradient-secondary text-black shadow-md scale-105"
+                                          ? "bg-gradient-secondary text-black scale-105"
                                           : "bg-secondary/10 text-white hover:bg-secondary/20 hover:text-secondary border border-transparent hover:border-secondary/30"
                                       }`}
                                     >
@@ -2082,7 +2042,7 @@ export default function OddysseyPage() {
                                         isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired
                                           ? "bg-slate-700/30 text-slate-400 cursor-not-allowed opacity-50"
                                           : picks.find(p => p.id === matchId && p.pick === "away")
-                                          ? "bg-gradient-accent text-black shadow-md scale-105"
+                                          ? "bg-gradient-accent text-black scale-105"
                                           : "bg-accent/10 text-white hover:bg-accent/20 hover:text-accent border border-transparent hover:border-accent/30"
                                       }`}
                                     >
@@ -2186,7 +2146,7 @@ export default function OddysseyPage() {
                                         isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired
                                           ? "bg-slate-700/30 text-slate-400 cursor-not-allowed opacity-50"
                                           : picks.find(p => p.id === matchId && p.pick === "home")
-                                          ? "bg-gradient-primary text-black shadow-md scale-105"
+                                          ? "bg-gradient-primary text-black scale-105"
                                           : "bg-primary/10 text-white hover:bg-primary/20 hover:text-primary border border-transparent hover:border-primary/30"
                                       }`}
                                     >
@@ -2203,7 +2163,7 @@ export default function OddysseyPage() {
                                         isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired
                                           ? "bg-slate-700/30 text-slate-400 cursor-not-allowed opacity-50"
                                           : picks.find(p => p.id === matchId && p.pick === "draw")
-                                          ? "bg-gradient-secondary text-black shadow-md scale-105"
+                                          ? "bg-gradient-secondary text-black scale-105"
                                           : "bg-secondary/10 text-white hover:bg-secondary/20 hover:text-secondary border border-transparent hover:border-secondary/30"
                                       }`}
                                     >
@@ -2220,7 +2180,7 @@ export default function OddysseyPage() {
                                         isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired
                                           ? "bg-slate-700/30 text-slate-400 cursor-not-allowed opacity-50"
                                           : picks.find(p => p.id === matchId && p.pick === "away")
-                                          ? "bg-gradient-accent text-black shadow-md scale-105"
+                                          ? "bg-gradient-accent text-black scale-105"
                                           : "bg-accent/10 text-white hover:bg-accent/20 hover:text-accent border border-transparent hover:border-accent/30"
                                       }`}
                                     >
@@ -2238,7 +2198,7 @@ export default function OddysseyPage() {
                                           isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired
                                             ? "bg-slate-700/30 text-slate-400 cursor-not-allowed opacity-50"
                                             : picks.find(p => p.id === matchId && p.pick === "over")
-                                            ? "bg-gradient-to-r from-blue-500 to-primary text-black shadow-md scale-105"
+                                            ? "bg-gradient-to-r from-blue-500 to-primary text-black scale-105"
                                             : "bg-blue-500/10 text-white hover:bg-blue-500/20 hover:text-blue-300 border border-transparent hover:border-blue-300/30"
                                         }`}
                                       >
@@ -2251,7 +2211,7 @@ export default function OddysseyPage() {
                                           isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired
                                             ? "bg-slate-700/30 text-slate-400 cursor-not-allowed opacity-50"
                                             : picks.find(p => p.id === matchId && p.pick === "under")
-                                            ? "bg-gradient-to-r from-purple-500 to-blue-600 text-black shadow-md scale-105"
+                                            ? "bg-gradient-to-r from-purple-500 to-blue-600 text-black scale-105"
                                             : "bg-purple-500/10 text-white hover:bg-purple-500/20 hover:text-purple-300 border border-transparent hover:border-purple-300/30"
                                         }`}
                                       >
@@ -2284,7 +2244,7 @@ export default function OddysseyPage() {
                   exit={{ opacity: 0, x: -20 }}
                   className="lg:col-span-1"
                 >
-                  <div className="relative overflow-hidden rounded-xl backdrop-blur-xl bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 shadow-lg sticky top-8 p-4 md:p-6">
+                  <div className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 sticky top-8 p-4 md:p-6">
                     <h3 className="text-lg md:text-xl font-bold text-white mb-4 md:mb-6 text-center flex items-center justify-center gap-2">
                       <ShieldCheckIcon className="h-5 w-5 md:h-6 md:w-6" />
                       <span className="hidden sm:inline">Slip Builder</span>
@@ -2469,7 +2429,7 @@ export default function OddysseyPage() {
                               disabled={isExpired || picks.length !== 10 || hasStartedMatches || isPending || isConfirming || !isInitialized}
                               className={`text-sm md:text-base transition-all duration-300 ${
                                 picks.length === 10 && !hasStartedMatches && !isExpired && !isPending && !isConfirming && isInitialized
-                                  ? 'animate-pulse shadow-lg shadow-primary/25' 
+                                  ? 'animate-pulse' 
                                   : ''
                               }`}
                             >
@@ -2548,7 +2508,7 @@ export default function OddysseyPage() {
                 exit={{ opacity: 0, x: -20 }}
                 className="lg:col-span-3"
               >
-                <div className="glass-card p-4 sm:p-6 bg-gradient-to-br from-cyan-500/5 to-blue-500/5 border border-cyan-500/20 shadow-lg shadow-cyan-500/10">
+                <div className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-4 sm:p-6">
                   {/* Header with Title and Claim Button */}
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 sm:mb-6">
                     <h2 className="text-xl sm:text-2xl font-bold text-cyan-300 flex items-center gap-2">
@@ -2612,7 +2572,7 @@ export default function OddysseyPage() {
                 exit={{ opacity: 0, x: -20 }}
                 className="lg:col-span-3"
               >
-                <div className="glass-card p-6 bg-gradient-to-br from-magenta-500/5 to-violet-500/5 border border-magenta-500/20 shadow-lg shadow-magenta-500/10">
+                <div className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-6">
                   <h2 className="text-2xl font-bold text-magenta-300 mb-6 flex items-center gap-2">
                     <DocumentTextIcon className="h-6 w-6 text-magenta-400" />
                     Match Results
