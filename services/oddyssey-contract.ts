@@ -71,7 +71,7 @@ export function useOddysseyContract() {
   // Helper functions
   const formatEntryFee = (): string => {
     if (!entryFee) return '0';
-    return formatUnits(entryFee as bigint, 18);
+    return formatUnits(entryFee as unknown as bigint, 18);
   };
 
   const formatUserStats = (): UserStats | null => {

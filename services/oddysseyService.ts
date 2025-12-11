@@ -506,12 +506,11 @@ class OddysseyService {
 
       const hash = await this.walletClient.writeContract({
         address: CONTRACTS.ODDYSSEY.address,
-        abi: CONTRACTS.ODDYSSEY.abi,
+        abi: CONTRACTS.ODDYSSEY.abi as any,
         functionName: 'placeSlip',
         args: [contractPredictions],
         value: entryFeeBigInt, // ✅ Use actual entry fee from contract
-        account: this.walletClient.account,
-      });
+      } as any);
 
       console.log('✅ Transaction hash received:', hash);
       return hash;
