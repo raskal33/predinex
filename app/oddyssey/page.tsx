@@ -1564,7 +1564,7 @@ export default function OddysseyPage() {
               <div className="mx-auto mb-3 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent max-w-xs"></div>
               
               {/* Compact Description */}
-              <p className="text-sm md:text-base text-gray-400 max-w-2xl mx-auto">
+              <p className="text-sm md:text-base text-white/70 max-w-2xl mx-auto">
                 Select <span className="font-semibold text-[#FFC107]">10 matches</span>, compete with the <span className="font-semibold text-[#10B981]">highest odds</span>, and claim your share of the <span className="font-semibold text-[#FFC107]">prize pool</span>.
               </p>
             </div>
@@ -1633,11 +1633,11 @@ export default function OddysseyPage() {
                       )}
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs text-gray-400">Prize Pool</span>
-                      <span className="text-xs text-gray-500">•</span>
-                      <span className="text-xs text-gray-400">Entry: {entryFee} BNB</span>
-                      <span className="text-xs text-gray-500">•</span>
-                      <span className="text-xs text-gray-400">Cycle {currentPrizePool.cycleId}</span>
+                      <span className="text-xs text-white/70">Prize Pool</span>
+                      <span className="text-xs text-white/40">•</span>
+                      <span className="text-xs text-white/70">Entry: {entryFee} BNB</span>
+                      <span className="text-xs text-white/40">•</span>
+                      <span className="text-xs text-white/70">Cycle {currentPrizePool.cycleId}</span>
                     </div>
                   </div>
                 </motion.div>
@@ -1655,7 +1655,7 @@ export default function OddysseyPage() {
                     <CurrencyDollarIcon className="h-5 w-5 text-[#FFC107] flex-shrink-0" />
                     <div>
                       <div className="text-lg font-black text-white">{(stats.currentCycleSlips || 0).toLocaleString()}</div>
-                      <div className="text-[10px] text-gray-400 uppercase">Slips</div>
+                      <div className="text-[10px] text-white/60 uppercase">Slips</div>
                     </div>
                   </motion.div>
 
@@ -1668,7 +1668,7 @@ export default function OddysseyPage() {
                     <UsersIcon className="h-5 w-5 text-[#10B981] flex-shrink-0" />
                     <div>
                       <div className="text-lg font-black text-white">{(cycleStats?.participants || stats?.totalPlayers || 0).toLocaleString()}</div>
-                      <div className="text-[10px] text-gray-400 uppercase">Players</div>
+                      <div className="text-[10px] text-white/60 uppercase">Players</div>
                     </div>
                   </motion.div>
 
@@ -1681,7 +1681,7 @@ export default function OddysseyPage() {
                     <TrophyIcon className="h-5 w-5 text-[#8B5CF6] flex-shrink-0" />
                     <div>
                       <div className="text-lg font-black text-white">{(stats.winRate || 0).toFixed(1)}%</div>
-                      <div className="text-[10px] text-gray-400 uppercase">Win Rate</div>
+                      <div className="text-[10px] text-white/60 uppercase">Win Rate</div>
                     </div>
                   </motion.div>
                 </>
@@ -1954,7 +1954,7 @@ export default function OddysseyPage() {
                                     {isMatchStarted(safeStartTimeToISOString(match.startTime)) ? (
                                       <div className="text-[8px] text-red-400 font-bold">STARTED</div>
                                     ) : (
-                                      <div className="text-[8px] text-text-muted">AM</div>
+                                      <div className="text-[8px] text-white/50">AM</div>
                                     )}
                                   </div>
                                 </div>
@@ -1963,19 +1963,19 @@ export default function OddysseyPage() {
                                   <div className="text-lg font-semibold text-white">
                                     {match.homeTeam} vs {match.awayTeam}
                                   </div>
-                                  <div className="text-sm text-text-muted">{match.leagueName}</div>
+                                  <div className="text-sm text-white/60">{match.leagueName}</div>
                                 </div>
 
                                 {/* 1X2 Market */}
                                 <div>
-                                  <div className="text-sm text-text-muted mb-2">Match Result</div>
+                                  <div className="text-sm text-white/70 mb-2">Match Result</div>
                                   <div className="grid grid-cols-3 gap-2">
                                     <button
                                       onClick={() => handlePickSelection(matchId, "home")}
                                       disabled={isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired}
                                       className={`px-3 py-2 text-center rounded transition-all duration-200 font-bold text-sm ${
                                         isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired
-                                          ? "bg-slate-700/30 text-slate-400 cursor-not-allowed opacity-50"
+                                          ? "bg-red-900/20 text-red-400/60 cursor-not-allowed border border-red-500/20"
                                           : picks.find(p => p.id === matchId && p.pick === "home")
                                           ? "bg-gradient-primary text-black scale-105"
                                           : "bg-primary/10 text-white hover:bg-primary/20 hover:text-primary border border-transparent hover:border-primary/30"
@@ -1990,7 +1990,7 @@ export default function OddysseyPage() {
                                       disabled={isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired}
                                       className={`px-3 py-2 text-center rounded transition-all duration-200 font-bold text-sm ${
                                         isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired
-                                          ? "bg-slate-700/30 text-slate-400 cursor-not-allowed opacity-50"
+                                          ? "bg-red-900/20 text-red-400/60 cursor-not-allowed border border-red-500/20"
                                           : picks.find(p => p.id === matchId && p.pick === "draw")
                                           ? "bg-gradient-secondary text-black scale-105"
                                           : "bg-secondary/10 text-white hover:bg-secondary/20 hover:text-secondary border border-transparent hover:border-secondary/30"
@@ -2005,7 +2005,7 @@ export default function OddysseyPage() {
                                       disabled={isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired}
                                       className={`px-3 py-2 text-center rounded transition-all duration-200 font-bold text-sm ${
                                         isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired
-                                          ? "bg-slate-700/30 text-slate-400 cursor-not-allowed opacity-50"
+                                          ? "bg-red-900/20 text-red-400/60 cursor-not-allowed border border-red-500/20"
                                           : picks.find(p => p.id === matchId && p.pick === "away")
                                           ? "bg-gradient-accent text-black scale-105"
                                           : "bg-accent/10 text-white hover:bg-accent/20 hover:text-accent border border-transparent hover:border-accent/30"
@@ -2019,14 +2019,14 @@ export default function OddysseyPage() {
 
                                 {/* Over/Under Market */}
                                 <div>
-                                  <div className="text-sm text-text-muted mb-2">Total Goals O/U 2.5</div>
+                                  <div className="text-sm text-white/70 mb-2">Total Goals O/U 2.5</div>
                                   <div className="grid grid-cols-2 gap-2">
                                     <button
                                       onClick={() => handlePickSelection(matchId, "over")}
                                       disabled={isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired}
                                       className={`px-2 py-2 text-center rounded transition-all duration-200 font-bold text-sm ${
                                         isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired
-                                          ? "bg-slate-700/30 text-slate-400 cursor-not-allowed opacity-50"
+                                          ? "bg-red-900/20 text-red-400/60 cursor-not-allowed border border-red-500/20"
                                           : picks.find(p => p.id === matchId && p.pick === "over")
                                             ? "bg-gradient-to-r from-blue-500 to-primary text-black scale-105"
                                           : "bg-blue-500/10 text-white hover:bg-blue-500/20 hover:text-blue-300 border border-transparent hover:border-blue-300/30"
@@ -2041,7 +2041,7 @@ export default function OddysseyPage() {
                                       disabled={isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired}
                                       className={`px-2 py-2 text-center rounded transition-all duration-200 font-bold text-sm ${
                                         isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired
-                                          ? "bg-slate-700/30 text-slate-400 cursor-not-allowed opacity-50"
+                                          ? "bg-red-900/20 text-red-400/60 cursor-not-allowed border border-red-500/20"
                                           : picks.find(p => p.id === matchId && p.pick === "under")
                                             ? "bg-gradient-to-r from-purple-500 to-blue-600 text-black scale-105"
                                           : "bg-purple-500/10 text-white hover:bg-purple-500/20 hover:text-purple-300 border border-transparent hover:border-purple-300/30"
@@ -2088,7 +2088,7 @@ export default function OddysseyPage() {
                                       {isMatchStarted(safeStartTimeToISOString(match.startTime)) ? (
                                         <div className="text-[8px] text-red-400 font-bold">STARTED</div>
                                       ) : (
-                                        <div className="text-[8px] text-text-muted">AM</div>
+                                        <div className="text-[8px] text-white/50">AM</div>
                                       )}
                                     </div>
                                   </div>
@@ -2109,7 +2109,7 @@ export default function OddysseyPage() {
                                       disabled={isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired}
                                       className={`w-full px-2 py-1 text-center rounded transition-all duration-200 font-bold text-xs ${
                                         isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired
-                                          ? "bg-slate-700/30 text-slate-400 cursor-not-allowed opacity-50"
+                                          ? "bg-red-900/20 text-red-400/60 cursor-not-allowed border border-red-500/20"
                                           : picks.find(p => p.id === matchId && p.pick === "home")
                                           ? "bg-gradient-primary text-black scale-105"
                                           : "bg-primary/10 text-white hover:bg-primary/20 hover:text-primary border border-transparent hover:border-primary/30"
@@ -2126,7 +2126,7 @@ export default function OddysseyPage() {
                                       disabled={isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired}
                                       className={`w-full px-2 py-1 text-center rounded transition-all duration-200 font-bold text-xs ${
                                         isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired
-                                          ? "bg-slate-700/30 text-slate-400 cursor-not-allowed opacity-50"
+                                          ? "bg-red-900/20 text-red-400/60 cursor-not-allowed border border-red-500/20"
                                           : picks.find(p => p.id === matchId && p.pick === "draw")
                                           ? "bg-gradient-secondary text-black scale-105"
                                           : "bg-secondary/10 text-white hover:bg-secondary/20 hover:text-secondary border border-transparent hover:border-secondary/30"
@@ -2143,7 +2143,7 @@ export default function OddysseyPage() {
                                       disabled={isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired}
                                       className={`w-full px-2 py-1 text-center rounded transition-all duration-200 font-bold text-xs ${
                                         isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired
-                                          ? "bg-slate-700/30 text-slate-400 cursor-not-allowed opacity-50"
+                                          ? "bg-red-900/20 text-red-400/60 cursor-not-allowed border border-red-500/20"
                                           : picks.find(p => p.id === matchId && p.pick === "away")
                                           ? "bg-gradient-accent text-black scale-105"
                                           : "bg-accent/10 text-white hover:bg-accent/20 hover:text-accent border border-transparent hover:border-accent/30"
@@ -2161,7 +2161,7 @@ export default function OddysseyPage() {
                                         disabled={isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired}
                                         className={`flex-1 px-1 py-1 text-center rounded transition-all duration-200 font-bold text-xs ${
                                           isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired
-                                            ? "bg-slate-700/30 text-slate-400 cursor-not-allowed opacity-50"
+                                            ? "bg-red-900/20 text-red-400/60 cursor-not-allowed border border-red-500/20"
                                             : picks.find(p => p.id === matchId && p.pick === "over")
                                             ? "bg-gradient-to-r from-blue-500 to-primary text-black scale-105"
                                             : "bg-blue-500/10 text-white hover:bg-blue-500/20 hover:text-blue-300 border border-transparent hover:border-blue-300/30"
@@ -2174,7 +2174,7 @@ export default function OddysseyPage() {
                                         disabled={isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired}
                                         className={`flex-1 px-1 py-1 text-center rounded transition-all duration-200 font-bold text-xs ${
                                           isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired
-                                            ? "bg-slate-700/30 text-slate-400 cursor-not-allowed opacity-50"
+                                            ? "bg-red-900/20 text-red-400/60 cursor-not-allowed border border-red-500/20"
                                             : picks.find(p => p.id === matchId && p.pick === "under")
                                             ? "bg-gradient-to-r from-purple-500 to-blue-600 text-black scale-105"
                                             : "bg-purple-500/10 text-white hover:bg-purple-500/20 hover:text-purple-300 border border-transparent hover:border-purple-300/30"
@@ -2586,10 +2586,10 @@ export default function OddysseyPage() {
                         >
                           <div className="flex items-center gap-2 mb-3">
                             <UsersIcon className="w-5 h-5 text-primary" />
-                            <span className="text-sm font-medium text-gray-400">Total Players</span>
+                            <span className="text-sm font-medium text-white/70">Total Players</span>
                           </div>
                           <div className="text-3xl font-bold text-primary mb-1">{(stats.totalPlayers || 0).toLocaleString()}</div>
-                          <div className="text-xs text-gray-500">across all cycles</div>
+                          <div className="text-xs text-white/50">across all cycles</div>
                         </motion.div>
 
                         {/* Total Slips */}
@@ -2601,10 +2601,10 @@ export default function OddysseyPage() {
                         >
                           <div className="flex items-center gap-2 mb-3">
                             <DocumentTextIcon className="w-5 h-5 text-secondary" />
-                            <span className="text-sm font-medium text-gray-400">Total Slips</span>
+                            <span className="text-sm font-medium text-white/70">Total Slips</span>
                           </div>
                           <div className="text-3xl font-bold text-secondary mb-1">{(stats.totalSlips || 0).toLocaleString()}</div>
-                          <div className="text-xs text-gray-500">submitted & tracked</div>
+                          <div className="text-xs text-white/50">submitted & tracked</div>
                         </motion.div>
 
                         {/* Total Volume */}
@@ -2616,10 +2616,10 @@ export default function OddysseyPage() {
                         >
                           <div className="flex items-center gap-2 mb-3">
                             <CurrencyDollarIcon className="w-5 h-5 text-accent" />
-                            <span className="text-sm font-medium text-gray-400">Total Volume</span>
+                            <span className="text-sm font-medium text-white/70">Total Volume</span>
                           </div>
                           <div className="text-3xl font-bold text-accent mb-1">{(stats.totalVolume / 1e18).toFixed(2)} BNB</div>
-                          <div className="text-xs text-gray-500">prize pool value</div>
+                          <div className="text-xs text-white/50">prize pool value</div>
                         </motion.div>
 
                         {/* Total Winners */}
@@ -2631,10 +2631,10 @@ export default function OddysseyPage() {
                         >
                           <div className="flex items-center gap-2 mb-3">
                             <TrophyIcon className="w-5 h-5 text-yellow-400" />
-                            <span className="text-sm font-medium text-gray-400">Winners</span>
+                            <span className="text-sm font-medium text-white/70">Winners</span>
                           </div>
                           <div className="text-3xl font-bold text-yellow-400 mb-1">{(stats.totalWinners || 0).toLocaleString()}</div>
-                          <div className="text-xs text-gray-500">qualified players</div>
+                          <div className="text-xs text-white/50">qualified players</div>
                         </motion.div>
                       </div>
 
