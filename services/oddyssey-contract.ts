@@ -3,8 +3,18 @@ import { CONTRACT_ADDRESSES } from '@/config/wagmi';
 import { formatUnits } from 'viem';
 import OddysseyArtifact from '@/contracts/abis/Oddyssey.json';
 
-// Extract ABI array from artifact
-const ODDYSSEY_ABI = Array.isArray(OddysseyArtifact) ? OddysseyArtifact : (OddysseyArtifact.abi || []);
+// Extract ABI array from artifact - handle both array and object formats
+const extractABI = (artifact: any): any[] => {
+  if (Array.isArray(artifact)) {
+    return artifact;
+  }
+  if (artifact && typeof artifact === 'object' && 'abi' in artifact && Array.isArray(artifact.abi)) {
+    return artifact.abi;
+  }
+  return [];
+};
+
+const ODDYSSEY_ABI = extractABI(OddysseyArtifact);
 
 export interface UserStats {
   totalSlips: bigint;
