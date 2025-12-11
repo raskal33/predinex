@@ -2654,7 +2654,7 @@ export default function OddysseyPage() {
                             </div>
                             <span className="text-2xl font-bold text-orange-400">{(stats.winRate || 0).toFixed(2)}%</span>
                           </div>
-                           <div className="w-full bg-[#0A0E13] rounded-full h-2"
+                           <div className="w-full bg-[#0A0E13] rounded-full h-2">
                             <motion.div
                               initial={{ width: 0 }}
                               animate={{ width: `${Math.min(stats.winRate || 0, 100)}%` }}
@@ -2678,7 +2678,7 @@ export default function OddysseyPage() {
                             </div>
                             <span className="text-2xl font-bold text-blue-400">{(stats.evaluationProgress || 0).toFixed(2)}%</span>
                           </div>
-                           <div className="w-full bg-[#0A0E13] rounded-full h-2"
+                           <div className="w-full bg-[#0A0E13] rounded-full h-2">
                             <motion.div
                               initial={{ width: 0 }}
                               animate={{ width: `${Math.min(stats.evaluationProgress || 0, 100)}%` }}
