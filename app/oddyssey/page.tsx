@@ -1799,7 +1799,7 @@ export default function OddysseyPage() {
                     className={`relative flex items-center justify-center w-12 h-12 rounded-xl transition-all duration-300 ${
                       isActive
                         ? "bg-white/10 text-white"
-                        : "text-gray-400 hover:text-white hover:bg-white/5"
+                        : "text-white/60 hover:text-white hover:bg-white/5"
                     }`}
                   >
                     <Icon className="h-5 w-5 relative z-10" />
@@ -2645,16 +2645,16 @@ export default function OddysseyPage() {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.4 }}
-                          className="p-4 bg-gray-800/30 border border-gray-700/50 rounded-xl"
+                          className="p-4 bg-white/5 border border-white/10 rounded-xl"
                         >
                           <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-2">
                               <FireIcon className="w-5 h-5 text-orange-400" />
-                              <span className="text-sm font-medium text-gray-300">Win Rate</span>
+                              <span className="text-sm font-medium text-white/80">Win Rate</span>
                             </div>
                             <span className="text-2xl font-bold text-orange-400">{(stats.winRate || 0).toFixed(2)}%</span>
                           </div>
-                          <div className="w-full bg-gray-700/50 rounded-full h-2">
+                          <div className="w-full bg-white/10 rounded-full h-2">
                             <motion.div
                               initial={{ width: 0 }}
                               animate={{ width: `${Math.min(stats.winRate || 0, 100)}%` }}
@@ -2669,16 +2669,16 @@ export default function OddysseyPage() {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.5 }}
-                          className="p-4 bg-gray-800/30 border border-gray-700/50 rounded-xl"
+                          className="p-4 bg-white/5 border border-white/10 rounded-xl"
                         >
                           <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-2">
                               <CheckCircleIcon className="w-5 h-5 text-blue-400" />
-                              <span className="text-sm font-medium text-gray-300">Evaluation Progress</span>
+                              <span className="text-sm font-medium text-white/80">Evaluation Progress</span>
                             </div>
                             <span className="text-2xl font-bold text-blue-400">{(stats.evaluationProgress || 0).toFixed(2)}%</span>
                           </div>
-                          <div className="w-full bg-gray-700/50 rounded-full h-2">
+                          <div className="w-full bg-white/10 rounded-full h-2">
                             <motion.div
                               initial={{ width: 0 }}
                               animate={{ width: `${Math.min(stats.evaluationProgress || 0, 100)}%` }}
