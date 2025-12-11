@@ -49,11 +49,11 @@ export default function Header() {
   const {
     isConnected,
     address,
-    isOnSomnia,
+    isOnBSC,
     isConnecting,
     connectWallet,
     disconnectWallet,
-    switchToSomnia,
+    switchToBSC,
   } = useWalletConnection();
   const { setCurrentProfile } = useProfileStore();
 
@@ -119,7 +119,7 @@ export default function Header() {
   ];
 
   const navItems = [
-    { href: "/gauntlet", label: "Gauntlet", icon: FireIcon, iconSolid: FireIconSolid, segment: "gauntlet", color: "from-[#FFC107] to-[#F7B600]" },
+    { href: "/oddyssey", label: "Oddyssey", icon: FireIcon, iconSolid: FireIconSolid, segment: "oddyssey", color: "from-[#FFC107] to-[#F7B600]" },
     { href: "/h2h", label: "H2H", icon: UsersIcon, iconSolid: UsersIcon, segment: "h2h", color: "from-[#8B5CF6] to-[#7C3AED]" },
     { href: "/stats", label: "Stats", icon: ChartBarIcon, iconSolid: ChartBarIcon, segment: "stats", color: "from-[#3B82F6] to-[#2563EB]" },
     { href: "/rewards", label: "Prize", icon: TrophyIcon, iconSolid: TrophyIconSolid, segment: "rewards", color: "from-[#FFC107] to-[#F7B600]" },
@@ -139,10 +139,11 @@ export default function Header() {
               ? "rgba(15, 20, 25, 0.95)"
               : "rgba(15, 20, 25, 0.8)",
             backdropFilter: isScrolled ? "blur(20px)" : "blur(12px)",
-            borderBottomColor: isScrolled ? "rgba(255, 255, 255, 0.05)" : "transparent"
           }}
           transition={{ duration: 0.3 }}
-          className="fixed inset-x-0 top-0 z-[100] transition-all duration-300 border-b border-transparent"
+          className={`fixed inset-x-0 top-0 z-[100] transition-all duration-300 border-b ${
+            isScrolled ? "border-white/5" : "border-transparent"
+          }`}
         >
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16 lg:h-20">
@@ -161,7 +162,7 @@ export default function Header() {
                     height={40}
                     className="relative navbar-logo object-contain"
                     priority
-                    style={{ mixBlendMode: 'lighten' }}
+                    style={{ mixBlendMode: 'lighten', width: 'auto', height: 'auto' }}
                   />
                 </Link>
               </motion.div>
@@ -347,7 +348,7 @@ export default function Header() {
                           whileTap={{ scale: 0.98 }}
                           className="relative flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/10 text-sm font-medium transition-all duration-300 overflow-hidden group"
                         >
-                          <div className={`w-2 h-2 rounded-full ${isOnSomnia ? 'bg-emerald-400' : 'bg-orange-400'} relative z-10 shadow-lg ${isOnSomnia ? 'shadow-emerald-400/50' : 'shadow-orange-400/50'}`}></div>
+                          <div className={`w-2 h-2 rounded-full ${isOnBSC ? 'bg-emerald-400' : 'bg-orange-400'} relative z-10 shadow-lg ${isOnBSC ? 'shadow-emerald-400/50' : 'shadow-orange-400/50'}`}></div>
                           <span className="text-gray-200 font-mono text-xs relative z-10">
                             {address.slice(0, 5)}...{address.slice(-4)}
                           </span>
@@ -379,16 +380,16 @@ export default function Header() {
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 <div className="relative py-2 px-1">
-                                  {!isOnSomnia && (
+                                  {!isOnBSC && (
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        switchToSomnia();
+                                        switchToBSC();
                                         handleWalletDropdownClose();
                                       }}
                                       className="w-full flex items-center gap-2 px-4 py-2.5 mx-1 text-sm font-medium transition-all duration-200 rounded-lg text-orange-400 hover:text-orange-300 hover:bg-white/5"
                                     >
-                                      <span>Switch Network</span>
+                                      <span>Switch to BSC Testnet</span>
                                     </button>
                                   )}
                                   <button
@@ -492,7 +493,7 @@ export default function Header() {
                         height={32}
                         className="navbar-logo object-contain"
                         priority
-                        style={{ mixBlendMode: 'lighten' }}
+                        style={{ mixBlendMode: 'lighten', width: 'auto', height: 'auto' }}
                       />
                     </Link>
                   </div>
@@ -550,7 +551,7 @@ export default function Header() {
                       <>
                         <div className="px-4 py-3 rounded-lg bg-white/5 border border-white/5 text-sm">
                           <div className="flex items-center gap-2 mb-1">
-                            <div className={`w-2 h-2 rounded-full ${isOnSomnia ? 'bg-emerald-400' : 'bg-orange-400'}`}></div>
+                            <div className={`w-2 h-2 rounded-full ${isOnBSC ? 'bg-emerald-400' : 'bg-orange-400'}`}></div>
                             <span className="text-gray-300 font-mono text-xs">
                               {address.slice(0, 6)}...{address.slice(-4)}
                             </span>

@@ -13,7 +13,6 @@ import PredinexPoolFactoryArtifact from './abis/PredinexPoolFactory.json';
 import PredinexStakingArtifact from './abis/PredinexStaking.json';
 import ReputationSystemArtifact from './abis/ReputationSystem.json';
 import OddysseyArtifact from './abis/Oddyssey.json'; // Updated Oddyssey ABI
-import GauntletArtifact from './abis/Gauntlet.json'; // Legacy alias
 import PredinexH2HArtifact from './abis/PredinexH2H.json';
 
 // Extract ABI arrays from artifacts - handle both formats:
@@ -48,7 +47,6 @@ const PredinexPoolFactoryABI = extractABI(PredinexPoolFactoryArtifact);
 const PredinexStakingABI = extractABI(PredinexStakingArtifact);
 const ReputationSystemABI = extractABI(ReputationSystemArtifact);
 const OddysseyABI = extractABI(OddysseyArtifact); // Updated Oddyssey ABI
-const GauntletABI = extractABI(GauntletArtifact); // Legacy alias (may be same as Oddyssey)
 const PredinexH2HABI = extractABI(PredinexH2HArtifact);
 
 // ✅ Runtime validation: Ensure all ABIs are arrays
@@ -115,10 +113,6 @@ export const CONTRACTS = {
     address: CONTRACT_ADDRESSES.ODDYSSEY,
     abi: validateABI(OddysseyABI, 'ODDYSSEY'), // Updated Oddyssey ABI
   },
-  GAUNTLET: {
-    address: CONTRACT_ADDRESSES.ODDYSSEY, // Legacy alias - same as Oddyssey
-    abi: validateABI(OddysseyABI, 'GAUNTLET'), // Use Oddyssey ABI instead of legacy Gauntlet
-  },
   H2H: {
     address: CONTRACT_ADDRESSES.H2H,
     abi: validateABI(PredinexH2HABI, 'H2H'),
@@ -150,7 +144,6 @@ export {
   PredinexStakingABI,
   ReputationSystemABI,
   OddysseyABI, // Updated Oddyssey ABI
-  GauntletABI, // Legacy alias
 };
 
 // Contract events - Updated for Modular Architecture
@@ -227,12 +220,6 @@ export const CONTRACT_EVENTS = {
     WINNINGS_CLAIMED: 'WinningsClaimed',
     CYCLE_STARTED: 'CycleStarted',
     CYCLE_ENDED: 'CycleEnded',
-  },
-  GAUNTLET: {
-    // Legacy alias - same as ODDYSSEY
-    SLIP_PURCHASED: 'SlipPurchased',
-    GAME_SETTLED: 'GameSettled',
-    WINNINGS_CLAIMED: 'WinningsClaimed',
   },
 
   // Legacy events (for backward compatibility)

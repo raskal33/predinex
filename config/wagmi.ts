@@ -102,7 +102,6 @@ export const CONTRACT_ADDRESSES = {
   H2H: (process.env.NEXT_PUBLIC_H2H_ADDRESS || '0x925d026F27eD571e0239de7F4Dda40B45F38b983') as `0x${string}`, // PredinexH2H (BSC Testnet)
   FAUCET: (process.env.NEXT_PUBLIC_FAUCET_ADDRESS || '') as `0x${string}`, // No longer deployed
   ODDYSSEY: (process.env.NEXT_PUBLIC_ODDYSSEY_ADDRESS || '0x4B2FcfaC9b8ABF108699c63d2648AF8943673954') as `0x${string}`,
-  GAUNTLET: (process.env.NEXT_PUBLIC_GAUNTLET_ADDRESS || '0x363EB5395d824d7D04Ff574b990c555198aa7b97') as `0x${string}`,
   
   // Legacy support (for backward compatibility) - UPDATED TO NEW BSC TESTNET ADDRESSES
   PREDINEX_POOL: (process.env.NEXT_PUBLIC_PREDINEX_POOL_ADDRESS || '0x735DE180558679E6132F51e410387A8f7d10c07E') as `0x${string}`, // Points to Diamond

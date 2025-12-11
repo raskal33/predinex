@@ -291,7 +291,7 @@ class WebSocketClient {
     return this.subscribe(`pool:${poolId}:updates`, callback);
   }
 
-  // ===== GAUNTLET SUBSCRIPTION METHODS =====
+  // ===== ODDYSSEY SUBSCRIPTION METHODS =====
 
   /**
    * Subscribe to user's slip events (placed, evaluated, prize claimed)
@@ -334,13 +334,13 @@ class WebSocketClient {
   }
 
   /**
-   * Subscribe to all Gauntlet events for a cycle
+   * Subscribe to all Oddyssey events for a cycle
    * @param cycleId The cycle ID
    * @param callback Callback function for cycle events
    */
-  public subscribeToGauntletCycle(cycleId: number, callback: (data: any) => void) {
+  public subscribeToOddysseyCycle(cycleId: number, callback: (data: any) => void) {
     console.log(`🎯 Subscribing to events for cycle: ${cycleId}`);
-    return this.subscribe(`gauntlet:cycle:${cycleId}`, callback);
+    return this.subscribe(`oddyssey:cycle:${cycleId}`, callback);
   }
 
   /**
@@ -350,7 +350,7 @@ class WebSocketClient {
    */
   public subscribeToLiveSlipEvaluation(slipId: number, callback: (data: any) => void) {
     console.log(`🎯 Subscribing to live evaluation for slip: ${slipId}`);
-    return this.subscribe(`gauntlet:slip:${slipId}:evaluation`, callback);
+    return this.subscribe(`oddyssey:slip:${slipId}:evaluation`, callback);
   }
 
   public getStats() {

@@ -437,7 +437,7 @@ export class OddysseyContractService {
               prizeAmount = Number(parsedLog.args.userShare || 0);
               break;
             }
-          } catch {
+          } catch (_e) {
             // Continue searching for the event
           }
         }

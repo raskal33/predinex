@@ -72,9 +72,7 @@ export function useWalletConnection() {
     }
   }, []);
 
-  // Legacy export for backward compatibility
-  const switchToSomnia = switchToBSC;
-  const isOnSomnia = isOnBSC;
+  // Removed legacy Somnia exports - use isOnBSC and switchToBSC instead
 
   // Clear all timeouts and intervals
   const clearAllTimers = useCallback(() => {
@@ -269,10 +267,6 @@ export function useWalletConnection() {
     connectWallet,
     disconnectWallet,
     switchToBSC,
-    
-    // Legacy exports for backward compatibility
-    isOnSomnia,
-    switchToSomnia,
     
     // Utils
     connectionAttempts,

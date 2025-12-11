@@ -3,8 +3,8 @@ import { CONTRACT_ADDRESSES } from '@/config/wagmi';
 import { formatUnits } from 'viem';
 import OddysseyArtifact from '@/contracts/abis/Oddyssey.json';
 
-// Extract ABI array from artifact (ABI files are arrays directly)
-const ODDYSSEY_ABI = OddysseyArtifact as any;
+// Extract ABI array from artifact
+const ODDYSSEY_ABI = Array.isArray(OddysseyArtifact) ? OddysseyArtifact : (OddysseyArtifact.abi || []);
 
 export interface UserStats {
   totalSlips: bigint;
@@ -89,7 +89,7 @@ export function useOddysseyContract() {
       address: CONTRACT_ADDRESSES.ODDYSSEY,
       abi: ODDYSSEY_ABI,
       functionName: 'placeSlip',
-      args: [slip.predictions] as any,
+      args: [slip.predictions],
       value: entryFee as bigint,
     });
   };
