@@ -27,11 +27,11 @@ import {
   BoltIcon,
   SparklesIcon,
   ClockIcon,
-  EyeIcon,
+  // EyeIcon, // Unused
   ShieldCheckIcon,
   ArrowTrendingUpIcon,
   TableCellsIcon,
-  ArrowPathIcon,
+  // ArrowPathIcon, // Unused
   DocumentTextIcon,
   GiftIcon,
   CalendarDaysIcon,
@@ -1610,34 +1610,32 @@ export default function OddysseyPage() {
           </motion.div>
         )}
 
-        {/* Prize Pool & Stats - Compact Horizontal Layout */}
+        {/* Prize Pool, Stats & Cycle Status - Compact Layout */}
         <div className="mb-6">
           <div className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-4">
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
               {/* Prize Pool - Compact */}
               {currentPrizePool && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4 }}
-                  className="md:col-span-2 flex items-center gap-4"
+                  className="md:col-span-2 flex items-center gap-3"
                 >
-                  <GiftIcon className="h-6 w-6 text-[#FFC107] flex-shrink-0" />
+                  <GiftIcon className="h-5 w-5 text-[#FFC107] flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline gap-2 mb-1">
-                      <h2 className="text-2xl md:text-3xl font-black bg-gradient-to-r from-[#FFC107] via-[#F7B600] to-[#FFC107] bg-clip-text text-transparent">
+                    <div className="flex items-baseline gap-2 mb-0.5">
+                      <h2 className="text-xl md:text-2xl font-black bg-gradient-to-r from-[#FFC107] via-[#F7B600] to-[#FFC107] bg-clip-text text-transparent">
                         {currentPrizePool.formattedPrizePool}
                       </h2>
                       {currentPrizePool.isActive && (
-                        <BoltIcon className="h-4 w-4 text-[#10B981] animate-pulse" />
+                        <BoltIcon className="h-3 w-3 text-[#10B981] animate-pulse" />
                       )}
                     </div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs text-white/60">Prize Pool</span>
-                      <span className="text-xs text-white/40">•</span>
-                      <span className="text-xs text-white/60">Entry: {entryFee} BNB</span>
-                      <span className="text-xs text-white/40">•</span>
-                      <span className="text-xs text-white/60">Cycle {currentPrizePool.cycleId}</span>
+                    <div className="flex items-center gap-1.5 flex-wrap text-[10px]">
+                      <span className="text-white/60">Entry: {entryFee} BNB</span>
+                      <span className="text-white/40">•</span>
+                      <span className="text-white/60">Cycle {currentPrizePool.cycleId}</span>
                     </div>
                   </div>
                 </motion.div>
@@ -1650,12 +1648,12 @@ export default function OddysseyPage() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
-                    className="flex items-center gap-2 border-l border-white/10 pl-4"
+                    className="flex items-center gap-2 border-l border-white/10 pl-3"
                   >
-                    <CurrencyDollarIcon className="h-5 w-5 text-[#FFC107] flex-shrink-0" />
+                    <CurrencyDollarIcon className="h-4 w-4 text-[#FFC107] flex-shrink-0" />
                     <div>
-                      <div className="text-lg font-black text-white">{(stats.currentCycleSlips || 0).toLocaleString()}</div>
-                      <div className="text-[10px] text-white/60 uppercase">Slips</div>
+                      <div className="text-base font-black text-white">{(stats.currentCycleSlips || 0).toLocaleString()}</div>
+                      <div className="text-[9px] text-white/60 uppercase">Slips</div>
                     </div>
                   </motion.div>
 
@@ -1663,12 +1661,12 @@ export default function OddysseyPage() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="flex items-center gap-2 border-l border-white/10 pl-4"
+                    className="flex items-center gap-2 border-l border-white/10 pl-3"
                   >
-                    <UsersIcon className="h-5 w-5 text-[#10B981] flex-shrink-0" />
+                    <UsersIcon className="h-4 w-4 text-[#10B981] flex-shrink-0" />
                     <div>
-                      <div className="text-lg font-black text-white">{(cycleStats?.participants || stats?.totalPlayers || 0).toLocaleString()}</div>
-                      <div className="text-[10px] text-white/60 uppercase">Players</div>
+                      <div className="text-base font-black text-white">{(cycleStats?.participants || stats?.totalPlayers || 0).toLocaleString()}</div>
+                      <div className="text-[9px] text-white/60 uppercase">Players</div>
                     </div>
                   </motion.div>
 
@@ -1676,99 +1674,47 @@ export default function OddysseyPage() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="flex items-center gap-2 border-l border-white/10 pl-4"
+                    className="flex items-center gap-2 border-l border-white/10 pl-3"
                   >
-                    <TrophyIcon className="h-5 w-5 text-[#8B5CF6] flex-shrink-0" />
+                    <TrophyIcon className="h-4 w-4 text-[#8B5CF6] flex-shrink-0" />
                     <div>
-                      <div className="text-lg font-black text-white">{(stats.winRate || 0).toFixed(1)}%</div>
-                      <div className="text-[10px] text-white/60 uppercase">Win Rate</div>
+                      <div className="text-base font-black text-white">{(stats.winRate || 0).toFixed(1)}%</div>
+                      <div className="text-[9px] text-white/60 uppercase">Win Rate</div>
                     </div>
                   </motion.div>
                 </>
               )}
+
+              {/* Cycle Status & Countdown - Compact */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="flex items-center gap-2 border-l border-white/10 pl-3"
+              >
+                <ClockIcon className="h-4 w-4 text-primary flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  {hasStartedMatches ? (
+                    <div className="text-xs font-semibold text-red-400">Betting Closed</div>
+                  ) : isExpired && (!matches || matches.length === 0 || !stats?.currentCycleEndTime) ? (
+                    <div className="text-xs font-semibold text-red-400">Cycle Ended</div>
+                  ) : (
+                    <div className="flex items-center gap-1.5">
+                      <div className="text-xs font-semibold text-white/80">
+                        {timeLeft.hours.toString().padStart(2, '0')}:
+                        {timeLeft.minutes.toString().padStart(2, '0')}:
+                        {timeLeft.seconds.toString().padStart(2, '0')}
+                      </div>
+                    </div>
+                  )}
+                  <div className="text-[9px] text-white/60 uppercase">
+                    {hasStartedMatches ? 'Match Started' : isExpired ? 'Ended' : 'Time Left'}
+                  </div>
+                </div>
+              </motion.div>
             </div>
           </div>
         </div>
-
-        {/* Countdown Timer */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.3 }}
-          className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 text-center p-6 mb-8"
-        >
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-bold text-primary flex items-center gap-2">
-              <ClockIcon className="h-6 w-6" />
-              {currentMatches && currentMatches.length > 0 ? (
-                <>
-              Betting Closes In
-                  <span className="text-sm font-normal text-text-secondary ml-2">
-                    (First match: {currentMatches[0]?.homeTeam} vs {currentMatches[0]?.awayTeam})
-                  </span>
-                </>
-              ) : (
-                "Betting Closes In"
-              )}
-            </h3>
-            
-            {/* Refresh Button */}
-            <button
-              onClick={handleManualRefresh}
-              disabled={apiCallInProgress}
-              className="flex items-center gap-2 px-3 py-2 bg-primary/20 hover:bg-primary/30 text-primary rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {apiCallInProgress ? (
-                <FaSpinner className="h-4 w-4 animate-spin" />
-              ) : (
-                <ArrowPathIcon className="h-4 w-4" />
-              )}
-              <span className="text-sm font-medium">Refresh</span>
-            </button>
-          </div>
-          {hasStartedMatches ? (
-            <div className="text-red-400 font-bold text-2xl">
-              First match started, betting closed
-            </div>
-          ) : isExpired && (!matches || matches.length === 0 || !stats?.currentCycleEndTime) ? (
-            <div className="text-red-400 font-bold text-2xl">
-              Betting is closed - cycle has ended
-            </div>
-          ) : (
-            <div className="flex justify-center gap-4 mb-4">
-              <motion.div 
-                className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-4 min-w-[80px]"
-                animate={{ scale: [1, 1.05, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
-                <div className="text-2xl font-bold text-primary">
-                  {isNaN(timeLeft.hours) ? '00' : timeLeft.hours.toString().padStart(2, '0')}
-                </div>
-                <div className="text-xs text-text-muted uppercase tracking-wider">Hours</div>
-              </motion.div>
-              <motion.div 
-                className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-4 min-w-[80px]"
-                animate={{ scale: [1, 1.05, 1] }}
-                transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
-              >
-                <div className="text-2xl font-bold text-primary">
-                  {isNaN(timeLeft.minutes) ? '00' : timeLeft.minutes.toString().padStart(2, '0')}
-                </div>
-                <div className="text-xs text-text-muted uppercase tracking-wider">Minutes</div>
-              </motion.div>
-              <motion.div 
-                className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-4 min-w-[80px]"
-                animate={{ scale: [1, 1.05, 1] }}
-                transition={{ duration: 2, repeat: Infinity, delay: 1 }}
-              >
-                <div className="text-2xl font-bold text-primary">
-                  {isNaN(timeLeft.seconds) ? '00' : timeLeft.seconds.toString().padStart(2, '0')}
-                </div>
-                <div className="text-xs text-text-muted uppercase tracking-wider">Seconds</div>
-              </motion.div>
-            </div>
-          )}
-        </motion.div>
 
         {/* Icon-Based Tab Navigation - Predinex Style */}
         <div className="mb-8">
