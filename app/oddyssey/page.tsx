@@ -2705,9 +2705,9 @@ export default function OddysseyPage() {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.6 }}
-                          className="text-center p-3 bg-gray-800/30 rounded-lg border border-gray-700/50 hover:border-gray-600 transition-all"
+                          className="text-center p-3 bg-white/5 rounded-lg border border-white/10 hover:border-white/20 transition-all"
                         >
-                          <div className="text-sm text-gray-400 mb-2">Current Cycle Slips</div>
+                          <div className="text-sm text-white/60 mb-2">Current Cycle Slips</div>
                           <div className="text-xl font-bold text-green-400">{(stats.currentCycleSlips || 0).toLocaleString()}</div>
                         </motion.div>
 
@@ -2716,9 +2716,9 @@ export default function OddysseyPage() {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.7 }}
-                          className="text-center p-3 bg-gray-800/30 rounded-lg border border-gray-700/50 hover:border-gray-600 transition-all"
+                          className="text-center p-3 bg-white/5 rounded-lg border border-white/10 hover:border-white/20 transition-all"
                         >
-                          <div className="text-sm text-gray-400 mb-2">Total Cycles</div>
+                          <div className="text-sm text-white/60 mb-2">Total Cycles</div>
                           <div className="text-xl font-bold text-purple-400">{(stats.totalCycles || 0).toLocaleString()}</div>
                         </motion.div>
 
@@ -2727,9 +2727,9 @@ export default function OddysseyPage() {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.8 }}
-                          className="text-center p-3 bg-gray-800/30 rounded-lg border border-gray-700/50 hover:border-gray-600 transition-all"
+                          className="text-center p-3 bg-white/5 rounded-lg border border-white/10 hover:border-white/20 transition-all"
                         >
-                          <div className="text-sm text-gray-400 mb-2">Avg Accuracy</div>
+                          <div className="text-sm text-white/60 mb-2">Avg Accuracy</div>
                           <div className="text-xl font-bold text-cyan-400">{(stats.avgCorrect || 0).toFixed(2)}</div>
                         </motion.div>
 
@@ -2738,9 +2738,9 @@ export default function OddysseyPage() {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.9 }}
-                          className="text-center p-3 bg-gray-800/30 rounded-lg border border-gray-700/50 hover:border-gray-600 transition-all"
+                          className="text-center p-3 bg-white/5 rounded-lg border border-white/10 hover:border-white/20 transition-all"
                         >
-                          <div className="text-sm text-gray-400 mb-2">Winning Slips</div>
+                          <div className="text-sm text-white/60 mb-2">Winning Slips</div>
                           <div className="text-xl font-bold text-green-400">{(stats.correctPredictions || 0).toLocaleString()}</div>
                         </motion.div>
                       </div>
@@ -2794,7 +2794,7 @@ export default function OddysseyPage() {
                   <div className="text-center py-12">
                     <GiftIcon className="h-16 w-16 text-yellow-400 mx-auto mb-4" />
                     <h3 className="text-lg font-semibold text-white mb-2">Claim Your Winnings</h3>
-                    <p className="text-gray-400 mb-6">
+                    <p className="text-white/60 mb-6">
                       Use the Prize Claiming modal to view and claim your Odyssey prizes from winning slips.
                     </p>
                     
