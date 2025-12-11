@@ -2785,7 +2785,7 @@ export default function OddysseyPage() {
                 exit={{ opacity: 0, x: -20 }}
                 className="lg:col-span-3"
               >
-                <div className="bg-gray-800/50 rounded-2xl border border-gray-600 p-6">
+                <div className="bg-white/5 rounded-2xl border border-white/10 p-6">
                   <div className="flex items-center gap-3 mb-6">
                     <GiftIcon className="h-6 w-6 text-yellow-400" />
                     <h2 className="text-xl font-bold text-white">Claim Odyssey Prizes</h2>
