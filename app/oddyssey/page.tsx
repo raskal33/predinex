@@ -777,7 +777,7 @@ export default function OddysseyPage() {
         
         setStats({
           totalPlayers: globalStatsResult.data.totalPlayers || 0,
-          prizePool: `${formattedAvgPrizePool} STT`,
+          prizePool: `${formattedAvgPrizePool} BNB`,
           completedSlips: globalStatsResult.data.totalSlips?.toLocaleString() || "0",
           averageOdds: `${(globalStatsResult.data.averageOdds || 0).toFixed(2)}x`, // Use new averageOdds field
           totalCycles: globalStatsResult.data.totalCycles || 0,
@@ -798,7 +798,7 @@ export default function OddysseyPage() {
         console.warn('⚠️ No global stats received from contract, using defaults');
         setStats({
           totalPlayers: 0,
-          prizePool: "0 STT",
+          prizePool: "0 BNB",
           completedSlips: "0",
           averageOdds: "0x",
           totalCycles: 0,
@@ -841,7 +841,7 @@ export default function OddysseyPage() {
       // Set default stats on error
       setStats({
         totalPlayers: 0,
-        prizePool: "0 STT",
+        prizePool: "0 BNB",
         completedSlips: "0",
         averageOdds: "0x",
         totalCycles: 0,
@@ -1370,7 +1370,7 @@ export default function OddysseyPage() {
           if (transactionError.message.includes('cancelled by user') || transactionError.message.includes('rejected')) {
             showError("Transaction Cancelled", "You cancelled the transaction. Please try again if you want to place the slip.");
           } else if (transactionError.message.includes('Insufficient funds')) {
-            showError("Insufficient Funds", "You don't have enough STT tokens to pay the entry fee. Please get more STT tokens and try again.");
+            showError("Insufficient Funds", "You don't have enough BNB tokens to pay the entry fee. Please get more BNB tokens and try again.");
           } else if (transactionError.message.includes('Gas estimation failed')) {
             showError("Gas Estimation Failed", "Failed to estimate gas. Please check your network connection and try again.");
           } else if (transactionError.message.includes('Network error')) {
@@ -1581,7 +1581,7 @@ export default function OddysseyPage() {
             className="mb-6"
           >
             {isInitializing && (
-              <div className="glass-card p-4 text-center">
+              <div className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-4 text-center">
                 <div className="flex items-center justify-center gap-3">
                   <FaSpinner className="h-5 w-5 animate-spin text-primary" />
                   <span className="text-lg font-semibold text-text-secondary">
@@ -1595,7 +1595,7 @@ export default function OddysseyPage() {
             )}
             
             {!isInitialized && !isInitializing && (
-              <div className="glass-card p-4 text-center border border-red-500/30">
+              <div className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-red-500/30 p-4 text-center">
                 <div className="flex items-center justify-center gap-3">
                   <ShieldCheckIcon className="h-5 w-5 text-red-400" />
                   <span className="text-lg font-semibold text-red-400">
@@ -1610,118 +1610,83 @@ export default function OddysseyPage() {
           </motion.div>
         )}
 
-        {/* Prize Pool & Stats - Creative Layout */}
-        <div className="mb-8">
-          {/* Main Container: Prize Pool on Left, Stats on Right */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Prize Pool - Takes 2 columns on large screens */}
-            {currentPrizePool && (
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                className="lg:col-span-2"
-              >
-                <div className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-4 md:p-5 h-full">
-                  <div className="relative z-10 flex flex-col justify-between h-full">
-                    {/* Top Section: Icon and Label */}
-                    <div>
-                      <div className="inline-flex items-center gap-2 mb-3">
-                        <GiftIcon className="h-5 w-5 text-[#FFC107]" />
-                        <div>
-                          <p className="text-xs font-semibold text-gray-300 uppercase tracking-wider">Prize Pool</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="px-2 py-0.5 rounded-full bg-white/10 border border-white/20 text-[10px]">
-                              Cycle {currentPrizePool.cycleId}
-                            </span>
-                            <span className="px-2 py-0.5 rounded-full bg-white/10 border border-white/20 text-[10px]">
-                              {currentPrizePool.matchesCount} Matches
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Middle Section: Prize Amount */}
-                    <div className="my-2">
-                      <h2 className="text-2xl md:text-3xl font-black bg-gradient-to-r from-[#FFC107] via-[#F7B600] to-[#FFC107] bg-clip-text text-transparent tracking-tight">
+        {/* Prize Pool & Stats - Compact Horizontal Layout */}
+        <div className="mb-6">
+          <div className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              {/* Prize Pool - Compact */}
+              {currentPrizePool && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4 }}
+                  className="md:col-span-2 flex items-center gap-4"
+                >
+                  <GiftIcon className="h-6 w-6 text-[#FFC107] flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline gap-2 mb-1">
+                      <h2 className="text-2xl md:text-3xl font-black bg-gradient-to-r from-[#FFC107] via-[#F7B600] to-[#FFC107] bg-clip-text text-transparent">
                         {currentPrizePool.formattedPrizePool}
                       </h2>
+                      {currentPrizePool.isActive && (
+                        <BoltIcon className="h-4 w-4 text-[#10B981] animate-pulse" />
+                      )}
                     </div>
-                    
-                    {/* Bottom Section: Active Status */}
-                    {currentPrizePool.isActive && (
-                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-[#10B981]/20 to-[#059669]/20 border border-[#10B981]/40 text-[#10B981] font-semibold text-xs w-fit">
-                        <BoltIcon className="h-3 w-3" />
-                        <span>Active</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Stats Cards - Takes 1 column on large screens, stacked on mobile */}
-            {stats && (
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 }}
-                className="grid grid-cols-2 lg:grid-cols-1 gap-4"
-              >
-                {/* Total Slips Card */}
-                <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  transition={{ type: "spring", stiffness: 300 }}
-                  className="relative overflow-hidden rounded-lg backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-3 text-center"
-                >
-                  <div className="relative z-10">
-                    <CurrencyDollarIcon className="h-4 w-4 text-[#FFC107] mx-auto mb-2" />
-                    <h3 className="text-xl font-black text-white mb-0.5">{(stats.currentCycleSlips || 0).toLocaleString()}</h3>
-                    <p className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Total Slips</p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs text-gray-400">Prize Pool</span>
+                      <span className="text-xs text-gray-500">•</span>
+                      <span className="text-xs text-gray-400">Entry: {entryFee} BNB</span>
+                      <span className="text-xs text-gray-500">•</span>
+                      <span className="text-xs text-gray-400">Cycle {currentPrizePool.cycleId}</span>
+                    </div>
                   </div>
                 </motion.div>
+              )}
 
-                {/* Total Players Card */}
-                <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  transition={{ type: "spring", stiffness: 300 }}
-                  className="relative overflow-hidden rounded-lg backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-3 text-center"
-                >
-                  <div className="relative z-10">
-                    <UsersIcon className="h-4 w-4 text-[#10B981] mx-auto mb-2" />
-                    <h3 className="text-xl font-black text-white mb-0.5">{(cycleStats?.participants || stats?.totalPlayers || 0).toLocaleString()}</h3>
-                    <p className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Players</p>
-                  </div>
-                </motion.div>
+              {/* Stats - Compact Horizontal */}
+              {stats && (
+                <>
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                    className="flex items-center gap-2 border-l border-white/10 pl-4"
+                  >
+                    <CurrencyDollarIcon className="h-5 w-5 text-[#FFC107] flex-shrink-0" />
+                    <div>
+                      <div className="text-lg font-black text-white">{(stats.currentCycleSlips || 0).toLocaleString()}</div>
+                      <div className="text-[10px] text-gray-400 uppercase">Slips</div>
+                    </div>
+                  </motion.div>
 
-                {/* Win Rate Card */}
-                <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  transition={{ type: "spring", stiffness: 300 }}
-                  className="relative overflow-hidden rounded-lg backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-3 text-center"
-                >
-                  <div className="relative z-10">
-                    <TrophyIcon className="h-4 w-4 text-[#8B5CF6] mx-auto mb-2" />
-                    <h3 className="text-xl font-black text-white mb-0.5">{(stats.winRate || 0).toFixed(2)}%</h3>
-                    <p className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Win Rate</p>
-                  </div>
-                </motion.div>
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className="flex items-center gap-2 border-l border-white/10 pl-4"
+                  >
+                    <UsersIcon className="h-5 w-5 text-[#10B981] flex-shrink-0" />
+                    <div>
+                      <div className="text-lg font-black text-white">{(cycleStats?.participants || stats?.totalPlayers || 0).toLocaleString()}</div>
+                      <div className="text-[10px] text-gray-400 uppercase">Players</div>
+                    </div>
+                  </motion.div>
 
-                {/* Average Odds Card */}
-                <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  transition={{ type: "spring", stiffness: 300 }}
-                  className="relative overflow-hidden rounded-lg backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-3 text-center"
-                >
-                  <div className="relative z-10">
-                    <EyeIcon className="h-4 w-4 text-[#06B6D4] mx-auto mb-2" />
-                    <h3 className="text-xl font-black text-white mb-0.5">{parseFloat(stats.averageOdds || '0').toFixed(2)}x</h3>
-                    <p className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Avg Odds</p>
-                  </div>
-                </motion.div>
-              </motion.div>
-            )}
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className="flex items-center gap-2 border-l border-white/10 pl-4"
+                  >
+                    <TrophyIcon className="h-5 w-5 text-[#8B5CF6] flex-shrink-0" />
+                    <div>
+                      <div className="text-lg font-black text-white">{(stats.winRate || 0).toFixed(1)}%</div>
+                      <div className="text-[10px] text-gray-400 uppercase">Win Rate</div>
+                    </div>
+                  </motion.div>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
@@ -1730,7 +1695,7 @@ export default function OddysseyPage() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.3 }}
-          className="glass-card text-center p-6 mb-8"
+          className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 text-center p-6 mb-8"
         >
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-bold text-primary flex items-center gap-2">
@@ -1772,7 +1737,7 @@ export default function OddysseyPage() {
           ) : (
             <div className="flex justify-center gap-4 mb-4">
               <motion.div 
-                className="glass-card p-4 min-w-[80px]"
+                className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-4 min-w-[80px]"
                 animate={{ scale: [1, 1.05, 1] }}
                 transition={{ duration: 2, repeat: Infinity }}
               >
@@ -1782,7 +1747,7 @@ export default function OddysseyPage() {
                 <div className="text-xs text-text-muted uppercase tracking-wider">Hours</div>
               </motion.div>
               <motion.div 
-                className="glass-card p-4 min-w-[80px]"
+                className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-4 min-w-[80px]"
                 animate={{ scale: [1, 1.05, 1] }}
                 transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
               >
@@ -1792,7 +1757,7 @@ export default function OddysseyPage() {
                 <div className="text-xs text-text-muted uppercase tracking-wider">Minutes</div>
               </motion.div>
               <motion.div 
-                className="glass-card p-4 min-w-[80px]"
+                className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-4 min-w-[80px]"
                 animate={{ scale: [1, 1.05, 1] }}
                 transition={{ duration: 2, repeat: Infinity, delay: 1 }}
               >
@@ -1885,9 +1850,9 @@ export default function OddysseyPage() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20 }}
-                  className="lg:col-span-2"
+                  className="lg:col-span-2 relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-4 md:p-6"
                 >
-                  <div className="glass-card p-4 md:p-6">
+                  <div className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-4 md:p-6">
                     {/* Date Tabs */}
                     <div className="flex items-center justify-center gap-1 md:gap-2 mb-4 md:mb-6 flex-wrap">
                       <button
@@ -2380,12 +2345,12 @@ export default function OddysseyPage() {
                             <div className="flex justify-between items-center text-sm">
                               <span className="text-text-muted">Entry Fee:</span>
                               <span className="text-white font-bold">
-                                {entryFee} STT
+                                {entryFee} BNB
                               </span>
                             </div>
                             <div className="flex justify-between items-center text-sm">
                               <span className="text-text-muted">Potential Win:</span>
-                              <span className="text-secondary font-bold">{(parseFloat(totalOdd) * parseFloat(entryFee)).toFixed(2)} STT</span>
+                              <span className="text-secondary font-bold">{(parseFloat(totalOdd) * parseFloat(entryFee)).toFixed(2)} BNB</span>
                             </div>
                           </div>
 
@@ -2407,13 +2372,13 @@ export default function OddysseyPage() {
                               <div className="flex justify-between items-center text-sm mt-1">
                                 <span className="text-text-muted">Entry Fee:</span>
                                 <span className="text-white font-bold">
-                                  {entryFee} STT
+                                  {entryFee} BNB
                                 </span>
                               </div>
                               <div className="flex justify-between items-center text-sm mt-1">
                                 <span className="text-text-muted">Potential Payout:</span>
                                 <span className="text-primary font-bold">
-                                  {(parseFloat(totalOdd) * parseFloat(entryFee)).toFixed(2)} STT
+                                  {(parseFloat(totalOdd) * parseFloat(entryFee)).toFixed(2)} BNB
                                 </span>
                               </div>
                             </motion.div>
@@ -2653,7 +2618,7 @@ export default function OddysseyPage() {
                             <CurrencyDollarIcon className="w-5 h-5 text-accent" />
                             <span className="text-sm font-medium text-gray-400">Total Volume</span>
                           </div>
-                          <div className="text-3xl font-bold text-accent mb-1">{(stats.totalVolume / 1e18).toFixed(2)} STT</div>
+                          <div className="text-3xl font-bold text-accent mb-1">{(stats.totalVolume / 1e18).toFixed(2)} BNB</div>
                           <div className="text-xs text-gray-500">prize pool value</div>
                         </motion.div>
 
