@@ -9,7 +9,11 @@ import {
   FaHandshake, 
   FaTimesCircle,
   FaPlus,
-  FaSpinner
+  FaSpinner,
+  FaTrophy,
+  FaChartLine,
+  FaList,
+  FaUser,
 } from "react-icons/fa";
 import { useH2H, type Challenge, type CurrencyType as H2HCurrencyType } from "@/hooks/useH2H";
 import { CurrencySelector } from "@/components/CurrencySelector";
@@ -105,11 +109,22 @@ export default function H2HPage() {
   const getStateColor = (challenge: Challenge) => {
     if (challenge.state === 0) {
       return challenge.highestBidder !== '0x0000000000000000000000000000000000000000' 
-        ? 'text-green-400' 
-        : 'text-blue-400';
+        ? 'text-[#10B981]' 
+        : 'text-[#3B82F6]';
     }
-    if (challenge.state === 2) return 'text-purple-400';
-    return 'text-gray-400';
+    if (challenge.state === 2) return 'text-[#8B5CF6]';
+    return 'text-white/50';
+  };
+
+  // Get state bg color
+  const getStateBgColor = (challenge: Challenge) => {
+    if (challenge.state === 0) {
+      return challenge.highestBidder !== '0x0000000000000000000000000000000000000000' 
+        ? 'bg-[#10B981]/20 border-[#10B981]/30' 
+        : 'bg-[#3B82F6]/20 border-[#3B82F6]/30';
+    }
+    if (challenge.state === 2) return 'bg-[#8B5CF6]/20 border-[#8B5CF6]/30';
+    return 'bg-white/5 border-white/10';
   };
 
   // Check if bidding is open
@@ -249,45 +264,62 @@ export default function H2HPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* Header */}
-        <div className="mb-8">
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex items-center justify-between mb-6"
-          >
-            <div>
-              <h1 className="text-4xl font-bold mb-2 flex items-center gap-3">
-                <FaHandshake className="text-[var(--bsc-yellow)]" />
-                Head-to-Head Challenges
-              </h1>
-              <p className="text-gray-400">
-                Create challenges or bid to be the opponent. Highest bidder wins the action!
-              </p>
-            </div>
-            {isConnected && (
-              <div className="text-right">
-                <div className="text-sm text-gray-400">Your Stats</div>
-                <div className="text-lg font-semibold">
-                  {userTotalChallenges} Challenges • {userTotalWins} Wins
+    <div className="min-h-screen bg-gradient-to-br from-[#0A0E13] via-[#0F1419] to-[#0A0E13] text-white">
+      <div className="container mx-auto px-4 py-6 max-w-7xl">
+        {/* Header - Compact Glassmorphism */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6"
+        >
+          <div className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-4">
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-gradient-to-br from-[#FFC107]/20 to-[#F7B600]/20 border border-[#FFC107]/30">
+                  <FaHandshake className="h-5 w-5 text-[#FFC107]" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-black bg-gradient-to-r from-[#FFC107] via-[#F7B600] to-[#FFC107] bg-clip-text text-transparent">
+                    Head-to-Head Challenges
+                  </h1>
+                  <p className="text-xs text-white/60 mt-0.5">
+                    Create challenges or bid to be the opponent
+                  </p>
                 </div>
               </div>
-            )}
-          </motion.div>
+              
+              {isConnected && (
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg backdrop-blur-sm bg-white/5 border border-white/10">
+                    <FaChartLine className="h-3.5 w-3.5 text-[#FFC107]" />
+                    <div>
+                      <div className="text-xs text-white/60">Challenges</div>
+                      <div className="text-sm font-black text-white">{userTotalChallenges || 0}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg backdrop-blur-sm bg-white/5 border border-white/10">
+                    <FaTrophy className="h-3.5 w-3.5 text-[#10B981]" />
+                    <div>
+                      <div className="text-xs text-white/60">Wins</div>
+                      <div className="text-sm font-black text-white">{userTotalWins || 0}</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
 
-          {/* Pending Refunds */}
+          {/* Pending Refunds - Glassmorphism */}
           {((pendingRefundBNB && typeof pendingRefundBNB === 'bigint' && pendingRefundBNB > 0n) || (pendingRefundPRIX && typeof pendingRefundPRIX === 'bigint' && pendingRefundPRIX > 0n) || (pendingRefundUSDT && typeof pendingRefundUSDT === 'bigint' && pendingRefundUSDT > 0n)) && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 mb-6"
+              className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-[#FFC107]/10 via-[#F7B600]/5 to-transparent border border-[#FFC107]/20 p-4 mb-6"
             >
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between flex-wrap gap-4">
                 <div>
-                  <div className="font-semibold text-yellow-400 mb-1">Pending Refunds Available</div>
-                  <div className="text-sm text-gray-300">
+                  <div className="font-semibold text-[#FFC107] mb-1 text-sm">Pending Refunds Available</div>
+                  <div className="text-xs text-white/70">
                     {(pendingRefundBNB && typeof pendingRefundBNB === 'bigint' && pendingRefundBNB > 0n) && `${formatEther(pendingRefundBNB)} BNB `}
                     {(pendingRefundPRIX && typeof pendingRefundPRIX === 'bigint' && pendingRefundPRIX > 0n) && `${formatEther(pendingRefundPRIX)} PRIX `}
                     {(pendingRefundUSDT && typeof pendingRefundUSDT === 'bigint' && pendingRefundUSDT > 0n) && `${formatEther(pendingRefundUSDT)} USDT`}
@@ -297,7 +329,7 @@ export default function H2HPage() {
                   {(pendingRefundBNB && typeof pendingRefundBNB === 'bigint' && pendingRefundBNB > 0n) && (
                     <Button
                       onClick={() => withdrawRefund(0)}
-                      className="bg-yellow-500 hover:bg-yellow-600"
+                      className="bg-gradient-to-r from-[#FFC107] to-[#F7B600] hover:from-[#FFC107]/90 hover:to-[#F7B600]/90 text-black font-semibold text-xs px-3 py-1.5"
                     >
                       Withdraw BNB
                     </Button>
@@ -305,7 +337,7 @@ export default function H2HPage() {
                   {(pendingRefundPRIX && typeof pendingRefundPRIX === 'bigint' && pendingRefundPRIX > 0n) && (
                     <Button
                       onClick={() => withdrawRefund(1)}
-                      className="bg-yellow-500 hover:bg-yellow-600"
+                      className="bg-gradient-to-r from-[#FFC107] to-[#F7B600] hover:from-[#FFC107]/90 hover:to-[#F7B600]/90 text-black font-semibold text-xs px-3 py-1.5"
                     >
                       Withdraw PRIX
                     </Button>
@@ -313,7 +345,7 @@ export default function H2HPage() {
                   {(pendingRefundUSDT && typeof pendingRefundUSDT === 'bigint' && pendingRefundUSDT > 0n) && (
                     <Button
                       onClick={() => withdrawRefund(2)}
-                      className="bg-yellow-500 hover:bg-yellow-600"
+                      className="bg-gradient-to-r from-[#FFC107] to-[#F7B600] hover:from-[#FFC107]/90 hover:to-[#F7B600]/90 text-black font-semibold text-xs px-3 py-1.5"
                     >
                       Withdraw USDT
                     </Button>
@@ -323,78 +355,89 @@ export default function H2HPage() {
             </motion.div>
           )}
 
-          {/* Navigation Tabs */}
-          <div className="flex gap-4 mb-6">
-            <button
+          {/* Navigation Tabs - Icon-based Glassmorphism */}
+          <div className="flex items-center justify-center gap-2 bg-[#0F1419]/80 backdrop-blur-md border border-white/5 rounded-2xl p-2 mb-6">
+            <motion.button
               onClick={() => setViewMode('list')}
-              className={`px-6 py-3 rounded-lg font-semibold transition-all ${
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-sm transition-all ${
                 viewMode === 'list'
-                  ? 'bg-[var(--bsc-yellow)] text-black'
-                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                  ? 'bg-gradient-to-r from-[#FFC107] to-[#F7B600] text-black'
+                  : 'text-white/70 hover:text-white hover:bg-white/5'
               }`}
             >
-              All Challenges
-            </button>
-            <button
+              <FaList className="h-4 w-4" />
+              <span className="hidden sm:inline">All Challenges</span>
+            </motion.button>
+            <motion.button
               onClick={() => setViewMode('create')}
-              className={`px-6 py-3 rounded-lg font-semibold transition-all flex items-center gap-2 ${
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-sm transition-all ${
                 viewMode === 'create'
-                  ? 'bg-[var(--bsc-yellow)] text-black'
-                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                  ? 'bg-gradient-to-r from-[#FFC107] to-[#F7B600] text-black'
+                  : 'text-white/70 hover:text-white hover:bg-white/5'
               }`}
             >
-              <FaPlus /> Create Challenge
-            </button>
+              <FaPlus className="h-4 w-4" />
+              <span className="hidden sm:inline">Create</span>
+            </motion.button>
             {isConnected && (
-              <button
+              <motion.button
                 onClick={() => setViewMode('my-challenges')}
-                className={`px-6 py-3 rounded-lg font-semibold transition-all ${
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-sm transition-all ${
                   viewMode === 'my-challenges'
-                    ? 'bg-[var(--bsc-yellow)] text-black'
-                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                    ? 'bg-gradient-to-r from-[#FFC107] to-[#F7B600] text-black'
+                    : 'text-white/70 hover:text-white hover:bg-white/5'
                 }`}
               >
-                My Challenges
-              </button>
+                <FaUser className="h-4 w-4" />
+                <span className="hidden sm:inline">My Challenges</span>
+              </motion.button>
             )}
           </div>
-        </div>
+        </motion.div>
 
-        {/* Create Challenge Form */}
+        {/* Create Challenge Form - Glassmorphism */}
         {viewMode === 'create' && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700 mb-8"
+            className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-6 mb-8"
           >
-            <h2 className="text-2xl font-bold mb-6">Create New Challenge</h2>
+            <h2 className="text-xl font-black mb-6 bg-gradient-to-r from-[#FFC107] via-[#F7B600] to-[#FFC107] bg-clip-text text-transparent">
+              Create New Challenge
+            </h2>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">Market ID</label>
+                <label className="block text-xs font-semibold mb-2 text-white/80 uppercase tracking-wider">Market ID</label>
                 <input
                   type="text"
                   value={createForm.marketId}
                   onChange={(e) => setCreateForm({ ...createForm, marketId: e.target.value })}
                   placeholder="e.g., match_12345"
-                  className="w-full px-4 py-2 bg-gray-900 border border-gray-600 rounded-lg focus:outline-none focus:border-[var(--bsc-yellow)]"
+                  className="w-full px-4 py-2.5 bg-[#0A0E13]/80 backdrop-blur-sm border border-white/10 rounded-lg focus:outline-none focus:border-[#FFC107]/50 text-white placeholder:text-white/30 transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Your Prediction (Outcome)</label>
+                <label className="block text-xs font-semibold mb-2 text-white/80 uppercase tracking-wider">Your Prediction (Outcome)</label>
                 <input
                   type="text"
                   value={createForm.outcome}
                   onChange={(e) => setCreateForm({ ...createForm, outcome: e.target.value })}
                   placeholder="e.g., HOME_WIN, AWAY_WIN, OVER_2.5"
-                  className="w-full px-4 py-2 bg-gray-900 border border-gray-600 rounded-lg focus:outline-none focus:border-[var(--bsc-yellow)]"
+                  className="w-full px-4 py-2.5 bg-[#0A0E13]/80 backdrop-blur-sm border border-white/10 rounded-lg focus:outline-none focus:border-[#FFC107]/50 text-white placeholder:text-white/30 transition-all"
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Your Stake</label>
+                  <label className="block text-xs font-semibold mb-2 text-white/80 uppercase tracking-wider">Your Stake</label>
                   <AmountInput
                     value={createForm.makerStake}
                     onChange={(value) => setCreateForm({ ...createForm, makerStake: value })}
@@ -403,7 +446,7 @@ export default function H2HPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Minimum Bid</label>
+                  <label className="block text-xs font-semibold mb-2 text-white/80 uppercase tracking-wider">Minimum Bid</label>
                   <AmountInput
                     value={createForm.minBid}
                     onChange={(value) => setCreateForm({ ...createForm, minBid: value })}
@@ -413,7 +456,7 @@ export default function H2HPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Currency</label>
+                <label className="block text-xs font-semibold mb-2 text-white/80 uppercase tracking-wider">Currency</label>
                 <CurrencySelector
                   value={(createForm.currency === 0 ? 'BNB' : createForm.currency === 1 ? 'PRIX' : 'USDT') as 'BNB' | 'PRIX' | 'USDT'}
                   onChange={(currency: 'BNB' | 'PRIX' | 'USDT') => {
@@ -424,22 +467,22 @@ export default function H2HPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Event Start Time</label>
+                <label className="block text-xs font-semibold mb-2 text-white/80 uppercase tracking-wider">Event Start Time</label>
                 <input
                   type="datetime-local"
                   value={createForm.eventStartTime}
                   onChange={(e) => setCreateForm({ ...createForm, eventStartTime: e.target.value })}
-                  className="w-full px-4 py-2 bg-gray-900 border border-gray-600 rounded-lg focus:outline-none focus:border-[var(--bsc-yellow)]"
+                  className="w-full px-4 py-2.5 bg-[#0A0E13]/80 backdrop-blur-sm border border-white/10 rounded-lg focus:outline-none focus:border-[#FFC107]/50 text-white transition-all"
                 />
-                <p className="text-xs text-gray-400 mt-1">
+                <p className="text-xs text-white/50 mt-1.5">
                   Bidding closes 5 minutes before event start
                 </p>
               </div>
 
-              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
-                <div className="text-sm font-semibold text-blue-400 mb-2">Creation Fee</div>
-                <div className="text-lg font-bold">{formatEther(CREATION_FEE)} BNB</div>
-                <div className="text-xs text-gray-400 mt-1">
+              <div className="relative overflow-hidden rounded-lg backdrop-blur-sm bg-gradient-to-br from-[#3B82F6]/10 via-[#3B82F6]/5 to-transparent border border-[#3B82F6]/20 p-4">
+                <div className="text-xs font-semibold text-[#3B82F6] mb-1 uppercase tracking-wider">Creation Fee</div>
+                <div className="text-lg font-black text-white">{formatEther(CREATION_FEE)} BNB</div>
+                <div className="text-xs text-white/50 mt-1">
                   Creation fee is always paid in BNB, regardless of challenge currency
                 </div>
               </div>
@@ -447,7 +490,7 @@ export default function H2HPage() {
               <Button
                 onClick={handleCreateChallenge}
                 disabled={!isConnected}
-                className="w-full bg-[var(--bsc-yellow)] hover:bg-[var(--bsc-yellow)]/90 text-black font-bold py-3"
+                className="w-full bg-gradient-to-r from-[#FFC107] to-[#F7B600] hover:from-[#FFC107]/90 hover:to-[#F7B600]/90 text-black font-black py-3 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {!isConnected ? 'Connect Wallet' : 'Create Challenge'}
               </Button>
@@ -458,62 +501,39 @@ export default function H2HPage() {
         {/* Challenges List */}
         {viewMode !== 'create' && (
           <>
-            {/* Filters */}
+            {/* Filters - Glassmorphism */}
             <div className="flex gap-2 mb-6 flex-wrap">
-              <button
-                onClick={() => setFilterState('all')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  filterState === 'all'
-                    ? 'bg-[var(--bsc-yellow)] text-black'
-                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                }`}
-              >
-                All
-              </button>
-              <button
-                onClick={() => setFilterState('active')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  filterState === 'active'
-                    ? 'bg-[var(--bsc-yellow)] text-black'
-                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                }`}
-              >
-                Active
-              </button>
-              <button
-                onClick={() => setFilterState('matched')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  filterState === 'matched'
-                    ? 'bg-[var(--bsc-yellow)] text-black'
-                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                }`}
-              >
-                Matched
-              </button>
-              <button
-                onClick={() => setFilterState('resolved')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  filterState === 'resolved'
-                    ? 'bg-[var(--bsc-yellow)] text-black'
-                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                }`}
-              >
-                Resolved
-              </button>
+              {(['all', 'active', 'matched', 'resolved'] as FilterState[]).map((state) => (
+                <motion.button
+                  key={state}
+                  onClick={() => setFilterState(state)}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all uppercase tracking-wider ${
+                    filterState === state
+                      ? 'bg-gradient-to-r from-[#FFC107] to-[#F7B600] text-black'
+                      : 'bg-[#0F1419]/80 backdrop-blur-sm border border-white/10 text-white/70 hover:text-white hover:border-white/20'
+                  }`}
+                >
+                  {state}
+                </motion.button>
+              ))}
             </div>
 
             {/* Challenges Grid */}
             {loading ? (
               <div className="flex justify-center items-center py-20">
-                <FaSpinner className="animate-spin text-4xl text-[var(--bsc-yellow)]" />
+                <FaSpinner className="animate-spin text-4xl text-[#FFC107]" />
               </div>
             ) : filteredChallenges.length === 0 ? (
-              <div className="text-center py-20 text-gray-400">
-                <FaHandshake className="text-6xl mx-auto mb-4 opacity-50" />
-                <p className="text-xl">No challenges found</p>
+              <div className="text-center py-20">
+                <div className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-12 inline-block">
+                  <FaHandshake className="text-6xl mx-auto mb-4 text-white/30" />
+                  <p className="text-lg font-semibold text-white/60">No challenges found</p>
+                </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredChallenges.map((challenge) => (
                   <ChallengeCard
                     key={Number(challenge.id)}
@@ -531,6 +551,7 @@ export default function H2HPage() {
                     getCurrencyName={getCurrencyName}
                     getStateLabel={getStateLabel}
                     getStateColor={getStateColor}
+                    getStateBgColor={getStateBgColor}
                   />
                 ))}
               </div>
@@ -538,7 +559,7 @@ export default function H2HPage() {
           </>
         )}
 
-        {/* Bid Modal */}
+        {/* Bid Modal - Glassmorphism */}
         <AnimatePresence>
           {showBidModal && selectedChallenge && (
             <BidModal
@@ -560,7 +581,7 @@ export default function H2HPage() {
   );
 }
 
-// Challenge Card Component
+// Challenge Card Component - Glassmorphism
 function ChallengeCard({
   challenge,
   address,
@@ -573,6 +594,7 @@ function ChallengeCard({
   getCurrencyName,
   getStateLabel,
   getStateColor,
+  getStateBgColor,
 }: {
   challenge: Challenge;
   address: string | undefined;
@@ -585,6 +607,7 @@ function ChallengeCard({
   getCurrencyName: (currency: CurrencyType) => string;
   getStateLabel: (challenge: Challenge) => string;
   getStateColor: (challenge: Challenge) => string;
+  getStateBgColor: (challenge: Challenge) => string;
 }) {
   const isCreator = address && challenge.creator.toLowerCase() === address.toLowerCase();
   const _isBidder = address && challenge.highestBidder.toLowerCase() === address.toLowerCase();
@@ -596,34 +619,35 @@ function ChallengeCard({
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700 hover:border-[var(--bsc-yellow)]/50 transition-all"
+      whileHover={{ scale: 1.02 }}
+      className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-5 transition-all hover:border-[#FFC107]/30"
     >
       <div className="flex items-start justify-between mb-4">
-        <div>
-          <div className="text-sm text-gray-400">Challenge #{Number(challenge.id)}</div>
-          <div className="text-lg font-bold mt-1">{challenge.marketId}</div>
+        <div className="flex-1 min-w-0">
+          <div className="text-xs text-white/50 mb-1 uppercase tracking-wider">Challenge #{Number(challenge.id)}</div>
+          <div className="text-base font-black text-white truncate">{challenge.marketId}</div>
         </div>
-        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStateColor(challenge)} bg-gray-900`}>
+        <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold border ${getStateColor(challenge)} ${getStateBgColor(challenge)}`}>
           {getStateLabel(challenge)}
         </span>
       </div>
 
       <div className="space-y-3 mb-4">
         <div>
-          <div className="text-sm text-gray-400">Creator Prediction</div>
-          <div className="font-semibold">{challenge.creatorOutcome}</div>
+          <div className="text-xs text-white/50 mb-1 uppercase tracking-wider">Creator Prediction</div>
+          <div className="font-semibold text-white text-sm">{challenge.creatorOutcome}</div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <div className="text-sm text-gray-400">Stake</div>
-            <div className="font-semibold">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="relative overflow-hidden rounded-lg backdrop-blur-sm bg-[#0A0E13]/60 border border-white/10 p-2.5">
+            <div className="text-xs text-white/50 mb-1 uppercase tracking-wider">Stake</div>
+            <div className="font-black text-white text-sm">
               {formatEther(challenge.makerStake)} {getCurrencyName(challenge.currency)}
             </div>
           </div>
-          <div>
-            <div className="text-sm text-gray-400">Highest Bid</div>
-            <div className="font-semibold">
+          <div className="relative overflow-hidden rounded-lg backdrop-blur-sm bg-[#0A0E13]/60 border border-white/10 p-2.5">
+            <div className="text-xs text-white/50 mb-1 uppercase tracking-wider">Highest Bid</div>
+            <div className="font-black text-white text-sm">
               {challenge.highestBid > 0n 
                 ? `${formatEther(challenge.highestBid)} ${getCurrencyName(challenge.currency)}`
                 : 'No bids'
@@ -633,23 +657,23 @@ function ChallengeCard({
         </div>
 
         {challenge.highestBidder !== '0x0000000000000000000000000000000000000000' && (
-          <div>
-            <div className="text-sm text-gray-400">Current Leader</div>
-            <div className="font-semibold text-sm truncate">
+          <div className="relative overflow-hidden rounded-lg backdrop-blur-sm bg-[#0A0E13]/60 border border-white/10 p-2.5">
+            <div className="text-xs text-white/50 mb-1 uppercase tracking-wider">Current Leader</div>
+            <div className="font-semibold text-white text-xs truncate">
               {challenge.highestBidder.slice(0, 6)}...{challenge.highestBidder.slice(-4)}
             </div>
           </div>
         )}
 
         {challenge.state === 2 && challenge.result && (
-          <div>
-            <div className="text-sm text-gray-400">Result</div>
-            <div className="font-semibold">{challenge.result}</div>
-            <div className="text-sm mt-1">
+          <div className="relative overflow-hidden rounded-lg backdrop-blur-sm bg-gradient-to-br from-[#8B5CF6]/10 via-[#8B5CF6]/5 to-transparent border border-[#8B5CF6]/20 p-2.5">
+            <div className="text-xs text-white/50 mb-1 uppercase tracking-wider">Result</div>
+            <div className="font-semibold text-white text-sm mb-1">{challenge.result}</div>
+            <div className="text-xs">
               {challenge.creatorWon ? (
-                <span className="text-green-400">Creator Won</span>
+                <span className="text-[#10B981] font-semibold">Creator Won</span>
               ) : (
-                <span className="text-blue-400">Bidder Won</span>
+                <span className="text-[#3B82F6] font-semibold">Bidder Won</span>
               )}
             </div>
           </div>
@@ -661,7 +685,7 @@ function ChallengeCard({
           <Button
             onClick={onBid}
             disabled={!isConnected}
-            className="flex-1 bg-[var(--bsc-yellow)] hover:bg-[var(--bsc-yellow)]/90 text-black font-semibold"
+            className="flex-1 bg-gradient-to-r from-[#FFC107] to-[#F7B600] hover:from-[#FFC107]/90 hover:to-[#F7B600]/90 text-black font-semibold text-xs py-2 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Bid ({formatEther(minBid)}+ {getCurrencyName(challenge.currency)})
           </Button>
@@ -670,7 +694,7 @@ function ChallengeCard({
         {canClaim && (
           <Button
             onClick={onClaim}
-            className="flex-1 bg-green-500 hover:bg-green-600 font-semibold"
+            className="flex-1 bg-gradient-to-r from-[#10B981] to-[#059669] hover:from-[#10B981]/90 hover:to-[#059669]/90 font-semibold text-xs py-2 rounded-lg transition-all"
           >
             Claim Winnings
           </Button>
@@ -679,7 +703,7 @@ function ChallengeCard({
         {isCreator && challenge.state === 0 && challenge.highestBidder === '0x0000000000000000000000000000000000000000' && (
           <Button
             onClick={onCancel}
-            className="flex-1 bg-red-500 hover:bg-red-600 font-semibold"
+            className="flex-1 bg-gradient-to-r from-[#EF4444] to-[#DC2626] hover:from-[#EF4444]/90 hover:to-[#DC2626]/90 font-semibold text-xs py-2 rounded-lg transition-all"
           >
             Cancel
           </Button>
@@ -689,7 +713,7 @@ function ChallengeCard({
   );
 }
 
-// Bid Modal Component
+// Bid Modal Component - Glassmorphism
 function BidModal({
   challenge,
   bidAmount,
@@ -710,30 +734,33 @@ function BidModal({
     : challenge.highestBid + 1n;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-gray-800 rounded-xl p-6 max-w-md w-full border border-gray-700"
+        exit={{ opacity: 0, scale: 0.9 }}
+        className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-6 max-w-md w-full"
       >
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xl font-bold">Place Bid</h3>
+          <h3 className="text-xl font-black bg-gradient-to-r from-[#FFC107] via-[#F7B600] to-[#FFC107] bg-clip-text text-transparent">
+            Place Bid
+          </h3>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white"
+            className="text-white/60 hover:text-white transition-colors"
           >
             <FaTimesCircle className="text-2xl" />
           </button>
         </div>
 
         <div className="space-y-4">
-          <div>
-            <div className="text-sm text-gray-400 mb-1">Challenge #{Number(challenge.id)}</div>
-            <div className="font-semibold">{challenge.creatorOutcome}</div>
+          <div className="relative overflow-hidden rounded-lg backdrop-blur-sm bg-[#0A0E13]/60 border border-white/10 p-3">
+            <div className="text-xs text-white/50 mb-1 uppercase tracking-wider">Challenge #{Number(challenge.id)}</div>
+            <div className="font-semibold text-white">{challenge.creatorOutcome}</div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">
+            <label className="block text-xs font-semibold mb-2 text-white/80 uppercase tracking-wider">
               Bid Amount (Min: {formatEther(minBid)} {getCurrencyName(challenge.currency)})
             </label>
             <AmountInput
@@ -746,14 +773,14 @@ function BidModal({
           <div className="flex gap-2">
             <Button
               onClick={onClose}
-              className="flex-1 bg-gray-700 hover:bg-gray-600"
+              className="flex-1 bg-[#0F1419]/80 backdrop-blur-sm border border-white/10 hover:border-white/20 text-white font-semibold text-sm py-2.5 rounded-lg transition-all"
             >
               Cancel
             </Button>
             <Button
               onClick={onConfirm}
               disabled={!bidAmount || parseFloat(bidAmount) < parseFloat(formatEther(minBid))}
-              className="flex-1 bg-[var(--bsc-yellow)] hover:bg-[var(--bsc-yellow)]/90 text-black font-semibold"
+              className="flex-1 bg-gradient-to-r from-[#FFC107] to-[#F7B600] hover:from-[#FFC107]/90 hover:to-[#F7B600]/90 text-black font-semibold text-sm py-2.5 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Place Bid
             </Button>
@@ -763,4 +790,3 @@ function BidModal({
     </div>
   );
 }
-

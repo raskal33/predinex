@@ -14,6 +14,7 @@ import PredinexStakingArtifact from './abis/PredinexStaking.json';
 import ReputationSystemArtifact from './abis/ReputationSystem.json';
 import OddysseyArtifact from './abis/Oddyssey.json'; // Updated Oddyssey ABI
 import PredinexH2HArtifact from './abis/PredinexH2H.json';
+import GaunletArtifact from './abis/Gaunlet.json';
 
 // Extract ABI arrays from artifacts - handle both formats:
 // 1. Direct array: [ {...}, {...} ]
@@ -48,6 +49,7 @@ const PredinexStakingABI = extractABI(PredinexStakingArtifact);
 const ReputationSystemABI = extractABI(ReputationSystemArtifact);
 const OddysseyABI = extractABI(OddysseyArtifact); // Updated Oddyssey ABI
 const PredinexH2HABI = extractABI(PredinexH2HArtifact);
+const GaunletABI = extractABI(GaunletArtifact);
 
 // ✅ Runtime validation: Ensure all ABIs are arrays
 const validateABI = (abi: any, name: string): any[] => {
@@ -117,6 +119,10 @@ export const CONTRACTS = {
     address: CONTRACT_ADDRESSES.H2H,
     abi: validateABI(PredinexH2HABI, 'H2H'),
   },
+  GAUNLET: {
+    address: CONTRACT_ADDRESSES.GAUNLET,
+    abi: validateABI(GaunletABI, 'GAUNLET'),
+  },
 
   // Legacy support (for backward compatibility) - DEPRECATED: Use POOL_CORE instead
   PREDINEX_POOL: {
@@ -144,6 +150,7 @@ export {
   PredinexStakingABI,
   ReputationSystemABI,
   OddysseyABI, // Updated Oddyssey ABI
+  GaunletABI,
 };
 
 // Contract events - Updated for Modular Architecture
@@ -220,6 +227,14 @@ export const CONTRACT_EVENTS = {
     WINNINGS_CLAIMED: 'WinningsClaimed',
     CYCLE_STARTED: 'CycleStarted',
     CYCLE_ENDED: 'CycleEnded',
+  },
+  GAUNLET: {
+    POOL_CREATED: 'PoolCreated',
+    SLIP_PLACED: 'SlipPlaced',
+    POOL_ENDED: 'PoolEnded',
+    POOL_RESOLVED: 'PoolResolved',
+    SLIP_EVALUATED: 'SlipEvaluated',
+    POOL_SETTLED: 'PoolSettled',
   },
 
   // Legacy events (for backward compatibility)
