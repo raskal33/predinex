@@ -2569,7 +2569,7 @@ export default function OddysseyPage() {
 
                   {/* Enhanced Global Stats */}
                   {stats && (
-                    <div className="glass-card p-6">
+                    <div className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-6">
                       <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
                         <ArrowTrendingUpIcon className="h-6 w-6 text-primary" />
                         Global Statistics
