@@ -1584,11 +1584,11 @@ export default function OddysseyPage() {
               <div className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-4 text-center">
                 <div className="flex items-center justify-center gap-3">
                   <FaSpinner className="h-5 w-5 animate-spin text-primary" />
-                  <span className="text-lg font-semibold text-white/70">
+                  <span className="text-lg font-semibold text-text-secondary">
                     Initializing contract connection...
                   </span>
                 </div>
-                <p className="text-sm text-white/60 mt-2">
+                <p className="text-sm text-text-muted mt-2">
                   Please wait while we connect to the blockchain
                 </p>
               </div>
@@ -1602,7 +1602,7 @@ export default function OddysseyPage() {
                     Contract connection failed
                   </span>
                 </div>
-                <p className="text-sm text-white/60 mt-2">
+                <p className="text-sm text-text-muted mt-2">
                   Please refresh the page or check your wallet connection
                 </p>
               </div>
@@ -1633,11 +1633,11 @@ export default function OddysseyPage() {
                       )}
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs text-white/70">Prize Pool</span>
+                      <span className="text-xs text-white/60">Prize Pool</span>
                       <span className="text-xs text-white/40">•</span>
-                      <span className="text-xs text-white/70">Entry: {entryFee} BNB</span>
+                      <span className="text-xs text-white/60">Entry: {entryFee} BNB</span>
                       <span className="text-xs text-white/40">•</span>
-                      <span className="text-xs text-white/70">Cycle {currentPrizePool.cycleId}</span>
+                      <span className="text-xs text-white/60">Cycle {currentPrizePool.cycleId}</span>
                     </div>
                   </div>
                 </motion.div>
@@ -1703,7 +1703,7 @@ export default function OddysseyPage() {
               {currentMatches && currentMatches.length > 0 ? (
                 <>
               Betting Closes In
-                  <span className="text-sm font-normal text-white/70 ml-2">
+                  <span className="text-sm font-normal text-text-secondary ml-2">
                     (First match: {currentMatches[0]?.homeTeam} vs {currentMatches[0]?.awayTeam})
                   </span>
                 </>
@@ -1744,7 +1744,7 @@ export default function OddysseyPage() {
                 <div className="text-2xl font-bold text-primary">
                   {isNaN(timeLeft.hours) ? '00' : timeLeft.hours.toString().padStart(2, '0')}
                 </div>
-                <div className="text-xs text-white/60 uppercase tracking-wider">Hours</div>
+                <div className="text-xs text-text-muted uppercase tracking-wider">Hours</div>
               </motion.div>
               <motion.div 
                 className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-4 min-w-[80px]"
@@ -1754,7 +1754,7 @@ export default function OddysseyPage() {
                 <div className="text-2xl font-bold text-primary">
                   {isNaN(timeLeft.minutes) ? '00' : timeLeft.minutes.toString().padStart(2, '0')}
                 </div>
-                <div className="text-xs text-white/60 uppercase tracking-wider">Minutes</div>
+                <div className="text-xs text-text-muted uppercase tracking-wider">Minutes</div>
               </motion.div>
               <motion.div 
                 className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-4 min-w-[80px]"
@@ -1764,7 +1764,7 @@ export default function OddysseyPage() {
                 <div className="text-2xl font-bold text-primary">
                   {isNaN(timeLeft.seconds) ? '00' : timeLeft.seconds.toString().padStart(2, '0')}
                 </div>
-                <div className="text-xs text-white/60 uppercase tracking-wider">Seconds</div>
+                <div className="text-xs text-text-muted uppercase tracking-wider">Seconds</div>
               </motion.div>
             </div>
           )}
@@ -1850,7 +1850,7 @@ export default function OddysseyPage() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20 }}
-                  className="lg:col-span-2 relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-4 md:p-6"
+                  className="lg:col-span-2 relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-[#0A0E13] via-[#0F1419] to-[#0A0E13] border border-white/10 p-4 md:p-6"
                 >
                   <div className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-4 md:p-6">
                     {/* Date Tabs */}
@@ -1872,7 +1872,7 @@ export default function OddysseyPage() {
                             <TableCellsIcon className="h-5 w-5 md:h-6 md:w-6" />
                             <span>Matches - Today Live Odds</span>
                           </h2>
-                          <div className="flex items-center gap-2 text-xs md:text-sm text-white/60">
+                          <div className="flex items-center gap-2 text-xs md:text-sm text-text-muted">
                             <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
                             <span>Live Odds</span>
                           </div>
@@ -1893,7 +1893,7 @@ export default function OddysseyPage() {
                                   LIVE
                                 </div>
                               </div>
-                              <div className="text-sm text-white/70 leading-relaxed">
+                              <div className="text-sm text-text-secondary leading-relaxed">
                                 The first match has started. Betting is now closed for this cycle. 
                                 You can still view your existing slips and track results.
                               </div>
@@ -1907,13 +1907,13 @@ export default function OddysseyPage() {
                     {isLoading ? (
                       <div className="text-center py-8">
                         <FaSpinner className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
-                        <p className="text-white/70">Loading matches...</p>
+                        <p className="text-text-secondary">Loading matches...</p>
                       </div>
                     ) : currentMatches.length === 0 ? (
                       <div className="text-center py-12">
-                        <ClockIcon className="h-16 w-16 text-white/60 mx-auto mb-4" />
+                        <ClockIcon className="h-16 w-16 text-text-muted mx-auto mb-4" />
                         <h4 className="text-xl font-semibold text-white mb-2">No Matches Available</h4>
-                        <p className="text-white/70">
+                        <p className="text-text-secondary">
                           New matches will be available soon. Check back later!
                         </p>
                       </div>
@@ -1933,16 +1933,16 @@ export default function OddysseyPage() {
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ delay: index * 0.1 }}
-                              className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-4 md:p-6 hover:border-white/30 transition-all duration-300"
+                              className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-[#0F1419] via-[#1A1F2E] to-[#0F1419] border border-white/10 p-4 md:p-6 hover:border-white/20 transition-all duration-300"
                             >
                               {/* Mobile Layout */}
                               <div className="md:hidden space-y-4">
                                 <div className="flex items-center justify-between mb-3">
-                                  <div className="text-sm text-white/60">Match {index + 1}</div>
+                                  <div className="text-sm text-text-muted">Match {index + 1}</div>
                                   <div className={`text-xs font-mono px-2 py-1 rounded ${
                                     isMatchStarted(safeStartTimeToISOString(match.startTime))
                                       ? "text-red-400 bg-red-500/10 border border-red-500/20"
-                                      : "text-white/70 bg-primary/10"
+                                      : "text-text-secondary bg-primary/10"
                                   }`}>
                                     <div className="font-bold">
                                       {new Date(safeStartTimeToISOString(match.startTime)).toLocaleTimeString('en-US', { 
@@ -1954,7 +1954,7 @@ export default function OddysseyPage() {
                                     {isMatchStarted(safeStartTimeToISOString(match.startTime)) ? (
                                       <div className="text-[8px] text-red-400 font-bold">STARTED</div>
                                     ) : (
-                                      <div className="text-[8px] text-white/50">AM</div>
+                                      <div className="text-[8px] text-text-muted">AM</div>
                                     )}
                                   </div>
                                 </div>
@@ -1963,19 +1963,19 @@ export default function OddysseyPage() {
                                   <div className="text-lg font-semibold text-white">
                                     {match.homeTeam} vs {match.awayTeam}
                                   </div>
-                                  <div className="text-sm text-white/60">{match.leagueName}</div>
+                                  <div className="text-sm text-text-muted">{match.leagueName}</div>
                                 </div>
 
                                 {/* 1X2 Market */}
                                 <div>
-                                  <div className="text-sm text-white/70 mb-2">Match Result</div>
+                                  <div className="text-sm text-text-muted mb-2">Match Result</div>
                                   <div className="grid grid-cols-3 gap-2">
                                     <button
                                       onClick={() => handlePickSelection(matchId, "home")}
                                       disabled={isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired}
                                       className={`px-3 py-2 text-center rounded transition-all duration-200 font-bold text-sm ${
                                         isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired
-                                          ? "bg-red-900/20 text-red-400/60 cursor-not-allowed border border-red-500/20"
+                                          ? "bg-[#0A0E13]/80 text-white/30 cursor-not-allowed opacity-50 border border-white/5"
                                           : picks.find(p => p.id === matchId && p.pick === "home")
                                           ? "bg-gradient-primary text-black scale-105"
                                           : "bg-primary/10 text-white hover:bg-primary/20 hover:text-primary border border-transparent hover:border-primary/30"
@@ -1990,7 +1990,7 @@ export default function OddysseyPage() {
                                       disabled={isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired}
                                       className={`px-3 py-2 text-center rounded transition-all duration-200 font-bold text-sm ${
                                         isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired
-                                          ? "bg-red-900/20 text-red-400/60 cursor-not-allowed border border-red-500/20"
+                                          ? "bg-[#0A0E13]/80 text-white/30 cursor-not-allowed opacity-50 border border-white/5"
                                           : picks.find(p => p.id === matchId && p.pick === "draw")
                                           ? "bg-gradient-secondary text-black scale-105"
                                           : "bg-secondary/10 text-white hover:bg-secondary/20 hover:text-secondary border border-transparent hover:border-secondary/30"
@@ -2005,7 +2005,7 @@ export default function OddysseyPage() {
                                       disabled={isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired}
                                       className={`px-3 py-2 text-center rounded transition-all duration-200 font-bold text-sm ${
                                         isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired
-                                          ? "bg-red-900/20 text-red-400/60 cursor-not-allowed border border-red-500/20"
+                                          ? "bg-[#0A0E13]/80 text-white/30 cursor-not-allowed opacity-50 border border-white/5"
                                           : picks.find(p => p.id === matchId && p.pick === "away")
                                           ? "bg-gradient-accent text-black scale-105"
                                           : "bg-accent/10 text-white hover:bg-accent/20 hover:text-accent border border-transparent hover:border-accent/30"
@@ -2019,14 +2019,14 @@ export default function OddysseyPage() {
 
                                 {/* Over/Under Market */}
                                 <div>
-                                  <div className="text-sm text-white/70 mb-2">Total Goals O/U 2.5</div>
+                                  <div className="text-sm text-text-muted mb-2">Total Goals O/U 2.5</div>
                                   <div className="grid grid-cols-2 gap-2">
                                     <button
                                       onClick={() => handlePickSelection(matchId, "over")}
                                       disabled={isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired}
                                       className={`px-2 py-2 text-center rounded transition-all duration-200 font-bold text-sm ${
                                         isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired
-                                          ? "bg-red-900/20 text-red-400/60 cursor-not-allowed border border-red-500/20"
+                                          ? "bg-[#0A0E13]/80 text-white/30 cursor-not-allowed opacity-50 border border-white/5"
                                           : picks.find(p => p.id === matchId && p.pick === "over")
                                             ? "bg-gradient-to-r from-blue-500 to-primary text-black scale-105"
                                           : "bg-blue-500/10 text-white hover:bg-blue-500/20 hover:text-blue-300 border border-transparent hover:border-blue-300/30"
@@ -2041,7 +2041,7 @@ export default function OddysseyPage() {
                                       disabled={isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired}
                                       className={`px-2 py-2 text-center rounded transition-all duration-200 font-bold text-sm ${
                                         isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired
-                                          ? "bg-red-900/20 text-red-400/60 cursor-not-allowed border border-red-500/20"
+                                          ? "bg-[#0A0E13]/80 text-white/30 cursor-not-allowed opacity-50 border border-white/5"
                                           : picks.find(p => p.id === matchId && p.pick === "under")
                                             ? "bg-gradient-to-r from-purple-500 to-blue-600 text-black scale-105"
                                           : "bg-purple-500/10 text-white hover:bg-purple-500/20 hover:text-purple-300 border border-transparent hover:border-purple-300/30"
@@ -2061,10 +2061,10 @@ export default function OddysseyPage() {
                                   <div className="col-span-1"></div>
                                   <div className="col-span-4"></div>
                                   <div className="col-span-3 text-center">
-                                    <div className="text-[10px] text-white/70 font-semibold">1 X 2</div>
+                                    <div className="text-[10px] text-text-secondary font-semibold">1 X 2</div>
                                   </div>
                                   <div className="col-span-2 text-center">
-                                    <div className="text-[10px] text-white/70 font-semibold">Over - Under</div>
+                                    <div className="text-[10px] text-text-secondary font-semibold">Over - Under</div>
                                   </div>
                                   <div className="col-span-2"></div>
                                 </div>
@@ -2076,7 +2076,7 @@ export default function OddysseyPage() {
                                     <div className={`text-xs font-mono px-2 py-1 rounded ${
                                       isMatchStarted(safeStartTimeToISOString(match.startTime))
                                         ? "text-red-400 bg-red-500/10 border border-red-500/20"
-                                        : "text-white/70 bg-primary/10"
+                                        : "text-text-secondary bg-primary/10"
                                     }`}>
                                       <div className="font-bold">
                                         {new Date(safeStartTimeToISOString(match.startTime)).toLocaleTimeString('en-US', { 
@@ -2088,7 +2088,7 @@ export default function OddysseyPage() {
                                       {isMatchStarted(safeStartTimeToISOString(match.startTime)) ? (
                                         <div className="text-[8px] text-red-400 font-bold">STARTED</div>
                                       ) : (
-                                        <div className="text-[8px] text-white/50">AM</div>
+                                        <div className="text-[8px] text-text-muted">AM</div>
                                       )}
                                     </div>
                                   </div>
@@ -2097,7 +2097,7 @@ export default function OddysseyPage() {
                                   <div className="col-span-4 flex items-center justify-center">
                                     <div className="text-sm font-semibold text-white text-center leading-tight">
                                       <div className="truncate">{match.homeTeam}</div>
-                                      <div className="text-xs text-white/60">vs</div>
+                                      <div className="text-xs text-text-muted">vs</div>
                                       <div className="truncate">{match.awayTeam}</div>
                                     </div>
                                   </div>
@@ -2109,7 +2109,7 @@ export default function OddysseyPage() {
                                       disabled={isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired}
                                       className={`w-full px-2 py-1 text-center rounded transition-all duration-200 font-bold text-xs ${
                                         isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired
-                                          ? "bg-red-900/20 text-red-400/60 cursor-not-allowed border border-red-500/20"
+                                          ? "bg-[#0A0E13]/80 text-white/30 cursor-not-allowed opacity-50 border border-white/5"
                                           : picks.find(p => p.id === matchId && p.pick === "home")
                                           ? "bg-gradient-primary text-black scale-105"
                                           : "bg-primary/10 text-white hover:bg-primary/20 hover:text-primary border border-transparent hover:border-primary/30"
@@ -2126,7 +2126,7 @@ export default function OddysseyPage() {
                                       disabled={isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired}
                                       className={`w-full px-2 py-1 text-center rounded transition-all duration-200 font-bold text-xs ${
                                         isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired
-                                          ? "bg-red-900/20 text-red-400/60 cursor-not-allowed border border-red-500/20"
+                                          ? "bg-[#0A0E13]/80 text-white/30 cursor-not-allowed opacity-50 border border-white/5"
                                           : picks.find(p => p.id === matchId && p.pick === "draw")
                                           ? "bg-gradient-secondary text-black scale-105"
                                           : "bg-secondary/10 text-white hover:bg-secondary/20 hover:text-secondary border border-transparent hover:border-secondary/30"
@@ -2143,7 +2143,7 @@ export default function OddysseyPage() {
                                       disabled={isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired}
                                       className={`w-full px-2 py-1 text-center rounded transition-all duration-200 font-bold text-xs ${
                                         isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired
-                                          ? "bg-red-900/20 text-red-400/60 cursor-not-allowed border border-red-500/20"
+                                          ? "bg-[#0A0E13]/80 text-white/30 cursor-not-allowed opacity-50 border border-white/5"
                                           : picks.find(p => p.id === matchId && p.pick === "away")
                                           ? "bg-gradient-accent text-black scale-105"
                                           : "bg-accent/10 text-white hover:bg-accent/20 hover:text-accent border border-transparent hover:border-accent/30"
@@ -2161,7 +2161,7 @@ export default function OddysseyPage() {
                                         disabled={isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired}
                                         className={`flex-1 px-1 py-1 text-center rounded transition-all duration-200 font-bold text-xs ${
                                           isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired
-                                            ? "bg-red-900/20 text-red-400/60 cursor-not-allowed border border-red-500/20"
+                                            ? "bg-[#0A0E13]/80 text-white/30 cursor-not-allowed opacity-50 border border-white/5"
                                             : picks.find(p => p.id === matchId && p.pick === "over")
                                             ? "bg-gradient-to-r from-blue-500 to-primary text-black scale-105"
                                             : "bg-blue-500/10 text-white hover:bg-blue-500/20 hover:text-blue-300 border border-transparent hover:border-blue-300/30"
@@ -2174,7 +2174,7 @@ export default function OddysseyPage() {
                                         disabled={isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired}
                                         className={`flex-1 px-1 py-1 text-center rounded transition-all duration-200 font-bold text-xs ${
                                           isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired
-                                            ? "bg-red-900/20 text-red-400/60 cursor-not-allowed border border-red-500/20"
+                                            ? "bg-[#0A0E13]/80 text-white/30 cursor-not-allowed opacity-50 border border-white/5"
                                             : picks.find(p => p.id === matchId && p.pick === "under")
                                             ? "bg-gradient-to-r from-purple-500 to-blue-600 text-black scale-105"
                                             : "bg-purple-500/10 text-white hover:bg-purple-500/20 hover:text-purple-300 border border-transparent hover:border-purple-300/30"
@@ -2187,7 +2187,7 @@ export default function OddysseyPage() {
 
                                   {/* League */}
                                   <div className="col-span-2 text-center">
-                                    <div className="text-xs text-white/70 truncate">
+                                    <div className="text-xs text-text-secondary truncate">
                                       {match.leagueName}
                                     </div>
                                   </div>
@@ -2228,7 +2228,7 @@ export default function OddysseyPage() {
                             <BoltIcon className="h-5 w-5 text-primary" />
                             <span className="font-semibold text-primary">Connect Wallet to Place Slips</span>
                           </div>
-                          <p className="text-sm text-white/70 mb-3">
+                          <p className="text-sm text-text-secondary mb-3">
                             Connect your wallet to start building prediction slips and compete for prizes!
                           </p>
                           <Button
@@ -2251,7 +2251,7 @@ export default function OddysseyPage() {
                     {/* CRITICAL: Progress indicator for 10 predictions requirement */}
                     <div className="mb-4 p-3 bg-primary/10 border border-primary/20 rounded-button">
                       <div className="flex items-center justify-between text-sm mb-2">
-                        <span className="text-white/60">Predictions Required:</span>
+                        <span className="text-text-muted">Predictions Required:</span>
                         <span className={`font-bold ${picks.length === 10 ? 'text-green-400' : 'text-primary'}`}>
                           {picks.length}/10
                         </span>
@@ -2265,7 +2265,7 @@ export default function OddysseyPage() {
                         />
                       </div>
                       {picks.length < 10 && (
-                        <p className="text-xs text-white/60 mt-2">
+                        <p className="text-xs text-text-muted mt-2">
                           ⚠️ You must select ALL 10 matches to place a slip
                         </p>
                       )}
@@ -2296,7 +2296,7 @@ export default function OddysseyPage() {
                               >
                                 <div className="flex items-center justify-between">
                                   <div className="flex-1 min-w-0">
-                                    <div className="text-xs text-white/60 mb-1">{pick.time}</div>
+                                    <div className="text-xs text-text-muted mb-1">{pick.time}</div>
                                     <div className="text-xs text-white font-medium mb-2 leading-tight truncate">{pick.match}</div>
                                     <div className="flex items-center justify-between">
                                     <span className={`px-2 py-1 rounded text-xs font-bold ${
@@ -2335,21 +2335,21 @@ export default function OddysseyPage() {
                           {/* Slip Summary */}
                           <div className="border-t border-border-card pt-3 md:pt-4 space-y-2 md:space-y-3">
                             <div className="flex justify-between items-center text-sm">
-                              <span className="text-white/60">Selections:</span>
+                              <span className="text-text-muted">Selections:</span>
                               <span className="text-white font-bold">{picks.length}/10</span>
                             </div>
                             <div className="flex justify-between items-center text-sm">
-                              <span className="text-white/60">Total Odds:</span>
+                              <span className="text-text-muted">Total Odds:</span>
                               <span className="text-primary font-bold">{totalOdd}x</span>
                             </div>
                             <div className="flex justify-between items-center text-sm">
-                              <span className="text-white/60">Entry Fee:</span>
+                              <span className="text-text-muted">Entry Fee:</span>
                               <span className="text-white font-bold">
                                 {entryFee} BNB
                               </span>
                             </div>
                             <div className="flex justify-between items-center text-sm">
-                              <span className="text-white/60">Potential Win:</span>
+                              <span className="text-text-muted">Potential Win:</span>
                               <span className="text-secondary font-bold">{(parseFloat(totalOdd) * parseFloat(entryFee)).toFixed(2)} BNB</span>
                             </div>
                           </div>
@@ -2366,17 +2366,17 @@ export default function OddysseyPage() {
                                 <span className="text-green-400 font-semibold text-sm">Ready to Submit!</span>
                               </div>
                               <div className="flex justify-between items-center text-sm">
-                                <span className="text-white/60">Total Odds:</span>
+                                <span className="text-text-muted">Total Odds:</span>
                                 <span className="text-green-400 font-bold">{totalOdd}x</span>
                               </div>
                               <div className="flex justify-between items-center text-sm mt-1">
-                                <span className="text-white/60">Entry Fee:</span>
+                                <span className="text-text-muted">Entry Fee:</span>
                                 <span className="text-white font-bold">
                                   {entryFee} BNB
                                 </span>
                               </div>
                               <div className="flex justify-between items-center text-sm mt-1">
-                                <span className="text-white/60">Potential Payout:</span>
+                                <span className="text-text-muted">Potential Payout:</span>
                                 <span className="text-primary font-bold">
                                   {(parseFloat(totalOdd) * parseFloat(entryFee)).toFixed(2)} BNB
                                 </span>
@@ -2420,7 +2420,7 @@ export default function OddysseyPage() {
                                     {isPending ? "Waiting for wallet confirmation..." : "Processing transaction..."}
                                   </span>
                                 </div>
-                                <p className="text-xs text-white/60 mt-1">
+                                <p className="text-xs text-text-muted mt-1">
                                   Please don&apos;t close this page or disconnect your wallet
                                 </p>
                               </motion.div>
@@ -2433,7 +2433,7 @@ export default function OddysseyPage() {
                                 setPicks([]);
                                 toast.success('All selections cleared. You can start building a new slip.');
                               }}
-                              className="w-full text-white/60 hover:text-red-400 transition-colors text-sm pt-2"
+                              className="w-full text-text-muted hover:text-red-400 transition-colors text-sm pt-2"
                               disabled={isPending || isConfirming}
                             >
                               Clear All Selections
@@ -2450,7 +2450,7 @@ export default function OddysseyPage() {
                         >
                           <div className="text-6xl mb-4 opacity-50">⚽</div>
                           <h4 className="font-semibold text-text-primary mb-2">Start Building Your Slip</h4>
-                          <p className="text-white/60 text-sm mb-4">
+                          <p className="text-text-muted text-sm mb-4">
                             Click on any odds to add selections to your slip
                           </p>
                           <div className="text-xs text-primary font-medium bg-primary/10 px-3 py-2 rounded-button">
@@ -2645,7 +2645,7 @@ export default function OddysseyPage() {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.4 }}
-                          className="p-4 bg-white/5 border border-white/10 rounded-xl"
+                           className="p-4 bg-[#0F1419]/80 border border-white/10 rounded-xl"
                         >
                           <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-2">
@@ -2654,7 +2654,7 @@ export default function OddysseyPage() {
                             </div>
                             <span className="text-2xl font-bold text-orange-400">{(stats.winRate || 0).toFixed(2)}%</span>
                           </div>
-                          <div className="w-full bg-white/10 rounded-full h-2">
+                           <div className="w-full bg-[#0A0E13] rounded-full h-2"
                             <motion.div
                               initial={{ width: 0 }}
                               animate={{ width: `${Math.min(stats.winRate || 0, 100)}%` }}
@@ -2669,7 +2669,7 @@ export default function OddysseyPage() {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.5 }}
-                          className="p-4 bg-white/5 border border-white/10 rounded-xl"
+                           className="p-4 bg-[#0F1419]/80 border border-white/10 rounded-xl"
                         >
                           <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-2">
@@ -2678,7 +2678,7 @@ export default function OddysseyPage() {
                             </div>
                             <span className="text-2xl font-bold text-blue-400">{(stats.evaluationProgress || 0).toFixed(2)}%</span>
                           </div>
-                          <div className="w-full bg-white/10 rounded-full h-2">
+                           <div className="w-full bg-[#0A0E13] rounded-full h-2"
                             <motion.div
                               initial={{ width: 0 }}
                               animate={{ width: `${Math.min(stats.evaluationProgress || 0, 100)}%` }}
@@ -2705,9 +2705,9 @@ export default function OddysseyPage() {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.6 }}
-                          className="text-center p-3 bg-white/5 rounded-lg border border-white/10 hover:border-white/20 transition-all"
+                           className="text-center p-3 bg-[#0F1419]/80 rounded-lg border border-white/10 hover:border-white/20 transition-all"
                         >
-                          <div className="text-sm text-white/60 mb-2">Current Cycle Slips</div>
+                           <div className="text-sm text-white/70 mb-2">Current Cycle Slips</div>
                           <div className="text-xl font-bold text-green-400">{(stats.currentCycleSlips || 0).toLocaleString()}</div>
                         </motion.div>
 
@@ -2716,9 +2716,9 @@ export default function OddysseyPage() {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.7 }}
-                          className="text-center p-3 bg-white/5 rounded-lg border border-white/10 hover:border-white/20 transition-all"
+                           className="text-center p-3 bg-[#0F1419]/80 rounded-lg border border-white/10 hover:border-white/20 transition-all"
                         >
-                          <div className="text-sm text-white/60 mb-2">Total Cycles</div>
+                           <div className="text-sm text-white/70 mb-2">Total Cycles</div>
                           <div className="text-xl font-bold text-purple-400">{(stats.totalCycles || 0).toLocaleString()}</div>
                         </motion.div>
 
@@ -2727,9 +2727,9 @@ export default function OddysseyPage() {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.8 }}
-                          className="text-center p-3 bg-white/5 rounded-lg border border-white/10 hover:border-white/20 transition-all"
+                           className="text-center p-3 bg-[#0F1419]/80 rounded-lg border border-white/10 hover:border-white/20 transition-all"
                         >
-                          <div className="text-sm text-white/60 mb-2">Avg Accuracy</div>
+                           <div className="text-sm text-white/70 mb-2">Avg Accuracy</div>
                           <div className="text-xl font-bold text-cyan-400">{(stats.avgCorrect || 0).toFixed(2)}</div>
                         </motion.div>
 
@@ -2738,9 +2738,9 @@ export default function OddysseyPage() {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.9 }}
-                          className="text-center p-3 bg-white/5 rounded-lg border border-white/10 hover:border-white/20 transition-all"
+                           className="text-center p-3 bg-[#0F1419]/80 rounded-lg border border-white/10 hover:border-white/20 transition-all"
                         >
-                          <div className="text-sm text-white/60 mb-2">Winning Slips</div>
+                           <div className="text-sm text-white/70 mb-2">Winning Slips</div>
                           <div className="text-xl font-bold text-green-400">{(stats.correctPredictions || 0).toLocaleString()}</div>
                         </motion.div>
                       </div>
@@ -2785,7 +2785,7 @@ export default function OddysseyPage() {
                 exit={{ opacity: 0, x: -20 }}
                 className="lg:col-span-3"
               >
-                <div className="bg-white/5 rounded-2xl border border-white/10 p-6">
+                 <div className="bg-[#0F1419]/90 rounded-2xl border border-white/10 p-6">
                   <div className="flex items-center gap-3 mb-6">
                     <GiftIcon className="h-6 w-6 text-yellow-400" />
                     <h2 className="text-xl font-bold text-white">Claim Odyssey Prizes</h2>
@@ -2794,7 +2794,7 @@ export default function OddysseyPage() {
                   <div className="text-center py-12">
                     <GiftIcon className="h-16 w-16 text-yellow-400 mx-auto mb-4" />
                     <h3 className="text-lg font-semibold text-white mb-2">Claim Your Winnings</h3>
-                    <p className="text-white/60 mb-6">
+                     <p className="text-white/60 mb-6">
                       Use the Prize Claiming modal to view and claim your Odyssey prizes from winning slips.
                     </p>
                     
