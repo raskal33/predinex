@@ -7,7 +7,6 @@ import { formatEther, parseEther } from "viem";
 import { toast } from "react-hot-toast";
 import {
   FaHandshake, 
-  FaCheckCircle, 
   FaTimesCircle,
   FaPlus,
   FaSpinner
@@ -177,7 +176,7 @@ export default function H2HPage() {
         try {
           await token.approve(CONTRACT_ADDRESSES.H2H as `0x${string}`, stakeAmount.toString());
           toast.success('PRIX approved!', { id: 'approve-prix' });
-        } catch (error) {
+        } catch (_error) {
           toast.error('Failed to approve PRIX', { id: 'approve-prix' });
           return;
         }
@@ -234,7 +233,7 @@ export default function H2HPage() {
         try {
           await token.approve(CONTRACT_ADDRESSES.H2H as `0x${string}`, bidAmount);
           toast.success('Tokens approved!', { id: 'approve-bid' });
-        } catch (error) {
+        } catch (_error) {
           toast.error('Failed to approve tokens', { id: 'approve-bid' });
           return;
         }
@@ -588,7 +587,7 @@ function ChallengeCard({
   getStateColor: (challenge: Challenge) => string;
 }) {
   const isCreator = address && challenge.creator.toLowerCase() === address.toLowerCase();
-  const isBidder = address && challenge.highestBidder.toLowerCase() === address.toLowerCase();
+  const _isBidder = address && challenge.highestBidder.toLowerCase() === address.toLowerCase();
   const minBid = challenge.highestBidder === '0x0000000000000000000000000000000000000000'
     ? challenge.minBid
     : challenge.highestBid + 1n;

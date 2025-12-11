@@ -625,7 +625,7 @@ export default function OddysseyPage() {
       } else {
         return { 
           text: `🏆 Winner! Rank #${leaderboardRank}`, 
-          color: 'bg-gradient-to-r from-yellow-500/10 to-orange-500/10 text-yellow-400 border border-yellow-500/30 animate-pulse-glow', 
+          color: 'bg-gradient-to-r from-yellow-500/10 to-orange-500/10 text-yellow-400 border border-yellow-500/30', 
           icon: TrophyIcon 
         };
       }
@@ -1541,58 +1541,32 @@ export default function OddysseyPage() {
       />
       
       <div className="container mx-auto px-4 py-8">
-        {/* Hero Section - Glassmorphism Design */}
+        {/* Hero Section - Compact Glassmorphism Design */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="relative mb-12"
+          transition={{ duration: 0.4 }}
+          className="relative mb-6"
         >
-          {/* Glassmorphism Hero Card */}
-          <div className="relative overflow-hidden rounded-3xl backdrop-blur-2xl bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 shadow-2xl p-8 md:p-12">
-            {/* Animated gradient background */}
-            <div className="absolute inset-0 bg-gradient-to-r from-[#FFC107]/10 via-[#10B981]/10 to-[#8B5CF6]/10 animate-pulse"></div>
-            
-            {/* Decorative corner elements */}
-            <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-[#FFC107]/20 to-transparent rounded-br-full blur-2xl"></div>
-            <div className="absolute bottom-0 right-0 w-40 h-40 bg-gradient-to-tl from-[#10B981]/20 to-transparent rounded-tl-full blur-2xl"></div>
-            
+          {/* Compact Glassmorphism Hero Card */}
+          <div className="relative overflow-hidden rounded-xl backdrop-blur-xl bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 shadow-lg p-4 md:p-6">
             <div className="relative z-10 text-center">
               {/* Icon and Title */}
-              <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                className="flex items-center justify-center gap-4 mb-6"
-              >
-                <div className="p-3 rounded-2xl bg-gradient-to-br from-[#FFC107]/20 to-[#F7B600]/20 backdrop-blur-sm border border-[#FFC107]/30">
-                  <FireIcon className="h-8 w-8 text-[#FFC107]" />
-                </div>
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-black bg-gradient-to-r from-white via-white to-gray-300 bg-clip-text text-transparent tracking-tight">
+              <div className="flex items-center justify-center gap-3 mb-3">
+                <FireIcon className="h-5 w-5 text-[#FFC107]" />
+                <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">
                   ODDYSSEY
                 </h1>
-                <div className="p-3 rounded-2xl bg-gradient-to-br from-[#10B981]/20 to-[#059669]/20 backdrop-blur-sm border border-[#10B981]/30">
-                  <SparklesIcon className="h-8 w-8 text-[#10B981]" />
-                </div>
-              </motion.div>
+                <SparklesIcon className="h-5 w-5 text-[#10B981]" />
+              </div>
               
-              {/* Elegant divider */}
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: "100%" }}
-                transition={{ delay: 0.4, duration: 0.8 }}
-                className="mx-auto mb-6 h-[2px] bg-gradient-to-r from-transparent via-white/40 to-transparent max-w-md"
-              ></motion.div>
+              {/* Simple divider */}
+              <div className="mx-auto mb-3 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent max-w-xs"></div>
               
-              {/* Description */}
-              <motion.p
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
-                className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed font-light"
-              >
-                Master the art of prediction. Select <span className="font-semibold text-[#FFC107]">10 matches</span>, compete with the <span className="font-semibold text-[#10B981]">highest odds</span>, and claim your share of the <span className="font-semibold text-[#FFC107]">prize pool</span>.
-              </motion.p>
+              {/* Compact Description */}
+              <p className="text-sm md:text-base text-gray-400 max-w-2xl mx-auto">
+                Select <span className="font-semibold text-[#FFC107]">10 matches</span>, compete with the <span className="font-semibold text-[#10B981]">highest odds</span>, and claim your share of the <span className="font-semibold text-[#FFC107]">prize pool</span>.
+              </p>
             </div>
           </div>
         </motion.div>
@@ -1925,11 +1899,11 @@ export default function OddysseyPage() {
                     )}
                   </AnimatePresence>
                   
-                  {/* Active indicator */}
+                  {/* Active indicator - no glow */}
                   {isActive && (
                     <motion.div
                       layoutId="activeTab"
-                      className={`absolute inset-0 bg-gradient-to-r ${tab.color} opacity-20 rounded-xl blur-sm -z-10`}
+                      className={`absolute inset-0 bg-gradient-to-r ${tab.color} opacity-10 rounded-xl -z-10`}
                       transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                     />
                   )}
@@ -2034,7 +2008,7 @@ export default function OddysseyPage() {
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ delay: index * 0.1 }}
-                              className="glass-card p-4 md:p-6 border border-border-card/50 hover:border-primary/30 transition-all duration-300"
+                              className="relative overflow-hidden rounded-xl backdrop-blur-xl bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 shadow-lg p-4 md:p-6 hover:border-white/30 transition-all duration-300"
                             >
                               {/* Mobile Layout */}
                               <div className="md:hidden space-y-4">
@@ -2310,7 +2284,7 @@ export default function OddysseyPage() {
                   exit={{ opacity: 0, x: -20 }}
                   className="lg:col-span-1"
                 >
-                  <div className="glass-card sticky top-8 p-4 md:p-6">
+                  <div className="relative overflow-hidden rounded-xl backdrop-blur-xl bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 shadow-lg sticky top-8 p-4 md:p-6">
                     <h3 className="text-lg md:text-xl font-bold text-white mb-4 md:mb-6 text-center flex items-center justify-center gap-2">
                       <ShieldCheckIcon className="h-5 w-5 md:h-6 md:w-6" />
                       <span className="hidden sm:inline">Slip Builder</span>
@@ -2393,7 +2367,7 @@ export default function OddysseyPage() {
                                 initial={{ opacity: 0, x: -10 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: i * 0.05 }}
-                                className="glass-card p-2 md:p-3 rounded-button border border-border-card/50 hover:border-primary/30 transition-all duration-200"
+                                className="relative overflow-hidden rounded-lg backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-2 md:p-3 hover:border-white/30 transition-all duration-200"
                               >
                                 <div className="flex items-center justify-between">
                                   <div className="flex-1 min-w-0">
@@ -2609,7 +2583,7 @@ export default function OddysseyPage() {
                             className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 
                                        border border-yellow-500/40 rounded-xl text-yellow-300 font-semibold
                                        hover:from-yellow-500/30 hover:to-orange-500/30 hover:border-yellow-500/60
-                                       transition-all duration-300 shadow-lg shadow-yellow-500/20 animate-pulse-glow"
+                                       transition-all duration-300"
                           >
                             <GiftIcon className="h-5 w-5" />
                             <span className="hidden sm:inline">Claim {unclaimedWinners.length} Prize{unclaimedWinners.length > 1 ? 's' : ''}</span>

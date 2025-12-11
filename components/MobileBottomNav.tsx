@@ -6,7 +6,6 @@ import {
   HomeIcon,
   ChartBarIcon,
   SparklesIcon,
-  ClockIcon,
   WalletIcon,
   UserIcon
 } from "@heroicons/react/24/outline";
@@ -14,7 +13,6 @@ import {
   HomeIcon as HomeIconSolid,
   ChartBarIcon as ChartBarIconSolid,
   SparklesIcon as SparklesIconSolid,
-  ClockIcon as ClockIconSolid,
   WalletIcon as WalletIconSolid,
   UserIcon as UserIconSolid
 } from "@heroicons/react/24/solid";
