@@ -1400,8 +1400,8 @@ export default function OddysseyPage() {
 
 
 
-  // Manual refresh function (contract-only)
-  const handleManualRefresh = useCallback(async () => {
+  // Manual refresh function (contract-only) - kept for potential future use
+  const _handleManualRefresh = useCallback(async () => {
     if (apiCallInProgress) {
       toast.error('Please wait, a refresh is already in progress');
       return;
