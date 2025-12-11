@@ -1584,11 +1584,11 @@ export default function OddysseyPage() {
               <div className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-4 text-center">
                 <div className="flex items-center justify-center gap-3">
                   <FaSpinner className="h-5 w-5 animate-spin text-primary" />
-                  <span className="text-lg font-semibold text-text-secondary">
+                  <span className="text-lg font-semibold text-white/70">
                     Initializing contract connection...
                   </span>
                 </div>
-                <p className="text-sm text-text-muted mt-2">
+                <p className="text-sm text-white/60 mt-2">
                   Please wait while we connect to the blockchain
                 </p>
               </div>
@@ -1602,7 +1602,7 @@ export default function OddysseyPage() {
                     Contract connection failed
                   </span>
                 </div>
-                <p className="text-sm text-text-muted mt-2">
+                <p className="text-sm text-white/60 mt-2">
                   Please refresh the page or check your wallet connection
                 </p>
               </div>
@@ -1703,7 +1703,7 @@ export default function OddysseyPage() {
               {currentMatches && currentMatches.length > 0 ? (
                 <>
               Betting Closes In
-                  <span className="text-sm font-normal text-text-secondary ml-2">
+                  <span className="text-sm font-normal text-white/70 ml-2">
                     (First match: {currentMatches[0]?.homeTeam} vs {currentMatches[0]?.awayTeam})
                   </span>
                 </>
@@ -1744,7 +1744,7 @@ export default function OddysseyPage() {
                 <div className="text-2xl font-bold text-primary">
                   {isNaN(timeLeft.hours) ? '00' : timeLeft.hours.toString().padStart(2, '0')}
                 </div>
-                <div className="text-xs text-text-muted uppercase tracking-wider">Hours</div>
+                <div className="text-xs text-white/60 uppercase tracking-wider">Hours</div>
               </motion.div>
               <motion.div 
                 className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-4 min-w-[80px]"
@@ -1754,7 +1754,7 @@ export default function OddysseyPage() {
                 <div className="text-2xl font-bold text-primary">
                   {isNaN(timeLeft.minutes) ? '00' : timeLeft.minutes.toString().padStart(2, '0')}
                 </div>
-                <div className="text-xs text-text-muted uppercase tracking-wider">Minutes</div>
+                <div className="text-xs text-white/60 uppercase tracking-wider">Minutes</div>
               </motion.div>
               <motion.div 
                 className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-4 min-w-[80px]"
@@ -1764,7 +1764,7 @@ export default function OddysseyPage() {
                 <div className="text-2xl font-bold text-primary">
                   {isNaN(timeLeft.seconds) ? '00' : timeLeft.seconds.toString().padStart(2, '0')}
                 </div>
-                <div className="text-xs text-text-muted uppercase tracking-wider">Seconds</div>
+                <div className="text-xs text-white/60 uppercase tracking-wider">Seconds</div>
               </motion.div>
             </div>
           )}
@@ -1872,7 +1872,7 @@ export default function OddysseyPage() {
                             <TableCellsIcon className="h-5 w-5 md:h-6 md:w-6" />
                             <span>Matches - Today Live Odds</span>
                           </h2>
-                          <div className="flex items-center gap-2 text-xs md:text-sm text-text-muted">
+                          <div className="flex items-center gap-2 text-xs md:text-sm text-white/60">
                             <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
                             <span>Live Odds</span>
                           </div>
@@ -1893,7 +1893,7 @@ export default function OddysseyPage() {
                                   LIVE
                                 </div>
                               </div>
-                              <div className="text-sm text-text-secondary leading-relaxed">
+                              <div className="text-sm text-white/70 leading-relaxed">
                                 The first match has started. Betting is now closed for this cycle. 
                                 You can still view your existing slips and track results.
                               </div>
@@ -1907,13 +1907,13 @@ export default function OddysseyPage() {
                     {isLoading ? (
                       <div className="text-center py-8">
                         <FaSpinner className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
-                        <p className="text-text-secondary">Loading matches...</p>
+                        <p className="text-white/70">Loading matches...</p>
                       </div>
                     ) : currentMatches.length === 0 ? (
                       <div className="text-center py-12">
-                        <ClockIcon className="h-16 w-16 text-text-muted mx-auto mb-4" />
+                        <ClockIcon className="h-16 w-16 text-white/60 mx-auto mb-4" />
                         <h4 className="text-xl font-semibold text-white mb-2">No Matches Available</h4>
-                        <p className="text-text-secondary">
+                        <p className="text-white/70">
                           New matches will be available soon. Check back later!
                         </p>
                       </div>
@@ -1938,11 +1938,11 @@ export default function OddysseyPage() {
                               {/* Mobile Layout */}
                               <div className="md:hidden space-y-4">
                                 <div className="flex items-center justify-between mb-3">
-                                  <div className="text-sm text-text-muted">Match {index + 1}</div>
+                                  <div className="text-sm text-white/60">Match {index + 1}</div>
                                   <div className={`text-xs font-mono px-2 py-1 rounded ${
                                     isMatchStarted(safeStartTimeToISOString(match.startTime))
                                       ? "text-red-400 bg-red-500/10 border border-red-500/20"
-                                      : "text-text-secondary bg-primary/10"
+                                      : "text-white/70 bg-primary/10"
                                   }`}>
                                     <div className="font-bold">
                                       {new Date(safeStartTimeToISOString(match.startTime)).toLocaleTimeString('en-US', { 
@@ -2061,10 +2061,10 @@ export default function OddysseyPage() {
                                   <div className="col-span-1"></div>
                                   <div className="col-span-4"></div>
                                   <div className="col-span-3 text-center">
-                                    <div className="text-[10px] text-text-secondary font-semibold">1 X 2</div>
+                                    <div className="text-[10px] text-white/70 font-semibold">1 X 2</div>
                                   </div>
                                   <div className="col-span-2 text-center">
-                                    <div className="text-[10px] text-text-secondary font-semibold">Over - Under</div>
+                                    <div className="text-[10px] text-white/70 font-semibold">Over - Under</div>
                                   </div>
                                   <div className="col-span-2"></div>
                                 </div>
@@ -2076,7 +2076,7 @@ export default function OddysseyPage() {
                                     <div className={`text-xs font-mono px-2 py-1 rounded ${
                                       isMatchStarted(safeStartTimeToISOString(match.startTime))
                                         ? "text-red-400 bg-red-500/10 border border-red-500/20"
-                                        : "text-text-secondary bg-primary/10"
+                                        : "text-white/70 bg-primary/10"
                                     }`}>
                                       <div className="font-bold">
                                         {new Date(safeStartTimeToISOString(match.startTime)).toLocaleTimeString('en-US', { 
@@ -2097,7 +2097,7 @@ export default function OddysseyPage() {
                                   <div className="col-span-4 flex items-center justify-center">
                                     <div className="text-sm font-semibold text-white text-center leading-tight">
                                       <div className="truncate">{match.homeTeam}</div>
-                                      <div className="text-xs text-text-muted">vs</div>
+                                      <div className="text-xs text-white/60">vs</div>
                                       <div className="truncate">{match.awayTeam}</div>
                                     </div>
                                   </div>
@@ -2187,7 +2187,7 @@ export default function OddysseyPage() {
 
                                   {/* League */}
                                   <div className="col-span-2 text-center">
-                                    <div className="text-xs text-text-secondary truncate">
+                                    <div className="text-xs text-white/70 truncate">
                                       {match.leagueName}
                                     </div>
                                   </div>
@@ -2228,7 +2228,7 @@ export default function OddysseyPage() {
                             <BoltIcon className="h-5 w-5 text-primary" />
                             <span className="font-semibold text-primary">Connect Wallet to Place Slips</span>
                           </div>
-                          <p className="text-sm text-text-secondary mb-3">
+                          <p className="text-sm text-white/70 mb-3">
                             Connect your wallet to start building prediction slips and compete for prizes!
                           </p>
                           <Button
@@ -2251,7 +2251,7 @@ export default function OddysseyPage() {
                     {/* CRITICAL: Progress indicator for 10 predictions requirement */}
                     <div className="mb-4 p-3 bg-primary/10 border border-primary/20 rounded-button">
                       <div className="flex items-center justify-between text-sm mb-2">
-                        <span className="text-text-muted">Predictions Required:</span>
+                        <span className="text-white/60">Predictions Required:</span>
                         <span className={`font-bold ${picks.length === 10 ? 'text-green-400' : 'text-primary'}`}>
                           {picks.length}/10
                         </span>
@@ -2265,7 +2265,7 @@ export default function OddysseyPage() {
                         />
                       </div>
                       {picks.length < 10 && (
-                        <p className="text-xs text-text-muted mt-2">
+                        <p className="text-xs text-white/60 mt-2">
                           ⚠️ You must select ALL 10 matches to place a slip
                         </p>
                       )}
@@ -2296,7 +2296,7 @@ export default function OddysseyPage() {
                               >
                                 <div className="flex items-center justify-between">
                                   <div className="flex-1 min-w-0">
-                                    <div className="text-xs text-text-muted mb-1">{pick.time}</div>
+                                    <div className="text-xs text-white/60 mb-1">{pick.time}</div>
                                     <div className="text-xs text-white font-medium mb-2 leading-tight truncate">{pick.match}</div>
                                     <div className="flex items-center justify-between">
                                     <span className={`px-2 py-1 rounded text-xs font-bold ${
@@ -2335,21 +2335,21 @@ export default function OddysseyPage() {
                           {/* Slip Summary */}
                           <div className="border-t border-border-card pt-3 md:pt-4 space-y-2 md:space-y-3">
                             <div className="flex justify-between items-center text-sm">
-                              <span className="text-text-muted">Selections:</span>
+                              <span className="text-white/60">Selections:</span>
                               <span className="text-white font-bold">{picks.length}/10</span>
                             </div>
                             <div className="flex justify-between items-center text-sm">
-                              <span className="text-text-muted">Total Odds:</span>
+                              <span className="text-white/60">Total Odds:</span>
                               <span className="text-primary font-bold">{totalOdd}x</span>
                             </div>
                             <div className="flex justify-between items-center text-sm">
-                              <span className="text-text-muted">Entry Fee:</span>
+                              <span className="text-white/60">Entry Fee:</span>
                               <span className="text-white font-bold">
                                 {entryFee} BNB
                               </span>
                             </div>
                             <div className="flex justify-between items-center text-sm">
-                              <span className="text-text-muted">Potential Win:</span>
+                              <span className="text-white/60">Potential Win:</span>
                               <span className="text-secondary font-bold">{(parseFloat(totalOdd) * parseFloat(entryFee)).toFixed(2)} BNB</span>
                             </div>
                           </div>
@@ -2366,17 +2366,17 @@ export default function OddysseyPage() {
                                 <span className="text-green-400 font-semibold text-sm">Ready to Submit!</span>
                               </div>
                               <div className="flex justify-between items-center text-sm">
-                                <span className="text-text-muted">Total Odds:</span>
+                                <span className="text-white/60">Total Odds:</span>
                                 <span className="text-green-400 font-bold">{totalOdd}x</span>
                               </div>
                               <div className="flex justify-between items-center text-sm mt-1">
-                                <span className="text-text-muted">Entry Fee:</span>
+                                <span className="text-white/60">Entry Fee:</span>
                                 <span className="text-white font-bold">
                                   {entryFee} BNB
                                 </span>
                               </div>
                               <div className="flex justify-between items-center text-sm mt-1">
-                                <span className="text-text-muted">Potential Payout:</span>
+                                <span className="text-white/60">Potential Payout:</span>
                                 <span className="text-primary font-bold">
                                   {(parseFloat(totalOdd) * parseFloat(entryFee)).toFixed(2)} BNB
                                 </span>
@@ -2420,7 +2420,7 @@ export default function OddysseyPage() {
                                     {isPending ? "Waiting for wallet confirmation..." : "Processing transaction..."}
                                   </span>
                                 </div>
-                                <p className="text-xs text-text-muted mt-1">
+                                <p className="text-xs text-white/60 mt-1">
                                   Please don&apos;t close this page or disconnect your wallet
                                 </p>
                               </motion.div>
@@ -2433,7 +2433,7 @@ export default function OddysseyPage() {
                                 setPicks([]);
                                 toast.success('All selections cleared. You can start building a new slip.');
                               }}
-                              className="w-full text-text-muted hover:text-red-400 transition-colors text-sm pt-2"
+                              className="w-full text-white/60 hover:text-red-400 transition-colors text-sm pt-2"
                               disabled={isPending || isConfirming}
                             >
                               Clear All Selections
@@ -2450,7 +2450,7 @@ export default function OddysseyPage() {
                         >
                           <div className="text-6xl mb-4 opacity-50">⚽</div>
                           <h4 className="font-semibold text-text-primary mb-2">Start Building Your Slip</h4>
-                          <p className="text-text-muted text-sm mb-4">
+                          <p className="text-white/60 text-sm mb-4">
                             Click on any odds to add selections to your slip
                           </p>
                           <div className="text-xs text-primary font-medium bg-primary/10 px-3 py-2 rounded-button">
