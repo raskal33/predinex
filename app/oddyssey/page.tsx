@@ -2063,7 +2063,7 @@ export default function OddysseyPage() {
                                         isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired
                                           ? "bg-slate-700/30 text-slate-400 cursor-not-allowed opacity-50"
                                           : picks.find(p => p.id === matchId && p.pick === "over")
-                                          ? "bg-gradient-to-r from-blue-500 to-primary text-black shadow-md scale-105"
+                                            ? "bg-gradient-to-r from-blue-500 to-primary text-black scale-105"
                                           : "bg-blue-500/10 text-white hover:bg-blue-500/20 hover:text-blue-300 border border-transparent hover:border-blue-300/30"
                                       }`}
                                     >
@@ -2078,7 +2078,7 @@ export default function OddysseyPage() {
                                         isMatchStarted(safeStartTimeToISOString(match.startTime)) || isExpired
                                           ? "bg-slate-700/30 text-slate-400 cursor-not-allowed opacity-50"
                                           : picks.find(p => p.id === matchId && p.pick === "under")
-                                          ? "bg-gradient-to-r from-purple-500 to-blue-600 text-black shadow-md scale-105"
+                                            ? "bg-gradient-to-r from-purple-500 to-blue-600 text-black scale-105"
                                           : "bg-purple-500/10 text-white hover:bg-purple-500/20 hover:text-purple-300 border border-transparent hover:border-purple-300/30"
                                       }`}
                                     >
@@ -2791,7 +2791,7 @@ export default function OddysseyPage() {
                 exit={{ opacity: 0, x: -20 }}
                 className="lg:col-span-3"
               >
-                <div className="glass-card p-6 bg-gradient-to-br from-yellow-500/5 to-orange-500/5 border border-yellow-500/20 shadow-lg shadow-yellow-500/10">
+                <div className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-6">
                   <h2 className="text-2xl font-bold text-yellow-300 mb-6 flex items-center gap-2">
                     <TrophyIcon className="h-6 w-6 text-yellow-400" />
                     Daily Leaderboard
