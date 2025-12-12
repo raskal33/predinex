@@ -160,8 +160,26 @@ export default function RecentBetsLane({ className = "" }: RecentBetsLaneProps) 
     );
   }
 
+  // Always show the lane, even if empty (for better UX)
+  // If no bets, show placeholder message
   if (bets.length === 0) {
-    return null;
+    return (
+      <div className={`w-full bg-slate-900/30 backdrop-blur-sm border-b border-slate-800/30 py-2 overflow-hidden ${className}`}>
+        <div className="relative flex items-center gap-1">
+          {/* Live indicator */}
+          <div className="flex items-center gap-1.5 px-3 flex-shrink-0">
+            <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></div>
+            <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Live</span>
+          </div>
+          {/* Divider */}
+          <div className="w-px h-4 bg-slate-700/50 flex-shrink-0"></div>
+          {/* Placeholder message */}
+          <div className="flex-1 px-3">
+            <span className="text-[11px] text-gray-500">No recent activity yet. Be the first to place a bet!</span>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   // Duplicate bets for seamless loop
