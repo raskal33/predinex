@@ -595,16 +595,18 @@ export function usePoolCore() {
                     if (errorSelector === '0x08c379a0') {
                       // Standard Error(string)
                       try {
-                        const decoded = ethers.utils.defaultAbiCoder.decode(['string'], errorParams);
+                        const abiCoder = ethers.AbiCoder.defaultAbiCoder();
+                        const decoded = abiCoder.decode(['string'], errorParams);
                         actualError = decoded[0];
                         console.error('   Decoded Error(string):', actualError);
-                      } catch (e) {
+                      } catch (_e) {
                         console.error('   Could not decode Error(string)');
                       }
                     } else if (errorSelector === '0x4e487b71') {
                       // Panic(uint256)
                       try {
-                        const decoded = ethers.utils.defaultAbiCoder.decode(['uint256'], errorParams);
+                        const abiCoder = ethers.AbiCoder.defaultAbiCoder();
+                        const decoded = abiCoder.decode(['uint256'], errorParams);
                         const panicCode = decoded[0].toString();
                         const panicMessages: Record<string, string> = {
                           '0x01': 'assert(false)',
@@ -619,7 +621,7 @@ export function usePoolCore() {
                         };
                         actualError = `Panic: ${panicMessages[panicCode] || `Unknown panic code ${panicCode}`}`;
                         console.error('   Decoded Panic:', actualError);
-                      } catch (e) {
+                      } catch (_e) {
                         console.error('   Could not decode Panic');
                       }
                     } else {
@@ -632,34 +634,37 @@ export function usePoolCore() {
                       // Selector 0xfb8f41b2 = ERC20InsufficientAllowance
                       if (errorSelector === '0xfb8f41b2') {
                         try {
-                          const decoded = ethers.utils.defaultAbiCoder.decode(
+                          const abiCoder = ethers.AbiCoder.defaultAbiCoder();
+                          const decoded = abiCoder.decode(
                             ['address', 'uint256', 'uint256'],
                             errorParams
                           );
                           console.error('   Decoded as ERC20InsufficientAllowance:');
                           console.error('     Spender:', decoded[0]);
-                          console.error('     Current Allowance:', ethers.utils.formatEther(decoded[1]), 'PRIX');
-                          console.error('     Needed:', ethers.utils.formatEther(decoded[2]), 'PRIX');
-                          actualError = `Insufficient PRIX allowance: current ${ethers.utils.formatEther(decoded[1])} PRIX, needed ${ethers.utils.formatEther(decoded[2])} PRIX`;
-                        } catch (e) {
-                          console.error('   Could not decode ERC20InsufficientAllowance:', e.message);
+                          console.error('     Current Allowance:', ethers.formatEther(decoded[1]), 'PRIX');
+                          console.error('     Needed:', ethers.formatEther(decoded[2]), 'PRIX');
+                          actualError = `Insufficient PRIX allowance: current ${ethers.formatEther(decoded[1])} PRIX, needed ${ethers.formatEther(decoded[2])} PRIX`;
+                        } catch (err: unknown) {
+                          const errMsg = err instanceof Error ? err.message : String(err);
+                          console.error('   Could not decode ERC20InsufficientAllowance:', errMsg);
                         }
                       }
                       
                       // Try to decode as InsufficientBalance(address,uint256,uint256)
                       try {
-                        const decoded = ethers.utils.defaultAbiCoder.decode(
+                        const abiCoder = ethers.AbiCoder.defaultAbiCoder();
+                        const decoded = abiCoder.decode(
                           ['address', 'uint256', 'uint256'],
                           errorParams
                         );
                         console.error('   Decoded as InsufficientBalance:');
                         console.error('     Account:', decoded[0]);
-                        console.error('     Required:', ethers.utils.formatEther(decoded[1]), 'PRIX');
-                        console.error('     Available:', ethers.utils.formatEther(decoded[2]), 'PRIX');
+                        console.error('     Required:', ethers.formatEther(decoded[1]), 'PRIX');
+                        console.error('     Available:', ethers.formatEther(decoded[2]), 'PRIX');
                         if (!actualError) {
-                          actualError = `Insufficient balance: required ${ethers.utils.formatEther(decoded[1])} PRIX, available ${ethers.utils.formatEther(decoded[2])} PRIX`;
+                          actualError = `Insufficient balance: required ${ethers.formatEther(decoded[1])} PRIX, available ${ethers.formatEther(decoded[2])} PRIX`;
                         }
-                      } catch (e) {
+                      } catch (_e) {
                         // Not InsufficientBalance, try other patterns
                         console.error('   Could not decode as InsufficientBalance');
                       }
