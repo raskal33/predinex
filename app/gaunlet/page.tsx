@@ -8,6 +8,7 @@ import { toast } from "@/utils/toast";
 import { useGaunlet, PoolState, type Match, type UserPrediction } from "@/hooks/useGaunlet";
 import { gaunletService, type GaunletPool } from "@/services/gaunletService";
 import { useTransactionFeedback, TransactionFeedback } from "@/components/TransactionFeedback";
+import GaunletMatchSelection from "@/components/GaunletMatchSelection";
 import { 
   FireIcon, 
   TrophyIcon, 
@@ -144,7 +145,6 @@ export default function GaunletPage() {
   const [selectedPool, setSelectedPool] = useState<GaunletPool | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showSlipModal, setShowSlipModal] = useState(false);
-  const [selectedMatches] = useState<Match[]>([]);
   const [predictions] = useState<UserPrediction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -191,19 +191,34 @@ export default function GaunletPage() {
   }, [isConfirmed, showSuccess, refetchPools]);
 
   // Handle create pool
-  const handleCreatePool = async () => {
+  const handleCreatePool = async (matches: any[]) => {
     if (!isConnected) {
       toast.error("Please connect your wallet");
       return;
     }
 
-    if (!selectedMatches || selectedMatches.length !== matchCount) {
+    if (!matches || matches.length !== matchCount) {
       toast.error(`Please select exactly ${matchCount} matches`);
       return;
     }
 
+    // Convert fixtures to Match format for contract
+    const contractMatches: Match[] = matches.map((fixture) => ({
+      id: BigInt(fixture.id),
+      startTime: BigInt(Math.floor(new Date(fixture.matchDate).getTime() / 1000)),
+      oddsHome: fixture.odds?.home || 0,
+      oddsDraw: fixture.odds?.draw || 0,
+      oddsAway: fixture.odds?.away || 0,
+      oddsOver: fixture.odds?.over25 || 0,
+      oddsUnder: fixture.odds?.under25 || 0,
+      homeTeam: fixture.homeTeam.name,
+      awayTeam: fixture.awayTeam.name,
+      leagueName: fixture.league.name,
+    }));
+
     try {
-      await createPool(entryFee, matchCount, selectedMatches);
+      await createPool(entryFee, matchCount, contractMatches);
+      setShowCreateModal(false);
     } catch (error: any) {
       showError("Failed to Create Pool", error.message || "An error occurred");
     }
@@ -570,46 +585,15 @@ export default function GaunletPage() {
         </div>
       </div>
 
-      {/* Create Pool Modal */}
-      <AnimatePresence>
-        {showCreateModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={() => setShowCreateModal(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-[#0F1419] via-[#1A1F2E] to-[#0F1419] border border-white/20 p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
-            >
-              <h2 className="text-2xl font-bold mb-4">Select Matches</h2>
-              <p className="text-sm text-gray-400 mb-6">
-                Select {matchCount} matches for your tournament pool. Match selection interface coming soon.
-              </p>
-              <div className="flex gap-4">
-                <button
-                  onClick={() => setShowCreateModal(false)}
-                  className="flex-1 px-4 py-2 bg-gray-500/20 text-gray-300 rounded-lg hover:bg-gray-500/30 transition-all"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleCreatePool}
-                  disabled={selectedMatches.length !== matchCount || isPending}
-                  className="flex-1 px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-semibold rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-all disabled:opacity-50"
-                >
-                  Create Pool
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Create Pool Modal - Match Selection */}
+      <GaunletMatchSelection
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onConfirm={handleCreatePool}
+        requiredCount={matchCount}
+        entryFee={entryFee}
+        creatorStake={creatorStake}
+      />
 
       {/* Place Slip Modal */}
       <AnimatePresence>
