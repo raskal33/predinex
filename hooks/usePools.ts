@@ -235,16 +235,25 @@ export function usePools() {
 
   // Direct liquidity addition function
   const addLiquidityDirect = useCallback(async (poolId: number, liquidityAmount: bigint, usePrix: boolean) => {
-    showPending('Adding Liquidity', 'Please confirm the liquidity transaction in your wallet...');
-    
-    writeContract({
-      ...CONTRACTS.POOL_CORE,
-      functionName: 'addLiquidity',
-      args: [BigInt(poolId), liquidityAmount],
-      value: usePrix ? 0n : liquidityAmount,
-      ...getTransactionOptions(), // Use same gas settings as placeBet
-    });
-  }, [writeContract, showPending]);
+    try {
+      showPending('Adding Liquidity', 'Please confirm the liquidity transaction in your wallet...');
+      
+      const txHash = await writeContractAsync({
+        address: CONTRACTS.POOL_CORE.address,
+        abi: CONTRACTS.POOL_CORE.abi,
+        functionName: 'addLiquidity',
+        args: [BigInt(poolId), liquidityAmount],
+        value: usePrix ? 0n : liquidityAmount,
+        ...getTransactionOptions(), // Use same gas settings as placeBet
+      });
+      
+      console.log('✅ addLiquidity transaction submitted:', txHash);
+      return txHash;
+    } catch (error) {
+      console.error('❌ addLiquidityDirect error:', error);
+      throw error;
+    }
+  }, [writeContractAsync, showPending]);
 
   // Handle approval confirmation and proceed with bet
   useEffect(() => {
