@@ -579,15 +579,70 @@ export function usePoolCore() {
                 // Check error data for revert reason
                 if (gasError.data) {
                   console.error('   Error data:', gasError.data);
-                  // Try to decode error data if it's a revert
-                  if (gasError.data.startsWith('0x08c379a0')) {
-                    // This is a revert with reason string
-                    try {
-                      const decoded = ethers.utils.defaultAbiCoder.decode(['string'], '0x' + gasError.data.slice(10));
-                      actualError = decoded[0];
-                      console.error('   Decoded revert reason:', actualError);
-                    } catch (e) {
-                      console.error('   Could not decode revert reason');
+                  
+                  // Try to decode as custom error first
+                  if (gasError.data.length > 10) {
+                    const errorSelector = gasError.data.slice(0, 10);
+                    const errorParams = '0x' + gasError.data.slice(10);
+                    
+                    console.error('   Error selector:', errorSelector);
+                    
+                    // Common error selectors
+                    // 0x08c379a0 = Error(string)
+                    // 0x4e487b71 = Panic(uint256)
+                    // Custom errors have different selectors
+                    
+                    if (errorSelector === '0x08c379a0') {
+                      // Standard Error(string)
+                      try {
+                        const decoded = ethers.utils.defaultAbiCoder.decode(['string'], errorParams);
+                        actualError = decoded[0];
+                        console.error('   Decoded Error(string):', actualError);
+                      } catch (e) {
+                        console.error('   Could not decode Error(string)');
+                      }
+                    } else if (errorSelector === '0x4e487b71') {
+                      // Panic(uint256)
+                      try {
+                        const decoded = ethers.utils.defaultAbiCoder.decode(['uint256'], errorParams);
+                        const panicCode = decoded[0].toString();
+                        const panicMessages: Record<string, string> = {
+                          '0x01': 'assert(false)',
+                          '0x11': 'arithmetic underflow/overflow',
+                          '0x12': 'division by zero',
+                          '0x21': 'converted a value that is too big',
+                          '0x22': 'accessed storage byte array that is incorrectly encoded',
+                          '0x31': 'called .pop() on an empty array',
+                          '0x32': 'accessed an array at an out-of-bounds index',
+                          '0x41': 'allocated too much memory',
+                          '0x51': 'called a zero-initialized variable of internal function type'
+                        };
+                        actualError = `Panic: ${panicMessages[panicCode] || `Unknown panic code ${panicCode}`}`;
+                        console.error('   Decoded Panic:', actualError);
+                      } catch (e) {
+                        console.error('   Could not decode Panic');
+                      }
+                    } else {
+                      // Custom error - try common patterns
+                      console.error('   Custom error detected, selector:', errorSelector);
+                      console.error('   This might be a custom error from the PRIX token or Diamond contract');
+                      console.error('   Error params:', errorParams);
+                      
+                      // Try to decode as InsufficientBalance(address,uint256,uint256)
+                      try {
+                        const decoded = ethers.utils.defaultAbiCoder.decode(
+                          ['address', 'uint256', 'uint256'],
+                          errorParams
+                        );
+                        console.error('   Decoded as InsufficientBalance:');
+                        console.error('     Account:', decoded[0]);
+                        console.error('     Required:', ethers.utils.formatEther(decoded[1]), 'PRIX');
+                        console.error('     Available:', ethers.utils.formatEther(decoded[2]), 'PRIX');
+                        actualError = `Insufficient balance: required ${ethers.utils.formatEther(decoded[1])} PRIX, available ${ethers.utils.formatEther(decoded[2])} PRIX`;
+                      } catch (e) {
+                        // Not InsufficientBalance, try other patterns
+                        console.error('   Could not decode as InsufficientBalance');
+                      }
                     }
                   }
                 }
