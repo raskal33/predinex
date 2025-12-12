@@ -1,215 +1,357 @@
-'use client';
+"use client";
 
-import { useEarlyCashout, type ListedPosition, type PositionType } from '@/hooks/useEarlyCashout';
-import { formatEther } from 'viem';
-import { useState } from 'react';
-import { toast } from 'react-hot-toast';
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { useAccount } from "wagmi";
+import { 
+  CurrencyDollarIcon,
+  TrophyIcon,
+  ArrowTrendingDownIcon,
+  ShoppingBagIcon
+} from "@heroicons/react/24/outline";
+import { FaSpinner } from "react-icons/fa";
+import { earlyCashoutService, type MarketListing, type PoolData } from "@/services/earlyCashoutService";
+import { useEarlyCashout } from "@/hooks/useEarlyCashout";
+import PositionDetailsModal from "./PositionDetailsModal";
+import BuyPositionModal from "./BuyPositionModal";
+import { formatUnits } from "viem";
 
-interface EarlyCashoutMarketplaceProps {
-  poolId: bigint;
-  onClose?: () => void;
-}
+export default function EarlyCashoutMarketplace() {
+  const { address, isConnected } = useAccount();
+  const { getPositionValue } = useEarlyCashout();
+  const [listings, setListings] = useState<MarketListing[]>([]);
+  const [poolDataMap, setPoolDataMap] = useState<Map<number, PoolData>>(new Map());
+  const [positionValues, setPositionValues] = useState<Map<string, string>>(new Map());
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedListing, setSelectedListing] = useState<MarketListing | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showBuyModal, setShowBuyModal] = useState(false);
+  const [filter, setFilter] = useState<"all" | "POOL" | "POSITION">("all");
 
-export function EarlyCashoutMarketplace({ poolId, onClose }: EarlyCashoutMarketplaceProps) {
-  const {
-    listPoolForSale,
-    listBettorPositionForSale,
-    buyPoolOwnership,
-    buyBettorPosition,
-    isPending,
-  } = useEarlyCashout();
-
-  const [activeTab, setActiveTab] = useState<'list' | 'buy'>('buy');
-  const [positionType, setPositionType] = useState<PositionType>('POOL');
-  const [askingPrice, setAskingPrice] = useState('');
-
-  // Mock listed positions - in real app, fetch from contract/backend
-  const [listedPositions, setListedPositions] = useState<ListedPosition[]>([]);
-
-  const handleListForSale = async () => {
-    if (!askingPrice) {
-      toast.error('Please enter an asking price');
-      return;
-    }
-
+  const loadListings = async () => {
+    setIsLoading(true);
     try {
-      const price = BigInt(parseFloat(askingPrice) * 1e18);
+      const data = await earlyCashoutService.getMarketListings();
+      const activeListings = data.filter(l => l.status === 'active');
+      setListings(activeListings);
+
+      // Load pool data for all listings
+      const poolIds = [...new Set(activeListings.map(l => l.poolId))];
+      const poolDataPromises = poolIds.map(id => 
+        earlyCashoutService.getPoolData(id).catch(() => null)
+      );
+      const poolDataResults = await Promise.all(poolDataPromises);
       
-      if (positionType === 'POOL') {
-        await listPoolForSale(poolId, price);
-      } else {
-        await listBettorPositionForSale(poolId, price);
-      }
-      
-      toast.success('Position listed for sale!');
-      setAskingPrice('');
-    } catch (_error) {
-      // Error handled in hook
+      const newPoolDataMap = new Map<number, PoolData>();
+      poolDataResults.forEach((data, index) => {
+        if (data) {
+          newPoolDataMap.set(poolIds[index], data);
+        }
+      });
+      setPoolDataMap(newPoolDataMap);
+
+      // Load position values
+      const valuePromises = activeListings.map(async (listing) => {
+        try {
+          const isCreatorSide = listing.listingType === 'POOL';
+          const value = await getPositionValue(
+            listing.poolId,
+            isCreatorSide,
+            listing.bettorAddress
+          );
+          return {
+            key: `${listing.poolId}-${listing.listingType}-${listing.bettorAddress || ''}`,
+            value: formatUnits(value, 18)
+          };
+        } catch (error) {
+          console.error('Error loading position value:', error);
+          return null;
+        }
+      });
+
+      const valueResults = await Promise.all(valuePromises);
+      const newPositionValues = new Map<string, string>();
+      valueResults.forEach(result => {
+        if (result) {
+          newPositionValues.set(result.key, result.value);
+        }
+      });
+      setPositionValues(newPositionValues);
+    } catch (error) {
+      console.error('Error loading listings:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleBuy = async (position: ListedPosition) => {
-    try {
-      if (position.positionType === 'POOL') {
-        await buyPoolOwnership(poolId, position.askingPrice);
-      } else {
-        await buyBettorPosition(poolId, position.seller, position.askingPrice);
-      }
-      
-      toast.success('Position purchased!');
-      setListedPositions(prev => prev.filter(p => p.poolId !== poolId));
-    } catch (_error) {
-      // Error handled in hook
-    }
+  useEffect(() => {
+    loadListings();
+
+    // Listen for refresh events
+    const handleRefresh = () => {
+      loadListings();
+    };
+    window.addEventListener('refresh-cashout-data', handleRefresh);
+    return () => window.removeEventListener('refresh-cashout-data', handleRefresh);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const filteredListings = filter === "all" 
+    ? listings 
+    : listings.filter(l => l.listingType === filter);
+
+  const handleListingClick = (listing: MarketListing) => {
+    setSelectedListing(listing);
+    setShowDetailsModal(true);
   };
+
+  const handleBuyClick = (listing: MarketListing) => {
+    setSelectedListing(listing);
+    setShowBuyModal(true);
+  };
+
+  const formatPrice = (price: string) => {
+    const num = parseFloat(price);
+    if (num >= 1) {
+      return num.toFixed(3);
+    }
+    return num.toFixed(6);
+  };
+
+  const getPriceDifference = (listing: MarketListing): { diff: number; isGood: boolean } => {
+    const key = `${listing.poolId}-${listing.listingType}-${listing.bettorAddress || ''}`;
+    const positionValue = positionValues.get(key);
+    
+    if (!positionValue) {
+      return { diff: 0, isGood: false };
+    }
+
+    const askPrice = parseFloat(listing.price);
+    const value = parseFloat(positionValue);
+    const diff = ((askPrice - value) / value) * 100;
+    
+    return {
+      diff: Math.abs(diff),
+      isGood: askPrice <= value * 1.05 // Good if within 5% of value
+    };
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <FaSpinner className="w-8 h-8 text-cyan-400 animate-spin" />
+        <span className="ml-3 text-gray-400">Loading marketplace...</span>
+      </div>
+    );
+  }
+
+  if (filteredListings.length === 0) {
+    return (
+      <div className="text-center py-16">
+        <div className="glass-card border border-slate-700/50 p-8 rounded-xl max-w-md mx-auto">
+          <ShoppingBagIcon className="h-12 w-12 text-gray-500 mx-auto mb-4" />
+          <h3 className="text-xl font-bold text-white mb-2">No Listings Available</h3>
+          <p className="text-gray-400">
+            {filter === "all" 
+              ? "There are no active listings in the marketplace right now."
+              : `No ${filter === "POOL" ? "pool" : "bettor position"} listings available.`}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-gray-800 rounded-lg p-6 border border-gray-700 max-w-2xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-white">Early Cashout Marketplace</h2>
-        {onClose && (
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-white"
-          >
-            ✕
-          </button>
-        )}
-      </div>
-
-      {/* Tabs */}
-      <div className="flex gap-2 mb-6">
+    <>
+      {/* Filters */}
+      <div className="mb-6 flex flex-wrap gap-2">
         <button
-          onClick={() => setActiveTab('buy')}
-          className={`
-            px-4 py-2 rounded-lg font-medium transition-all
-            ${activeTab === 'buy'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-            }
-          `}
+          onClick={() => setFilter("all")}
+          className={`px-4 py-2 rounded-lg font-medium transition-all ${
+            filter === "all"
+              ? "bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-400 border border-cyan-500/30"
+              : "bg-white/5 text-gray-400 hover:text-white border border-white/10"
+          }`}
         >
-          Buy Positions
+          All ({listings.length})
         </button>
         <button
-          onClick={() => setActiveTab('list')}
-          className={`
-            px-4 py-2 rounded-lg font-medium transition-all
-            ${activeTab === 'list'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-            }
-          `}
+          onClick={() => setFilter("POOL")}
+          className={`px-4 py-2 rounded-lg font-medium transition-all ${
+            filter === "POOL"
+              ? "bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-400 border border-cyan-500/30"
+              : "bg-white/5 text-gray-400 hover:text-white border border-white/10"
+          }`}
         >
-          List for Sale
+          Pool Positions ({listings.filter(l => l.listingType === 'POOL').length})
+        </button>
+        <button
+          onClick={() => setFilter("POSITION")}
+          className={`px-4 py-2 rounded-lg font-medium transition-all ${
+            filter === "POSITION"
+              ? "bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-400 border border-cyan-500/30"
+              : "bg-white/5 text-gray-400 hover:text-white border border-white/10"
+          }`}
+        >
+          Bettor Positions ({listings.filter(l => l.listingType === 'POSITION').length})
         </button>
       </div>
 
-      {/* Buy Tab */}
-      {activeTab === 'buy' && (
-        <div className="space-y-4">
-          {listedPositions.length === 0 ? (
-            <div className="text-center py-8 sm:py-12 text-[var(--text-muted)] text-sm sm:text-base">
-              No positions listed for sale
-            </div>
-          ) : (
-            listedPositions.map((position, index) => (
-              <div
-                key={index}
-                className="bg-[var(--bg-card)] rounded-lg p-3 sm:p-4 border border-[var(--border-card)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4"
-              >
-                <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-[var(--text-primary)] text-sm sm:text-base mb-1">
-                    {position.positionType === 'POOL' ? 'Pool Ownership' : 'Bettor Position'}
+      {/* Listings Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filteredListings.map((listing, index) => {
+          const poolData = poolDataMap.get(listing.poolId);
+          const priceDiff = getPriceDifference(listing);
+          const isOwnListing = listing.seller.toLowerCase() === address?.toLowerCase();
+
+          return (
+            <motion.div
+              key={listing.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.05 }}
+              whileHover={{ scale: 1.02, y: -2 }}
+              className="glass-card border border-border-card rounded-xl p-5 hover:border-cyan-500/30 transition-all cursor-pointer"
+              onClick={() => handleListingClick(listing)}
+            >
+              {/* Header */}
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <div className={`p-2 rounded-lg ${
+                    listing.listingType === 'POOL'
+                      ? 'bg-gradient-to-br from-purple-500/20 to-pink-500/20'
+                      : 'bg-gradient-to-br from-cyan-500/20 to-blue-500/20'
+                  }`}>
+                    {listing.listingType === 'POOL' ? (
+                      <TrophyIcon className="h-5 w-5 text-purple-400" />
+                    ) : (
+                      <CurrencyDollarIcon className="h-5 w-5 text-cyan-400" />
+                    )}
                   </div>
-                  <div className="text-xs sm:text-sm text-[var(--text-muted)]">
-                    Seller: {position.seller.slice(0, 6)}...{position.seller.slice(-4)}
-                  </div>
-                  <div className="text-xs sm:text-sm text-[var(--text-muted)]">
-                    Original Stake: {formatEther(position.originalStake)} {position.currency}
+                  <div>
+                    <p className="text-xs text-gray-400 uppercase">
+                      {listing.listingType === 'POOL' ? 'Pool Position' : 'Bettor Position'}
+                    </p>
+                    <p className="text-sm font-semibold text-white">
+                      Pool #{listing.poolId}
+                    </p>
                   </div>
                 </div>
-                <div className="text-right sm:text-right w-full sm:w-auto">
-                  <div className="text-base sm:text-lg font-bold text-[var(--text-primary)] mb-2 sm:mb-0">
-                    {formatEther(position.askingPrice)} {position.currency}
+                {priceDiff.isGood && (
+                  <div className="flex items-center gap-1 text-xs text-green-400 bg-green-500/10 px-2 py-1 rounded">
+                    <ArrowTrendingDownIcon className="h-3 w-3" />
+                    <span>Good Deal</span>
                   </div>
-                  <button
-                    onClick={() => handleBuy(position)}
-                    disabled={isPending}
-                    className="w-full sm:w-auto mt-2 px-4 py-2 bg-[var(--market-rise)] hover:bg-[var(--market-rise)]/90 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-sm sm:text-base transition-all duration-200 active:scale-95"
-                  >
-                    Buy
-                  </button>
-                </div>
+                )}
               </div>
-            ))
-          )}
-        </div>
+
+              {/* Pool Info */}
+              {poolData && (
+                <div className="mb-4">
+                  <h3 className="text-sm font-semibold text-white mb-1 line-clamp-1">
+                    {poolData.title}
+                  </h3>
+                  <div className="flex items-center gap-2 text-xs text-gray-400">
+                    <span>{poolData.league}</span>
+                    <span>•</span>
+                    <span>{(poolData.odds / 100).toFixed(2)}x</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Price */}
+              <div className="mb-4 p-3 bg-black/30 rounded-lg border border-white/5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-400">Asking Price</span>
+                  <span className="text-lg font-bold text-cyan-400">
+                    {formatPrice(listing.price)} BNB
+                  </span>
+                </div>
+                {positionValues.has(`${listing.poolId}-${listing.listingType}-${listing.bettorAddress || ''}`) && (
+                  <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/5">
+                    <span className="text-xs text-gray-400">Est. Value</span>
+                    <span className="text-sm text-gray-300">
+                      {formatPrice(positionValues.get(`${listing.poolId}-${listing.listingType}-${listing.bettorAddress || ''}`) || '0')} BNB
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Seller */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-full flex items-center justify-center">
+                    <span className="text-xs font-bold text-cyan-400">
+                      {listing.seller.slice(0, 2).toUpperCase()}
+                    </span>
+                  </div>
+                  <span className="text-xs text-gray-400 font-mono">
+                    {listing.seller.slice(0, 6)}...{listing.seller.slice(-4)}
+                  </span>
+                </div>
+                {isOwnListing && (
+                  <span className="text-xs text-yellow-400 bg-yellow-500/10 px-2 py-1 rounded">
+                    Your Listing
+                  </span>
+                )}
+              </div>
+
+              {/* Actions */}
+              {isConnected && !isOwnListing && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleBuyClick(listing);
+                  }}
+                  className="w-full px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-semibold rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-all"
+                >
+                  Buy Position
+                </button>
+              )}
+
+              {!isConnected && (
+                <div className="text-center text-xs text-gray-500 py-2">
+                  Connect wallet to buy
+                </div>
+              )}
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {/* Modals */}
+      {selectedListing && (
+        <>
+          <PositionDetailsModal
+            isOpen={showDetailsModal}
+            onClose={() => {
+              setShowDetailsModal(false);
+              setSelectedListing(null);
+            }}
+            listing={selectedListing}
+            poolData={poolDataMap.get(selectedListing.poolId)}
+            positionValue={positionValues.get(`${selectedListing.poolId}-${selectedListing.listingType}-${selectedListing.bettorAddress || ''}`)}
+            onBuy={() => {
+              setShowDetailsModal(false);
+              setShowBuyModal(true);
+            }}
+          />
+          <BuyPositionModal
+            isOpen={showBuyModal}
+            onClose={() => {
+              setShowBuyModal(false);
+              setSelectedListing(null);
+            }}
+            listing={selectedListing}
+            poolData={poolDataMap.get(selectedListing.poolId)}
+            onSuccess={() => {
+              setShowBuyModal(false);
+              setSelectedListing(null);
+              loadListings();
+            }}
+          />
+        </>
       )}
-
-      {/* List Tab */}
-      {activeTab === 'list' && (
-        <div className="space-y-4">
-          <div>
-            <label className="block text-xs sm:text-sm font-medium text-[var(--text-secondary)] mb-2">
-              Position Type
-            </label>
-            <div className="flex gap-2 sm:gap-3">
-              <button
-                onClick={() => setPositionType('POOL')}
-                className={`
-                  px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg font-semibold transition-all duration-200
-                  text-sm sm:text-base flex-1
-                  ${positionType === 'POOL'
-                    ? 'bg-[var(--bsc-yellow)] text-[var(--bsc-dark)] shadow-lg shadow-[var(--bsc-yellow)]/30 border-2 border-[var(--bsc-yellow)]'
-                    : 'bg-[var(--bg-card)] text-[var(--text-secondary)] border border-[var(--border-card)] hover:border-[var(--bsc-yellow)]/50 hover:bg-[var(--bg-card)]/80'
-                  }
-                  active:scale-95
-                `}
-              >
-                Pool Ownership
-              </button>
-              <button
-                onClick={() => setPositionType('BETTOR')}
-                className={`
-                  px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg font-semibold transition-all duration-200
-                  text-sm sm:text-base flex-1
-                  ${positionType === 'BETTOR'
-                    ? 'bg-[var(--bsc-yellow)] text-[var(--bsc-dark)] shadow-lg shadow-[var(--bsc-yellow)]/30 border-2 border-[var(--bsc-yellow)]'
-                    : 'bg-[var(--bg-card)] text-[var(--text-secondary)] border border-[var(--border-card)] hover:border-[var(--bsc-yellow)]/50 hover:bg-[var(--bg-card)]/80'
-                  }
-                  active:scale-95
-                `}
-              >
-                Bettor Position
-              </button>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs sm:text-sm font-medium text-[var(--text-secondary)] mb-2">
-              Asking Price (BNB)
-            </label>
-            <input
-              type="number"
-              value={askingPrice}
-              onChange={(e) => setAskingPrice(e.target.value)}
-              placeholder="0.0"
-              step="0.001"
-              className="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-[var(--bg-card)] border border-[var(--border-input)] rounded-lg text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--bsc-yellow)] focus:ring-2 focus:ring-[var(--bsc-yellow)]/20 transition-all text-sm sm:text-base"
-            />
-          </div>
-
-          <button
-            onClick={handleListForSale}
-            disabled={isPending || !askingPrice}
-            className="w-full py-2.5 sm:py-3 px-4 bg-[var(--bsc-yellow)] hover:bg-[var(--bsc-gold)] text-[var(--bsc-dark)] rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95 text-sm sm:text-base shadow-lg shadow-[var(--bsc-yellow)]/20"
-          >
-            {isPending ? 'Listing...' : 'List for Sale'}
-          </button>
-        </div>
-      )}
-    </div>
+    </>
   );
 }
-
