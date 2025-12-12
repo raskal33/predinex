@@ -276,8 +276,11 @@ export function usePoolCore() {
             toast.success('PRIX tokens approved for pool creation!');
             
             // 🚨 CRITICAL: Verify the approval was successful by checking allowance again
-            const newAllowance = await getAllowance(address as `0x${string}`, CONTRACT_ADDRESSES.POOL_CORE);
+            // ✅ FIX: Check allowance for the correct target (FACTORY if boost, POOL_CORE otherwise)
+            const newAllowance = await getAllowance(address as `0x${string}`, approvalTarget);
             console.log(`✅ New allowance after approval: ${newAllowance.toString()}`);
+            console.log(`   Approval target: ${approvalTarget}`);
+            console.log(`   Required: ${totalRequired.toString()}`);
             
             if (newAllowance < totalRequired) {
               throw new Error(`Approval failed: Allowance is still insufficient (${newAllowance} < ${totalRequired})`);
@@ -496,35 +499,119 @@ export function usePoolCore() {
             value: transactionValue, // For PRIX pools: value = creationFeeBNB, for BNB pools: value = totalRequired
             gas: BigInt(12000000), // Slightly higher gas for factory function
           })
-        : await writeContractAsync({
-            address: CONTRACT_ADDRESSES.POOL_CORE,
-            abi: CONTRACTS.POOL_CORE.abi,
-            functionName: 'createPool', // ✅ Use main createPool function (for both BNB and PRIX pools without boost)
-            args: [
-              poolData.creatorStake,
-              Number(poolData.odds), // Convert to number for uint16
-              predictedOutcomeBytes32,
-              poolData.eventStartTime,
-              poolData.eventEndTime,
-              poolData.isPrivate,
-              poolData.maxBetPerUser,
-              poolData.oracleType,
-              poolData.marketType,
-              finalCurrencyType, // ✅ NEW: Currency type (0=BNB, 1=PRIX, 2=USDT)
-              leagueBytes32, // 🎯 bytes32 encoded league
-              categoryBytes32, // 🎯 bytes32 encoded category
-              homeTeamBytes32, // 🎯 bytes32 encoded home team
-              awayTeamBytes32, // 🎯 bytes32 encoded away team
-              titleBytes32, // 🎯 bytes32 encoded title
-              finalLeverage, // ✅ NEW: Leverage (1-5)
-              marketIdString, // 🎯 Market ID: keccak256(fixtureId) for guided, raw string for custom
-              poolData.isDynamicOdds || false, // ✅ NEW: Dynamic odds mode
-            ],
-            value: finalCurrencyType === 0 ? (poolData.creatorStake + creationFeeBNB) : creationFeeBNB, // ✅ NEW: BNB pools send stake+fee, token pools send only fee
-            gas: BigInt(10000000), // ✅ Reduced gas limit for lightweight function (10M instead of 14M)
-            // ✅ FIX: Explicitly disable gas estimation to avoid RPC errors
-            gasPrice: BigInt(3000000000), // 3 gwei for BSC testnet
-          });
+        : await (async () => {
+            // ✅ FIX: For PRIX pools, estimate gas first to catch revert reasons early
+            if (poolData.usePrix && publicClient) {
+              try {
+                console.log('🔍 Estimating gas for PRIX pool creation...');
+                const estimatedGas = await publicClient.estimateContractGas({
+                  address: CONTRACT_ADDRESSES.POOL_CORE,
+                  abi: CONTRACTS.POOL_CORE.abi,
+                  functionName: 'createPool',
+                  args: [
+                    poolData.creatorStake,
+                    Number(poolData.odds),
+                    predictedOutcomeBytes32,
+                    poolData.eventStartTime,
+                    poolData.eventEndTime,
+                    poolData.isPrivate,
+                    poolData.maxBetPerUser,
+                    poolData.oracleType,
+                    poolData.marketType,
+                    finalCurrencyType,
+                    leagueBytes32,
+                    categoryBytes32,
+                    homeTeamBytes32,
+                    awayTeamBytes32,
+                    titleBytes32,
+                    finalLeverage,
+                    marketIdString,
+                    poolData.isDynamicOdds || false,
+                  ],
+                  value: finalCurrencyType === 0 ? (poolData.creatorStake + creationFeeBNB) : creationFeeBNB,
+                  account: address as `0x${string}`,
+                });
+                console.log(`✅ Gas estimate: ${estimatedGas.toString()}`);
+                // Use estimated gas with 20% buffer
+                return await writeContractAsync({
+                  address: CONTRACT_ADDRESSES.POOL_CORE,
+                  abi: CONTRACTS.POOL_CORE.abi,
+                  functionName: 'createPool',
+                  args: [
+                    poolData.creatorStake,
+                    Number(poolData.odds),
+                    predictedOutcomeBytes32,
+                    poolData.eventStartTime,
+                    poolData.eventEndTime,
+                    poolData.isPrivate,
+                    poolData.maxBetPerUser,
+                    poolData.oracleType,
+                    poolData.marketType,
+                    finalCurrencyType,
+                    leagueBytes32,
+                    categoryBytes32,
+                    homeTeamBytes32,
+                    awayTeamBytes32,
+                    titleBytes32,
+                    finalLeverage,
+                    marketIdString,
+                    poolData.isDynamicOdds || false,
+                  ],
+                  value: finalCurrencyType === 0 ? (poolData.creatorStake + creationFeeBNB) : creationFeeBNB,
+                  gas: estimatedGas + (estimatedGas / 5n), // Add 20% buffer
+                });
+              } catch (gasError: any) {
+                console.error('❌ Gas estimation failed:', gasError);
+                // Parse the actual revert reason from gas estimation
+                if (gasError.message) {
+                  const errorMsg = gasError.message.toLowerCase();
+                  if (errorMsg.includes('prix transfer failed') || errorMsg.includes('transferfrom')) {
+                    throw new Error('PRIX token transfer failed. Please check your PRIX balance and allowance.');
+                  }
+                  if (errorMsg.includes('insufficient') && errorMsg.includes('stake')) {
+                    throw new Error('Insufficient PRIX stake. Minimum stake required.');
+                  }
+                  if (errorMsg.includes('allowance') || errorMsg.includes('approve')) {
+                    throw new Error('Insufficient PRIX allowance. Please approve more PRIX tokens.');
+                  }
+                  // Re-throw with more context
+                  throw new Error(`Transaction will fail: ${gasError.message}`);
+                }
+                // If gas estimation fails, proceed with default gas (might be RPC issue)
+                console.warn('⚠️ Proceeding with default gas due to estimation failure');
+              }
+            }
+            
+            // Default path (BNB pools or if gas estimation skipped)
+            return await writeContractAsync({
+              address: CONTRACT_ADDRESSES.POOL_CORE,
+              abi: CONTRACTS.POOL_CORE.abi,
+              functionName: 'createPool',
+              args: [
+                poolData.creatorStake,
+                Number(poolData.odds),
+                predictedOutcomeBytes32,
+                poolData.eventStartTime,
+                poolData.eventEndTime,
+                poolData.isPrivate,
+                poolData.maxBetPerUser,
+                poolData.oracleType,
+                poolData.marketType,
+                finalCurrencyType,
+                leagueBytes32,
+                categoryBytes32,
+                homeTeamBytes32,
+                awayTeamBytes32,
+                titleBytes32,
+                finalLeverage,
+                marketIdString,
+                poolData.isDynamicOdds || false,
+              ],
+              value: finalCurrencyType === 0 ? (poolData.creatorStake + creationFeeBNB) : creationFeeBNB,
+              gas: BigInt(10000000),
+              gasPrice: BigInt(3000000000),
+            });
+          })();
       
       console.log('✅ Pool creation transaction submitted:', txHash);
       // ✅ FIX: Return hash immediately so wagmi hooks can track transaction state
