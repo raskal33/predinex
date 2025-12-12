@@ -628,6 +628,24 @@ export function usePoolCore() {
                       console.error('   This might be a custom error from the PRIX token or Diamond contract');
                       console.error('   Error params:', errorParams);
                       
+                      // Try to decode as ERC20InsufficientAllowance(address,uint256,uint256)
+                      // Selector 0xfb8f41b2 = ERC20InsufficientAllowance
+                      if (errorSelector === '0xfb8f41b2') {
+                        try {
+                          const decoded = ethers.utils.defaultAbiCoder.decode(
+                            ['address', 'uint256', 'uint256'],
+                            errorParams
+                          );
+                          console.error('   Decoded as ERC20InsufficientAllowance:');
+                          console.error('     Spender:', decoded[0]);
+                          console.error('     Current Allowance:', ethers.utils.formatEther(decoded[1]), 'PRIX');
+                          console.error('     Needed:', ethers.utils.formatEther(decoded[2]), 'PRIX');
+                          actualError = `Insufficient PRIX allowance: current ${ethers.utils.formatEther(decoded[1])} PRIX, needed ${ethers.utils.formatEther(decoded[2])} PRIX`;
+                        } catch (e) {
+                          console.error('   Could not decode ERC20InsufficientAllowance:', e.message);
+                        }
+                      }
+                      
                       // Try to decode as InsufficientBalance(address,uint256,uint256)
                       try {
                         const decoded = ethers.utils.defaultAbiCoder.decode(
@@ -638,7 +656,9 @@ export function usePoolCore() {
                         console.error('     Account:', decoded[0]);
                         console.error('     Required:', ethers.utils.formatEther(decoded[1]), 'PRIX');
                         console.error('     Available:', ethers.utils.formatEther(decoded[2]), 'PRIX');
-                        actualError = `Insufficient balance: required ${ethers.utils.formatEther(decoded[1])} PRIX, available ${ethers.utils.formatEther(decoded[2])} PRIX`;
+                        if (!actualError) {
+                          actualError = `Insufficient balance: required ${ethers.utils.formatEther(decoded[1])} PRIX, available ${ethers.utils.formatEther(decoded[2])} PRIX`;
+                        }
                       } catch (e) {
                         // Not InsufficientBalance, try other patterns
                         console.error('   Could not decode as InsufficientBalance');
