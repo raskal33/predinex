@@ -22,6 +22,8 @@ import { useWalletConnection } from "@/hooks/useWalletConnection";
 import { CONTRACT_ADDRESSES } from "@/config/wagmi";
 import AmountInput from "@/components/AmountInput";
 import Button from "@/components/button";
+import H2HMatchSelector from "@/components/H2HMatchSelector";
+import H2HCryptoSelector from "@/components/H2HCryptoSelector";
 
 const CREATION_FEE = parseEther('0.005');
 const AUCTION_CLOSE_BUFFER = 5 * 60; // 5 minutes
@@ -57,6 +59,7 @@ export default function H2HPage() {
 
   // Create challenge form state
   const [createForm, setCreateForm] = useState({
+    category: 'football' as 'football' | 'cryptocurrency',
     marketId: '',
     outcome: '',
     makerStake: '',
@@ -64,6 +67,10 @@ export default function H2HPage() {
     eventStartTime: '',
     currency: 0 as H2HCurrencyType, // 0=BNB, 1=PRIX, 2=USDT
   });
+
+  // Selected match/crypto state
+  const [selectedFixture, setSelectedFixture] = useState<any>(null);
+  const [selectedCrypto, setSelectedCrypto] = useState<any>(null);
 
   // Filter challenges
   const filteredChallenges = useMemo(() => {
@@ -153,11 +160,11 @@ export default function H2HPage() {
 
     // Validation
     if (!createForm.marketId.trim()) {
-      toast.error('Market ID is required');
+      toast.error('Please select a match or cryptocurrency');
       return;
     }
     if (!createForm.outcome.trim()) {
-      toast.error('Outcome is required');
+      toast.error('Please select an outcome');
       return;
     }
     if (!createForm.makerStake || parseFloat(createForm.makerStake) <= 0) {
@@ -170,6 +177,11 @@ export default function H2HPage() {
     }
     if (parseFloat(createForm.minBid) >= parseFloat(createForm.makerStake)) {
       toast.error('Minimum bid should be less than maker stake');
+      return;
+    }
+
+    if (!createForm.eventStartTime) {
+      toast.error('Event start time is required');
       return;
     }
 
@@ -200,7 +212,7 @@ export default function H2HPage() {
 
     const hash = await createChallenge(
       createForm.marketId,
-      createForm.outcome,
+      createForm.outcome, // This will be encoded in the hook
       createForm.makerStake,
       createForm.minBid,
       eventTime,
@@ -210,6 +222,7 @@ export default function H2HPage() {
     if (hash) {
       setViewMode('list');
       setCreateForm({
+        category: 'football',
         marketId: '',
         outcome: '',
         makerStake: '',
@@ -217,6 +230,8 @@ export default function H2HPage() {
         eventStartTime: '',
         currency: 0 as H2HCurrencyType, // 0=BNB, 1=PRIX, 2=USDT
       });
+      setSelectedFixture(null);
+      setSelectedCrypto(null);
     }
   };
 
@@ -413,27 +428,99 @@ export default function H2HPage() {
             </h2>
             
             <div className="space-y-4">
+              {/* Category Selector */}
               <div>
-                <label className="block text-xs font-semibold mb-2 text-white/80 uppercase tracking-wider">Market ID</label>
-                <input
-                  type="text"
-                  value={createForm.marketId}
-                  onChange={(e) => setCreateForm({ ...createForm, marketId: e.target.value })}
-                  placeholder="e.g., match_12345"
-                  className="w-full px-4 py-2.5 bg-[#0A0E13]/80 backdrop-blur-sm border border-white/10 rounded-lg focus:outline-none focus:border-[#FFC107]/50 text-white placeholder:text-white/30 transition-all"
-                />
+                <label className="block text-xs font-semibold mb-2 text-white/80 uppercase tracking-wider">Category</label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCreateForm({ ...createForm, category: 'football', marketId: '', outcome: '', eventStartTime: '' });
+                      setSelectedFixture(null);
+                      setSelectedCrypto(null);
+                    }}
+                    className={`flex-1 px-4 py-2.5 rounded-lg font-semibold text-sm transition-all ${
+                      createForm.category === 'football'
+                        ? 'bg-gradient-to-r from-[#FFC107] to-[#F7B600] text-black'
+                        : 'bg-[#0A0E13]/80 border border-white/10 text-white/70 hover:text-white hover:border-white/20'
+                    }`}
+                  >
+                    ⚽ Football
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCreateForm({ ...createForm, category: 'cryptocurrency', marketId: '', outcome: '', eventStartTime: '' });
+                      setSelectedFixture(null);
+                      setSelectedCrypto(null);
+                    }}
+                    className={`flex-1 px-4 py-2.5 rounded-lg font-semibold text-sm transition-all ${
+                      createForm.category === 'cryptocurrency'
+                        ? 'bg-gradient-to-r from-[#FFC107] to-[#F7B600] text-black'
+                        : 'bg-[#0A0E13]/80 border border-white/10 text-white/70 hover:text-white hover:border-white/20'
+                    }`}
+                  >
+                    💰 Cryptocurrency
+                  </button>
+                </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold mb-2 text-white/80 uppercase tracking-wider">Your Prediction (Outcome)</label>
-                <input
-                  type="text"
-                  value={createForm.outcome}
-                  onChange={(e) => setCreateForm({ ...createForm, outcome: e.target.value })}
-                  placeholder="e.g., HOME_WIN, AWAY_WIN, OVER_2.5"
-                  className="w-full px-4 py-2.5 bg-[#0A0E13]/80 backdrop-blur-sm border border-white/10 rounded-lg focus:outline-none focus:border-[#FFC107]/50 text-white placeholder:text-white/30 transition-all"
-                />
-              </div>
+              {/* Match/Crypto Selector */}
+              {createForm.category === 'football' ? (
+                <div>
+                  <label className="block text-xs font-semibold mb-2 text-white/80 uppercase tracking-wider">Select Match & Outcome</label>
+                  <H2HMatchSelector
+                    onSelect={(fixture, marketId, outcome, eventStartTime) => {
+                      if (fixture) {
+                        setSelectedFixture(fixture);
+                        setCreateForm({
+                          ...createForm,
+                          marketId,
+                          outcome,
+                          eventStartTime: new Date(eventStartTime * 1000).toISOString().slice(0, 16),
+                        });
+                      } else {
+                        setSelectedFixture(null);
+                        setCreateForm({
+                          ...createForm,
+                          marketId: '',
+                          outcome: '',
+                          eventStartTime: '',
+                        });
+                      }
+                    }}
+                    selectedFixture={selectedFixture}
+                    selectedOutcome={createForm.outcome}
+                  />
+                </div>
+              ) : (
+                <div>
+                  <label className="block text-xs font-semibold mb-2 text-white/80 uppercase tracking-wider">Select Cryptocurrency & Prediction</label>
+                  <H2HCryptoSelector
+                    onSelect={(crypto, marketId, outcome, eventStartTime, _timeframe) => {
+                      if (crypto) {
+                        setSelectedCrypto(crypto);
+                        setCreateForm({
+                          ...createForm,
+                          marketId,
+                          outcome,
+                          eventStartTime: new Date(eventStartTime * 1000).toISOString().slice(0, 16),
+                        });
+                      } else {
+                        setSelectedCrypto(null);
+                        setCreateForm({
+                          ...createForm,
+                          marketId: '',
+                          outcome: '',
+                          eventStartTime: '',
+                        });
+                      }
+                    }}
+                    selectedCrypto={selectedCrypto}
+                    selectedOutcome={createForm.outcome}
+                  />
+                </div>
+              )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -466,18 +553,32 @@ export default function H2HPage() {
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold mb-2 text-white/80 uppercase tracking-wider">Event Start Time</label>
-                <input
-                  type="datetime-local"
-                  value={createForm.eventStartTime}
-                  onChange={(e) => setCreateForm({ ...createForm, eventStartTime: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-[#0A0E13]/80 backdrop-blur-sm border border-white/10 rounded-lg focus:outline-none focus:border-[#FFC107]/50 text-white transition-all"
-                />
-                <p className="text-xs text-white/50 mt-1.5">
-                  Bidding closes 5 minutes before event start
-                </p>
-              </div>
+              {(!selectedFixture && !selectedCrypto) && (
+                <div>
+                  <label className="block text-xs font-semibold mb-2 text-white/80 uppercase tracking-wider">Event Start Time</label>
+                  <input
+                    type="datetime-local"
+                    value={createForm.eventStartTime}
+                    onChange={(e) => setCreateForm({ ...createForm, eventStartTime: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-[#0A0E13]/80 backdrop-blur-sm border border-white/10 rounded-lg focus:outline-none focus:border-[#FFC107]/50 text-white transition-all"
+                  />
+                  <p className="text-xs text-white/50 mt-1.5">
+                    Bidding closes 5 minutes before event start
+                  </p>
+                </div>
+              )}
+
+              {createForm.eventStartTime && (selectedFixture || selectedCrypto) && (
+                <div className="relative overflow-hidden rounded-lg backdrop-blur-sm bg-gradient-to-br from-[#3B82F6]/10 via-[#3B82F6]/5 to-transparent border border-[#3B82F6]/20 p-3">
+                  <div className="text-xs font-semibold text-[#3B82F6] mb-1 uppercase tracking-wider">Event Start Time</div>
+                  <div className="text-sm font-semibold text-white">
+                    {new Date(createForm.eventStartTime).toLocaleString()}
+                  </div>
+                  <p className="text-xs text-white/50 mt-1">
+                    Auto-set from selected {createForm.category === 'football' ? 'match' : 'cryptocurrency'}
+                  </p>
+                </div>
+              )}
 
               <div className="relative overflow-hidden rounded-lg backdrop-blur-sm bg-gradient-to-br from-[#3B82F6]/10 via-[#3B82F6]/5 to-transparent border border-[#3B82F6]/20 p-4">
                 <div className="text-xs font-semibold text-[#3B82F6] mb-1 uppercase tracking-wider">Creation Fee</div>
