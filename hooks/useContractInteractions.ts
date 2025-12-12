@@ -562,23 +562,60 @@ export function usePoolCore() {
                 });
               } catch (gasError: any) {
                 console.error('❌ Gas estimation failed:', gasError);
-                // Parse the actual revert reason from gas estimation
-                if (gasError.message) {
-                  const errorMsg = gasError.message.toLowerCase();
-                  if (errorMsg.includes('prix transfer failed') || errorMsg.includes('transferfrom')) {
-                    throw new Error('PRIX token transfer failed. Please check your PRIX balance and allowance.');
-                  }
-                  if (errorMsg.includes('insufficient') && errorMsg.includes('stake')) {
-                    throw new Error('Insufficient PRIX stake. Minimum stake required.');
-                  }
-                  if (errorMsg.includes('allowance') || errorMsg.includes('approve')) {
-                    throw new Error('Insufficient PRIX allowance. Please approve more PRIX tokens.');
-                  }
-                  // Re-throw with more context
-                  throw new Error(`Transaction will fail: ${gasError.message}`);
+                console.error('   Full error object:', JSON.stringify(gasError, null, 2));
+                console.error('   Error cause:', gasError.cause);
+                console.error('   Error data:', gasError.data);
+                
+                // Try to extract the actual revert reason
+                let actualError = gasError.message || '';
+                
+                // Check for nested error messages
+                if (gasError.cause) {
+                  const causeMsg = String(gasError.cause.message || gasError.cause).toLowerCase();
+                  actualError = causeMsg;
+                  console.error('   Cause message:', causeMsg);
                 }
-                // If gas estimation fails, proceed with default gas (might be RPC issue)
-                console.warn('⚠️ Proceeding with default gas due to estimation failure');
+                
+                // Check error data for revert reason
+                if (gasError.data) {
+                  console.error('   Error data:', gasError.data);
+                  // Try to decode error data if it's a revert
+                  if (gasError.data.startsWith('0x08c379a0')) {
+                    // This is a revert with reason string
+                    try {
+                      const decoded = ethers.utils.defaultAbiCoder.decode(['string'], '0x' + gasError.data.slice(10));
+                      actualError = decoded[0];
+                      console.error('   Decoded revert reason:', actualError);
+                    } catch (e) {
+                      console.error('   Could not decode revert reason');
+                    }
+                  }
+                }
+                
+                const errorMsg = actualError.toLowerCase();
+                
+                // Parse specific error messages
+                if (errorMsg.includes('prix transfer failed') || errorMsg.includes('transferfrom') || errorMsg.includes('transfer from')) {
+                  throw new Error('PRIX token transfer failed. Please check your PRIX balance and allowance.');
+                }
+                if (errorMsg.includes('insufficient') && (errorMsg.includes('stake') || errorMsg.includes('balance'))) {
+                  throw new Error('Insufficient PRIX balance or stake. Please check your PRIX balance.');
+                }
+                if (errorMsg.includes('allowance') || errorMsg.includes('approve') || errorMsg.includes('insufficient allowance')) {
+                  throw new Error('Insufficient PRIX allowance. Please approve more PRIX tokens.');
+                }
+                if (errorMsg.includes('incorrect') && errorMsg.includes('amount')) {
+                  throw new Error('Incorrect PRIX amount. Please check the transaction parameters.');
+                }
+                if (errorMsg.includes('rpc endpoint') || errorMsg.includes('http client error')) {
+                  // This is the masked error - try to get more info
+                  console.error('⚠️ RPC error detected - this might mask the actual revert reason');
+                  console.error('   The contract might be reverting, but the RPC is not returning the reason');
+                  throw new Error('Transaction failed due to RPC error. The contract may be reverting. Please check: 1) PRIX balance is sufficient, 2) PRIX allowance is sufficient, 3) All parameters are valid.');
+                }
+                
+                // Re-throw with more context
+                throw new Error(`Transaction will fail: ${actualError || gasError.message}`);
               }
             }
             
