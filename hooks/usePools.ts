@@ -786,19 +786,47 @@ export function usePools() {
   const isPoolActive = (pool: Pool): boolean => {
     if (!pool) return false;
     const now = Math.floor(Date.now() / 1000);
-    return Number(pool.bettingEndTime) > now && !pool.settled;
+    
+    // ✅ FIX: Calculate bettingEndTime - if missing or 0, calculate from eventStartTime - 60 seconds
+    let bettingEndTime = Number(pool.bettingEndTime) || 0;
+    if (bettingEndTime <= 0 && pool.eventStartTime) {
+      bettingEndTime = Number(pool.eventStartTime) - 60; // 60 seconds before event start (BETTING_GRACE_PERIOD)
+    }
+    
+    // ✅ FIX: Only check bettingEndTime if it's valid (> 0), otherwise assume betting is active if not settled
+    return (bettingEndTime > 0 ? bettingEndTime > now : true) && !pool.settled;
   };
 
   const isPoolEnded = (pool: Pool): boolean => {
     if (!pool) return false;
     const now = Math.floor(Date.now() / 1000);
-    return Number(pool.bettingEndTime) <= now;
+    
+    // ✅ FIX: Calculate bettingEndTime - if missing or 0, calculate from eventStartTime - 60 seconds
+    let bettingEndTime = Number(pool.bettingEndTime) || 0;
+    if (bettingEndTime <= 0 && pool.eventStartTime) {
+      bettingEndTime = Number(pool.eventStartTime) - 60; // 60 seconds before event start
+    }
+    
+    // ✅ FIX: Only check bettingEndTime if it's valid (> 0)
+    return bettingEndTime > 0 && bettingEndTime <= now;
   };
 
   const getTimeRemaining = (pool: Pool): number => {
     if (!pool) return 0;
     const now = Math.floor(Date.now() / 1000);
-    const remaining = Number(pool.bettingEndTime) - now;
+    
+    // ✅ FIX: Calculate bettingEndTime - if missing or 0, calculate from eventStartTime - 60 seconds
+    let bettingEndTime = Number(pool.bettingEndTime) || 0;
+    if (bettingEndTime <= 0 && pool.eventStartTime) {
+      bettingEndTime = Number(pool.eventStartTime) - 60; // 60 seconds before event start
+    }
+    
+    // ✅ FIX: Only calculate remaining time if bettingEndTime is valid (> 0)
+    if (bettingEndTime <= 0) {
+      return 0; // Invalid bettingEndTime, return 0
+    }
+    
+    const remaining = bettingEndTime - now;
     return Math.max(0, remaining * 1000); // Return in milliseconds
   };
 

@@ -376,7 +376,15 @@ export default function BetPage() {
       const nowTime = Date.now();
       const eventStartTime = poolData.eventStartTime * 1000;
       const eventEndTime = poolData.eventEndTime * 1000;
-      const bettingEndTime = poolData.bettingEndTime * 1000;
+      
+      // ✅ FIX: Calculate bettingEndTime - if missing or 0, calculate from eventStartTime - 60 seconds (BETTING_GRACE_PERIOD)
+      // Contract sets: bettingEndTime = eventStartTime - 60 seconds
+      let bettingEndTime = poolData.bettingEndTime ? (poolData.bettingEndTime * 1000) : (eventStartTime - 60000);
+      
+      // ✅ FIX: Ensure bettingEndTime is valid (must be > 0 and <= eventStartTime)
+      if (bettingEndTime <= 0 || bettingEndTime > eventStartTime) {
+        bettingEndTime = eventStartTime - 60000; // Fallback: 60 seconds before event start
+      }
       
       // Check if event has started
       const eventStarted = poolData.isEventStarted || nowTime >= eventStartTime;
@@ -389,6 +397,8 @@ export default function BetPage() {
       // Check if betting is still allowed
       // YES bets (Challenge Creator) are disabled when pool is 100% filled
       // NO bets (Support Creator/Liquidity) are always allowed until event starts
+      // ✅ FIX: Only disable betting if bettingEndTime has passed AND event has started
+      // If bettingEndTime is in the future, betting should be allowed
       const bettingAllowed = poolData.canBet ?? (nowTime < bettingEndTime && !eventStarted);
       setCanBet(bettingAllowed);
       

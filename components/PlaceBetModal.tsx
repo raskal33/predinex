@@ -253,8 +253,18 @@ export default function PlaceBetModal({ pool, isOpen, onClose }: PlaceBetModalPr
   const canPlaceBet = betAmountNum > 0 && betAmountNum <= remainingCapacity && !isPlacing;
   
   // Check if betting window is open
+  // ✅ FIX: Calculate bettingEndTime - if missing or 0, calculate from eventStartTime - 60 seconds
   const now = Date.now() / 1000;
-  const isBettingOpen = now < pool.bettingEndTime && !pool.settled;
+  const eventStartTime = pool.eventStartTime || 0;
+  let bettingEndTime = pool.bettingEndTime || 0;
+  
+  // If bettingEndTime is 0 or invalid, calculate from eventStartTime - 60 seconds (BETTING_GRACE_PERIOD)
+  if (bettingEndTime <= 0 && eventStartTime > 0) {
+    bettingEndTime = eventStartTime - 60; // 60 seconds before event start
+  }
+  
+  // ✅ FIX: Only check bettingEndTime if it's valid (> 0)
+  const isBettingOpen = (bettingEndTime > 0 ? now < bettingEndTime : true) && !pool.settled;
   
   const handlePlaceBet = async () => {
     if (!address) {
