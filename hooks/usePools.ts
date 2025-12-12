@@ -275,7 +275,7 @@ export function usePools() {
       }
       throw error;
     }
-  }, [writeContractAsync, showPending]);
+  }, [writeContractAsync, showPending, publicClient, address]);
 
   // Track approval errors
   useEffect(() => {
