@@ -82,7 +82,7 @@ export enum BoostTier {
 
 export function usePools() {
   const { address } = useAccount();
-  const { writeContract, data: hash, isPending } = useWriteContract();
+  const { writeContractAsync, writeContract, data: hash, isPending } = useWriteContract();
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
   const publicClient = usePublicClient();
   const { showSuccess, showError, showPending, showConfirming } = useTransactionFeedback();
@@ -126,14 +126,21 @@ export function usePools() {
   }, [isApprovalSuccess, approvalConfirmed, showSuccess, hash]);
 
   // PRIX token approval function
-  const approvePRIX = (spender: `0x${string}`, amount: bigint) => {
-    writeContract({
-      address: CONTRACT_ADDRESSES.PRIX_TOKEN,
-      abi: CONTRACTS.PRIX_TOKEN.abi,
-      functionName: 'approve',
-      args: [spender, amount],
-      ...getTransactionOptions(), // Use same gas settings as create pool
-    });
+  const approvePRIX = async (spender: `0x${string}`, amount: bigint) => {
+    try {
+      const txHash = await writeContractAsync({
+        address: CONTRACT_ADDRESSES.PRIX_TOKEN,
+        abi: CONTRACTS.PRIX_TOKEN.abi,
+        functionName: 'approve',
+        args: [spender, amount],
+        ...getTransactionOptions(), // Use same gas settings as create pool
+      });
+      console.log('✅ PRIX approval transaction submitted:', txHash);
+      return txHash;
+    } catch (error) {
+      console.error('❌ PRIX approval error:', error);
+      throw error;
+    }
   };
 
   // Check PRIX allowance
@@ -158,16 +165,65 @@ export function usePools() {
 
   // Direct bet placement function
   const placeBetDirect = useCallback(async (poolId: number, betAmount: bigint, usePrix: boolean) => {
-    showPending('Placing Bet', 'Please confirm the bet transaction in your wallet...');
-    
-    writeContract({
-      ...CONTRACTS.POOL_CORE,
-      functionName: 'placeBet',
-      args: [BigInt(poolId), betAmount],
-      value: usePrix ? 0n : betAmount,
-      ...getTransactionOptions(), // Use same gas settings as create pool
-    });
-  }, [writeContract, showPending]);
+    try {
+      console.log('🎯 placeBetDirect called:', {
+        poolId,
+        betAmount: betAmount.toString(),
+        usePrix,
+        contractAddress: CONTRACTS.POOL_CORE.address,
+        hasABI: Array.isArray(CONTRACTS.POOL_CORE.abi) && CONTRACTS.POOL_CORE.abi.length > 0,
+        abiLength: CONTRACTS.POOL_CORE.abi.length,
+        hasPlaceBet: CONTRACTS.POOL_CORE.abi.some((f: any) => f.name === 'placeBet' && f.type === 'function')
+      });
+      
+      // Verify placeBet function exists in ABI
+      const placeBetFunction = CONTRACTS.POOL_CORE.abi.find((f: any) => f.name === 'placeBet' && f.type === 'function');
+      if (!placeBetFunction) {
+        console.error('❌ placeBet function not found in ABI!');
+        throw new Error('placeBet function not found in contract ABI');
+      }
+      
+      console.log('✅ placeBet function found in ABI:', {
+        name: placeBetFunction.name,
+        inputs: placeBetFunction.inputs,
+        stateMutability: placeBetFunction.stateMutability
+      });
+      
+      showPending('Placing Bet', 'Please confirm the bet transaction in your wallet...');
+      
+      // ✅ FIX: Use writeContractAsync for async/await support
+      const txHash = await writeContractAsync({
+        address: CONTRACTS.POOL_CORE.address,
+        abi: CONTRACTS.POOL_CORE.abi,
+        functionName: 'placeBet',
+        args: [BigInt(poolId), betAmount],
+        value: usePrix ? 0n : betAmount,
+        ...getTransactionOptions(), // Use same gas settings as create pool
+      });
+      
+      console.log('✅ placeBet transaction submitted:', txHash);
+      return txHash;
+    } catch (error) {
+      console.error('❌ placeBetDirect error:', error);
+      if (error instanceof Error) {
+        console.error('   Error name:', error.name);
+        console.error('   Error message:', error.message);
+        console.error('   Error stack:', error.stack);
+        
+        // Check for specific error types
+        if (error.message.includes('Function') && error.message.includes('not found')) {
+          throw new Error('placeBet function not found in contract ABI. Please refresh the page.');
+        }
+        if (error.message.includes('RPC') || error.message.includes('HTTP')) {
+          throw new Error('RPC connection error. Please check your network connection and try again.');
+        }
+        if (error.message.includes('user rejected') || error.message.includes('User rejected')) {
+          throw new Error('Transaction was rejected. Please try again.');
+        }
+      }
+      throw error;
+    }
+  }, [writeContractAsync, showPending]);
 
   // Track approval errors
   useEffect(() => {
