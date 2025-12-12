@@ -194,41 +194,52 @@ export function usePools() {
       // ✅ FIX: Estimate gas first to catch errors early
       let gasEstimate: bigint | undefined;
       try {
-        if (publicClient) {
-          gasEstimate = await publicClient.estimateContractGas({
-            address: CONTRACTS.POOL_CORE.address,
-            abi: CONTRACTS.POOL_CORE.abi,
-            functionName: 'placeBet',
-            args: [BigInt(poolId), betAmount],
-            value: usePrix ? 0n : betAmount,
-            account: address,
-          });
-          console.log('✅ Gas estimate:', gasEstimate.toString());
+        if (publicClient && address) {
+          try {
+            gasEstimate = await publicClient.estimateContractGas({
+              address: CONTRACTS.POOL_CORE.address,
+              abi: CONTRACTS.POOL_CORE.abi,
+              functionName: 'placeBet',
+              args: [BigInt(poolId), betAmount],
+              value: usePrix ? 0n : betAmount,
+              account: address as `0x${string}`,
+            });
+            console.log('✅ Gas estimate:', gasEstimate.toString());
+          } catch (gasError) {
+            console.error('❌ Gas estimation failed:', gasError);
+            // If gas estimation fails, it might be a contract revert - extract the reason
+            if (gasError instanceof Error) {
+              const errorMessage = gasError.message.toLowerCase();
+              if (errorMessage.includes('pool already settled') || errorMessage.includes('pool settled')) {
+                throw new Error('Pool already settled');
+              }
+              if (errorMessage.includes('betting period ended') || errorMessage.includes('betting period')) {
+                throw new Error('Betting period has ended');
+              }
+              if (errorMessage.includes('pool is full') || errorMessage.includes('pool full')) {
+                throw new Error('Pool is full');
+              }
+              if (errorMessage.includes('bet below minimum')) {
+                throw new Error('Bet amount is below minimum');
+              }
+              if (errorMessage.includes('exceeds remaining capacity')) {
+                throw new Error('Bet exceeds remaining capacity');
+              }
+              // If it's an RPC error, don't fail here - let the transaction try
+              if (errorMessage.includes('rpc') || errorMessage.includes('http')) {
+                console.warn('⚠️ Gas estimation RPC error, proceeding without gas estimate');
+              } else {
+                // Re-throw with more context for contract revert errors
+                throw new Error(`Transaction will fail: ${gasError.message}`);
+              }
+            } else {
+              throw gasError;
+            }
+          }
         }
-      } catch (gasError) {
-        console.error('❌ Gas estimation failed:', gasError);
-        // If gas estimation fails, it might be a contract revert - extract the reason
-        if (gasError instanceof Error) {
-          const errorMessage = gasError.message.toLowerCase();
-          if (errorMessage.includes('pool already settled') || errorMessage.includes('pool settled')) {
-            throw new Error('Pool already settled');
-          }
-          if (errorMessage.includes('betting period ended') || errorMessage.includes('betting period')) {
-            throw new Error('Betting period has ended');
-          }
-          if (errorMessage.includes('pool is full') || errorMessage.includes('pool full')) {
-            throw new Error('Pool is full');
-          }
-          if (errorMessage.includes('bet below minimum')) {
-            throw new Error('Bet amount is below minimum');
-          }
-          if (errorMessage.includes('exceeds remaining capacity')) {
-            throw new Error('Bet exceeds remaining capacity');
-          }
-          // Re-throw with more context
-          throw new Error(`Transaction will fail: ${gasError.message}`);
-        }
-        throw gasError;
+      } catch (error) {
+        // If gas estimation completely fails, we'll still try the transaction
+        console.warn('⚠️ Gas estimation error, proceeding without estimate:', error);
       }
       
       // ✅ FIX: Use writeContractAsync for async/await support
