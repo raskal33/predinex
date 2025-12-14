@@ -9,15 +9,14 @@ import {
   CubeIcon,
   ChartBarIcon,
   ExclamationTriangleIcon,
-  CheckCircleIcon
+  CheckCircleIcon,
+  SparklesIcon
 } from '@heroicons/react/24/outline';
 import { toast } from 'react-hot-toast';
-import { parseEther } from 'viem';
 import Button from '@/components/button';
 import AmountInput from '@/components/AmountInput';
 import Textarea from '@/components/textarea';
-import { FeeDisplay } from '@/components/FeeDisplay';
-import { useComboPools } from '@/hooks/useComboPools';
+import { useComboPools, CurrencyType } from '@/hooks/useComboPools';
 import { useWalletConnection } from '@/hooks/useWalletConnection';
 import { useReputationStore } from '@/stores/useReputationStore';
 
@@ -39,7 +38,7 @@ interface ComboPoolFormData {
   creatorStake: number;
   combinedOdds: number;
   maxBetPerUser: number;
-  usePrix: boolean;
+  currencyType: CurrencyType; // 0=BNB, 1=PRIX, 2=USDT
   isPrivate: boolean;
   conditions: ComboCondition[];
   eventStartTime: Date;
@@ -47,6 +46,13 @@ interface ComboPoolFormData {
   bettingEndTime: Date;
   category?: string;
 }
+
+// Currency config for minimum stakes and display
+const CURRENCY_CONFIG = {
+  [CurrencyType.BNB]: { symbol: 'tBNB', minStake: 2, name: 'Somnia Network' },
+  [CurrencyType.PRIX]: { symbol: 'PRIX', minStake: 5000, name: 'Reduced fees' },
+  [CurrencyType.USDT]: { symbol: 'USDT', minStake: 2000, name: 'Stablecoin' },
+};
 
 const INITIAL_CONDITION: Omit<ComboCondition, 'id'> = {
   marketId: '',
@@ -71,16 +77,19 @@ export default function ComboPoolCreationForm({ onSuccess, onClose }: {
   const [formData, setFormData] = useState<ComboPoolFormData>({
     title: '',
     description: '',
-    creatorStake: 2, // ✅ FIX: Default to minimum BNB stake for combo pools (2 BNB)
+    creatorStake: 2, // Default to minimum BNB stake for combo pools (2 BNB)
     combinedOdds: 2.0,
     maxBetPerUser: 1000,
-    usePrix: false,
+    currencyType: CurrencyType.BNB, // Default to BNB
     isPrivate: false,
     conditions: [],
     eventStartTime: new Date(),
     eventEndTime: new Date(Date.now() + 24 * 60 * 60 * 1000),
     bettingEndTime: new Date(Date.now() + 23 * 60 * 60 * 1000)
   });
+  
+  // Get current currency config
+  const currentCurrency = CURRENCY_CONFIG[formData.currencyType];
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -155,15 +164,11 @@ export default function ComboPoolCreationForm({ onSuccess, onClose }: {
       }
     });
 
-    // ✅ FIX: Use correct minimum stakes for combo pools based on currency
-    // Combo pools have higher minimums: 2 BNB, 5000 PRIX, 2000 USDT
-    const minStakeBNB = 2; // 2 BNB for combo pools
-    const minStakePRIX = 5000; // 5000 PRIX for combo pools
-    // const minStakeUSDT = 2000; // 2000 USDT for combo pools (TODO: Add USDT support)
-    const minStake = formData.usePrix ? minStakePRIX : minStakeBNB;
+    // Use correct minimum stakes for combo pools based on currency
+    const minStake = currentCurrency.minStake;
     
     if (formData.creatorStake < minStake) {
-      newErrors.creatorStake = `⚠️ Minimum creator stake for combo pools is ${minStake} ${formData.usePrix ? 'PRIX' : 'BNB'}. You entered ${formData.creatorStake} ${formData.usePrix ? 'PRIX' : 'BNB'}.`;
+      newErrors.creatorStake = `⚠️ Minimum creator stake for combo pools is ${minStake} ${currentCurrency.symbol}. You entered ${formData.creatorStake} ${currentCurrency.symbol}.`;
     }
 
     if (formData.combinedOdds < 1.01 || formData.combinedOdds > 500) {
@@ -176,7 +181,7 @@ export default function ComboPoolCreationForm({ onSuccess, onClose }: {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  }, [formData]);
+  }, [formData, currentCurrency.minStake, currentCurrency.symbol]);
 
   const handleSubmit = useCallback(async () => {
     if (!isConnected || !address) {
@@ -205,18 +210,18 @@ export default function ComboPoolCreationForm({ onSuccess, onClose }: {
       // Prepare combo pool data to match contract signature
       const comboPoolData = {
         conditions: formData.conditions.map(condition => ({
-          marketId: condition.marketId,
+          marketId: condition.marketId || `match_${condition.id}`,
           expectedOutcome: condition.expectedOutcome,
           description: condition.description || `${condition.marketId} prediction`,
-          odds: 1.0 // Not used in contract, but required by interface
+          odds: condition.odds || 2.0
         })),
-        combinedOdds: formData.combinedOdds, // Use form input
+        combinedOdds: formData.combinedOdds,
         creatorStake: BigInt(Math.floor(formData.creatorStake * 1e18)),
         earliestEventStart: BigInt(Math.floor(formData.eventStartTime.getTime() / 1000)),
         latestEventEnd: BigInt(Math.floor(formData.eventEndTime.getTime() / 1000)),
         category: formData.category || "football",
         maxBetPerUser: BigInt(Math.floor(formData.maxBetPerUser * 1e18)),
-        usePrix: formData.usePrix
+        currencyType: formData.currencyType // 0=BNB, 1=PRIX, 2=USDT
       };
 
       const txHash = await createComboPool(comboPoolData);
@@ -382,13 +387,13 @@ export default function ComboPoolCreationForm({ onSuccess, onClose }: {
             label="Creator Stake *"
             value={formData.creatorStake.toString()}
             onChange={(value) => setFormData(prev => ({ ...prev, creatorStake: parseFloat(value || '0') }))}
-            placeholder={formData.usePrix ? "5000.0" : "2.0"}
-            min={formData.usePrix ? 5000 : 2}
+            placeholder={currentCurrency.minStake.toString()}
+            min={currentCurrency.minStake}
             max={1000000}
             step={0.1}
             allowDecimals={true}
-            currency={formData.usePrix ? 'PRIX' : 'BNB'}
-            help={`Your stake that acts as liquidity for the pool. Minimum: ${formData.usePrix ? '5000 PRIX' : '2 BNB'} for combo pools.`}
+            currency={currentCurrency.symbol}
+            help={`Your stake that acts as liquidity for the pool. Minimum: ${currentCurrency.minStake.toLocaleString()} ${currentCurrency.symbol} for combo pools.`}
             error={errors.creatorStake}
           />
         </div>
@@ -421,67 +426,149 @@ export default function ComboPoolCreationForm({ onSuccess, onClose }: {
             max={1000000}
             step={0.1}
             allowDecimals={true}
-            currency={formData.usePrix ? 'PRIX' : 'BNB'}
+            currency={currentCurrency.symbol}
             help="Maximum bet amount per user (0 = unlimited)"
             error={errors.maxBetPerUser}
           />
         </div>
 
-        {/* Payment Token */}
-        <div>
-          <label className="block text-sm font-medium text-text-secondary mb-2">
-            Payment Token
+        {/* Payment Token - 3 Currency Options */}
+        <div className="md:col-span-2">
+          <label className="block text-sm font-medium text-text-secondary mb-3">
+            <SparklesIcon className="h-4 w-4 inline-block mr-1.5 text-primary" />
+            Select Payment Currency
           </label>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
+            {/* BNB Option */}
             <button
               onClick={() => {
-                setFormData(prev => {
-                  const newData = { ...prev, usePrix: false };
-                  // ✅ FIX: Update stake to minimum for BNB if below minimum
-                  if (newData.creatorStake < 2) {
-                    newData.creatorStake = 2; // 2 BNB minimum for combo pools
-                  }
-                  return newData;
-                });
+                setFormData(prev => ({
+                  ...prev, 
+                  currencyType: CurrencyType.BNB,
+                  creatorStake: Math.max(prev.creatorStake, CURRENCY_CONFIG[CurrencyType.BNB].minStake)
+                }));
               }}
-              className={`p-3 rounded-xl border text-center transition-all ${
-                !formData.usePrix
-                  ? 'border-primary bg-primary/10 text-primary'
-                  : 'border-border-input bg-bg-card text-text-secondary hover:border-primary/50'
+              className={`group relative p-4 rounded-2xl border-2 text-center transition-all duration-300 overflow-hidden ${
+                formData.currencyType === CurrencyType.BNB
+                  ? 'border-amber-400 bg-gradient-to-br from-amber-500/20 via-amber-400/10 to-transparent shadow-lg shadow-amber-500/20'
+                  : 'border-border-input bg-bg-card/50 backdrop-blur-sm text-text-secondary hover:border-amber-400/50 hover:bg-amber-500/5'
               }`}
             >
-              <div className="font-semibold">BNB</div>
-              <div className="text-xs mt-1">Somnia Network</div>
+              {/* Glassmorphism overlay */}
+              <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+              
+              <div className="relative z-10">
+                <div className={`text-xl font-bold mb-1 ${formData.currencyType === CurrencyType.BNB ? 'text-amber-400' : 'text-text-primary'}`}>
+                  tBNB
+                </div>
+                <div className="text-xs text-text-muted">Somnia Network</div>
+                <div className="mt-2 text-xs">
+                  <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300">
+                    Min: 2 tBNB
+                  </span>
+                </div>
+              </div>
+              
+              {formData.currencyType === CurrencyType.BNB && (
+                <motion.div 
+                  layoutId="currency-indicator"
+                  className="absolute bottom-1 left-1/2 -translate-x-1/2 w-8 h-1 rounded-full bg-amber-400"
+                />
+              )}
             </button>
+            
+            {/* PRIX Option */}
             <button
               onClick={() => {
-                setFormData(prev => {
-                  const newData = { ...prev, usePrix: true };
-                  // ✅ FIX: Update stake to minimum for PRIX if below minimum
-                  if (newData.creatorStake < 5000) {
-                    newData.creatorStake = 5000; // 5000 PRIX minimum for combo pools
-                  }
-                  return newData;
-                });
+                setFormData(prev => ({
+                  ...prev, 
+                  currencyType: CurrencyType.PRIX,
+                  creatorStake: Math.max(prev.creatorStake, CURRENCY_CONFIG[CurrencyType.PRIX].minStake)
+                }));
               }}
-              className={`p-3 rounded-xl border text-center transition-all ${
-                formData.usePrix
-                  ? 'border-primary bg-primary/10 text-primary'
-                  : 'border-border-input bg-bg-card text-text-secondary hover:border-primary/50'
+              className={`group relative p-4 rounded-2xl border-2 text-center transition-all duration-300 overflow-hidden ${
+                formData.currencyType === CurrencyType.PRIX
+                  ? 'border-primary bg-gradient-to-br from-primary/20 via-primary/10 to-transparent shadow-lg shadow-primary/20'
+                  : 'border-border-input bg-bg-card/50 backdrop-blur-sm text-text-secondary hover:border-primary/50 hover:bg-primary/5'
               }`}
             >
-              <div className="font-semibold">PRIX</div>
-              <div className="text-xs mt-1">Reduced fees</div>
+              {/* Glassmorphism overlay */}
+              <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+              
+              <div className="relative z-10">
+                <div className={`text-xl font-bold mb-1 ${formData.currencyType === CurrencyType.PRIX ? 'text-primary' : 'text-text-primary'}`}>
+                  PRIX
+                </div>
+                <div className="text-xs text-text-muted">Reduced fees</div>
+                <div className="mt-2 text-xs">
+                  <span className="px-2 py-0.5 rounded-full bg-primary/20 text-primary">
+                    Min: 5,000 PRIX
+                  </span>
+                </div>
+              </div>
+              
+              {formData.currencyType === CurrencyType.PRIX && (
+                <motion.div 
+                  layoutId="currency-indicator"
+                  className="absolute bottom-1 left-1/2 -translate-x-1/2 w-8 h-1 rounded-full bg-primary"
+                />
+              )}
+            </button>
+            
+            {/* USDT Option */}
+            <button
+              onClick={() => {
+                setFormData(prev => ({
+                  ...prev, 
+                  currencyType: CurrencyType.USDT,
+                  creatorStake: Math.max(prev.creatorStake, CURRENCY_CONFIG[CurrencyType.USDT].minStake)
+                }));
+              }}
+              className={`group relative p-4 rounded-2xl border-2 text-center transition-all duration-300 overflow-hidden ${
+                formData.currencyType === CurrencyType.USDT
+                  ? 'border-emerald-400 bg-gradient-to-br from-emerald-500/20 via-emerald-400/10 to-transparent shadow-lg shadow-emerald-500/20'
+                  : 'border-border-input bg-bg-card/50 backdrop-blur-sm text-text-secondary hover:border-emerald-400/50 hover:bg-emerald-500/5'
+              }`}
+            >
+              {/* Glassmorphism overlay */}
+              <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+              
+              <div className="relative z-10">
+                <div className={`text-xl font-bold mb-1 ${formData.currencyType === CurrencyType.USDT ? 'text-emerald-400' : 'text-text-primary'}`}>
+                  USDT
+                </div>
+                <div className="text-xs text-text-muted">Stablecoin</div>
+                <div className="mt-2 text-xs">
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">
+                    Min: $2,000
+                  </span>
+                </div>
+              </div>
+              
+              {formData.currencyType === CurrencyType.USDT && (
+                <motion.div 
+                  layoutId="currency-indicator"
+                  className="absolute bottom-1 left-1/2 -translate-x-1/2 w-8 h-1 rounded-full bg-emerald-400"
+                />
+              )}
             </button>
           </div>
         </div>
 
-        {/* ✅ NEW: Fee Display for Combo Pools */}
-        <div className="mt-4">
-          <label className="block text-sm font-medium text-text-secondary mb-2">
-            Creation Fee
-          </label>
-          <FeeDisplay baseFee={parseEther('0.01')} currency={formData.usePrix ? 'PRIX' : 'BNB'} isComboPool={true} />
+        {/* Fee Display for Combo Pools */}
+        <div className="md:col-span-2 mt-2">
+          <div className="p-4 rounded-xl bg-gradient-to-r from-bg-card/80 to-bg-card/40 backdrop-blur-sm border border-border-card">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-text-muted">Creation Fee</span>
+              <span className="font-semibold text-text-primary">0.01 tBNB</span>
+            </div>
+            <div className="flex items-center justify-between mt-2">
+              <span className="text-sm text-text-muted">Minimum Stake</span>
+              <span className="font-semibold text-text-primary">
+                {currentCurrency.minStake.toLocaleString()} {currentCurrency.symbol}
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* Privacy */}
@@ -544,13 +631,13 @@ export default function ComboPoolCreationForm({ onSuccess, onClose }: {
             <div>
               <label className="text-text-muted text-sm">Creator Stake</label>
               <p className="text-text-primary font-semibold">
-                {formData.creatorStake} {formData.usePrix ? 'PRIX' : 'BNB'}
+                {formData.creatorStake.toLocaleString()} {currentCurrency.symbol}
               </p>
             </div>
             <div>
               <label className="text-text-muted text-sm">Potential Win</label>
               <p className="text-success font-bold text-xl">
-                {potentialWinnings.toFixed(2)} {formData.usePrix ? 'PRIX' : 'BNB'}
+                {potentialWinnings.toLocaleString(undefined, { maximumFractionDigits: 2 })} {currentCurrency.symbol}
               </p>
             </div>
           </div>

@@ -14,6 +14,21 @@ const nextConfig: NextConfig = {
   // Enable static page generation where possible
   output: 'standalone',
   
+  // Webpack configuration to handle Biconomy package issues
+  webpack: (config, { isServer }) => {
+    // Fix for Biconomy package import errors
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+      };
+    }
+    
+    return config;
+  },
+  
   images: {
     remotePatterns: [
       {

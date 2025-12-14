@@ -19,10 +19,12 @@
   "dependencies": {
     "@biconomy/abstractjs": "^1.1.19",
     "@heroicons/react": "^2.2.0",
+    "@metamask/delegation-toolkit": "^0.11.0",
     "@playwright/test": "^1.56.1",
     "@react-spring/web": "^10.0.1",
     "@reown/appkit": "^1.7.11",
     "@reown/appkit-adapter-wagmi": "^1.7.11",
+    "@rhinestone/module-sdk": "^0.4.0",
     "@solana/wallet-adapter-base": "^0.9.23",
     "@solana/wallet-adapter-react": "^0.15.35",
     "@solana/wallet-adapter-react-ui": "^0.9.35",

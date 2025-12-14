@@ -15,7 +15,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { toast } from 'react-hot-toast';
 import { GuidedMarketService, FootballMatch } from '@/services/guidedMarketService';
-import { useComboPools, ComboCondition } from '@/hooks/useComboPools';
+import { useComboPools, ComboCondition, CurrencyType } from '@/hooks/useComboPools';
 import { useWalletConnection } from '@/hooks/useWalletConnection';
 import { useTransactionFeedback, TransactionFeedback } from '@/components/TransactionFeedback';
 import Button from '@/components/button';
@@ -295,7 +295,7 @@ export default function GuidedFootballComboPoolTable({
         latestEventEnd: BigInt(Math.floor(latestEventEnd / 1000)),
         category: 'football',
         maxBetPerUser: maxBetPerUser ? BigInt(Math.floor(parseFloat(maxBetPerUser) * 1e18)) : BigInt(0),
-        usePrix: usePrix,
+        currencyType: usePrix ? CurrencyType.PRIX : CurrencyType.BNB,
       };
 
       const hash = await createComboPool(comboPoolData);

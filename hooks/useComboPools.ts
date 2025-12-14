@@ -13,6 +13,13 @@ export interface ComboCondition {
   odds: number;              // Individual odds (1.01x - 100x) as uint16
 }
 
+// Currency types matching contract enum
+export enum CurrencyType {
+  BNB = 0,
+  PRIX = 1,
+  USDT = 2
+}
+
 export interface ComboPoolData {
   conditions: ComboCondition[];
   combinedOdds: number;        // Combined odds (1.01x - 500x) as uint16
@@ -21,7 +28,7 @@ export interface ComboPoolData {
   latestEventEnd: bigint;      // Latest event end timestamp
   category: string;            // Category string (will be hashed)
   maxBetPerUser: bigint;       // Max bet per user (0 = unlimited)
-  usePrix: boolean;           // Use PRIX token (true) or BNB (false)
+  currencyType: CurrencyType;  // 0=BNB, 1=PRIX, 2=USDT
 }
 
 export function useComboPools() {
@@ -33,35 +40,51 @@ export function useComboPools() {
       // Hash category string before calling the contract
       const categoryHash = ethers.keccak256(ethers.toUtf8Bytes(poolData.category));
       
-      // Transform conditions to match contract struct
+      // Transform conditions to match contract struct OutcomeCondition
       const contractConditions = poolData.conditions.map(condition => ({
-        marketId: ethers.encodeBytes32String(condition.marketId),
-        expectedOutcome: ethers.encodeBytes32String(condition.expectedOutcome),
+        marketId: ethers.encodeBytes32String(condition.marketId.slice(0, 31)), // bytes32 max 31 chars
+        expectedOutcome: ethers.encodeBytes32String(condition.expectedOutcome.slice(0, 31)),
         resolved: false, // Always false for new pools
         actualOutcome: "0x0000000000000000000000000000000000000000000000000000000000000000", // Empty bytes32
         description: condition.description,
         odds: Math.floor(condition.odds * 100) // Convert to basis points (1.85 -> 185)
       }));
       
-      // Calculate total required payment
-      const creationFeePRIX = 50n * 10n**18n; // 50 PRIX base fee (contract constant)
-      const creationFeeBNB = 1n * 10n**18n;   // 1 BNB
-      const totalRequired = poolData.usePrix 
-        ? creationFeePRIX + poolData.creatorStake
-        : creationFeeBNB + poolData.creatorStake;
+      // Get currency type - contract expects uint8: 0=BNB, 1=PRIX, 2=USDT
+      const currencyType = poolData.currencyType;
       
-      // For PRIX pools, we need to approve tokens first
-      if (poolData.usePrix && address) {
-        // First approve PRIX tokens for the combo pools contract
+      // Calculate fees and payments based on currency type
+      // Contract minimums: BNB=2e18, PRIX=5000e18, USDT=2000e18
+      let totalBNBToSend = 0n;
+      
+      if (currencyType === CurrencyType.BNB) {
+        // BNB: Send stake + creation fee via msg.value
+        const creationFeeBNB = 1n * 10n**16n; // 0.01 BNB
+        totalBNBToSend = poolData.creatorStake + creationFeeBNB;
+      } else if (currencyType === CurrencyType.PRIX && address) {
+        // PRIX: Approve tokens first, then send creation fee in BNB
+        const creationFeeBNB = 1n * 10n**16n; // 0.01 BNB
+        totalBNBToSend = creationFeeBNB;
+        
+        // Approve PRIX tokens for the combo pools contract
         await writeContractAsync({
           address: CONTRACT_ADDRESSES.PRIX_TOKEN,
           abi: CONTRACTS.PRIX_TOKEN.abi,
           functionName: 'approve',
-          args: [CONTRACT_ADDRESSES.COMBO_POOLS, totalRequired],
+          args: [CONTRACT_ADDRESSES.COMBO_POOLS, poolData.creatorStake],
           ...getTransactionOptions(),
         });
         
         toast.success('PRIX tokens approved for combo pool creation!');
+      } else if (currencyType === CurrencyType.USDT && address) {
+        // USDT: Approve tokens first, then send creation fee in BNB
+        const creationFeeBNB = 1n * 10n**16n; // 0.01 BNB
+        totalBNBToSend = creationFeeBNB;
+        
+        // Note: USDT approval would need USDT_TOKEN address in CONTRACT_ADDRESSES
+        // For now, this is a placeholder - implement when USDT support is added
+        toast.error('USDT support coming soon!');
+        throw new Error('USDT not yet supported');
       }
       
       const txHash = await writeContractAsync({
@@ -70,15 +93,15 @@ export function useComboPools() {
         functionName: 'createComboPool',
         args: [
           contractConditions,
-          Math.floor(poolData.combinedOdds * 100), // Convert to basis points
+          Math.floor(poolData.combinedOdds * 100), // Convert to basis points (uint16)
           poolData.creatorStake,
           poolData.earliestEventStart,
           poolData.latestEventEnd,
           categoryHash,
           poolData.maxBetPerUser,
-          poolData.usePrix
+          currencyType // uint8: 0=BNB, 1=PRIX, 2=USDT
         ],
-        value: poolData.usePrix ? 0n : totalRequired, // Only send ETH for BNB pools
+        value: totalBNBToSend,
         ...getTransactionOptions(),
       });
       

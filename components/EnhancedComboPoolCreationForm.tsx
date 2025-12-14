@@ -14,16 +14,24 @@ import {
   ArrowRightIcon,
   ArrowLeftIcon,
   MagnifyingGlassIcon,
-  XMarkIcon
+  XMarkIcon,
+  SparklesIcon
 } from '@heroicons/react/24/outline';
 import { toast } from 'react-hot-toast';
 import Button from '@/components/button';
 import AmountInput from '@/components/AmountInput';
 import Textarea from '@/components/textarea';
-import { useComboPools } from '@/hooks/useComboPools';
+import { useComboPools, CurrencyType } from '@/hooks/useComboPools';
 import { useWalletConnection } from '@/hooks/useWalletConnection';
 import { useReputationStore } from '@/stores/useReputationStore';
 import { GuidedMarketService, FootballMatch, Cryptocurrency } from '@/services/guidedMarketService';
+
+// Currency config for minimum stakes and display
+const CURRENCY_CONFIG = {
+  [CurrencyType.BNB]: { symbol: 'tBNB', minStake: 2, name: 'Somnia Network' },
+  [CurrencyType.PRIX]: { symbol: 'PRIX', minStake: 5000, name: 'Reduced fees' },
+  [CurrencyType.USDT]: { symbol: 'USDT', minStake: 2000, name: 'Stablecoin' },
+};
 
 interface ComboCondition {
   id: string;
@@ -54,7 +62,7 @@ interface ComboPoolFormData {
   betType: 'fixed' | 'max';
   fixedBetAmount?: number;
   maxBetPerUser?: number;
-  usePrix: boolean;
+  currencyType: CurrencyType; // 0=BNB, 1=PRIX, 2=USDT
   isPrivate: boolean;
   conditions: ComboCondition[];
   eventStartTime: Date;
@@ -75,18 +83,21 @@ export default function EnhancedComboPoolCreationForm({ onSuccess, onClose }: {
   const [formData, setFormData] = useState<ComboPoolFormData>({
     title: '',
     description: '',
-    creatorStake: 100,
+    creatorStake: 2, // Default to minimum BNB stake
     combinedOdds: 2.0,
     betType: 'fixed',
-    fixedBetAmount: 1000,
+    fixedBetAmount: 1,
     maxBetPerUser: 1000,
-    usePrix: false,
+    currencyType: CurrencyType.BNB,
     isPrivate: false,
     conditions: [],
     eventStartTime: new Date(),
     eventEndTime: new Date(Date.now() + 24 * 60 * 60 * 1000),
     bettingEndTime: new Date(Date.now() + 23 * 60 * 60 * 1000)
   });
+  
+  // Get current currency config
+  const currentCurrency = CURRENCY_CONFIG[formData.currencyType];
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -225,8 +236,8 @@ export default function EnhancedComboPoolCreationForm({ onSuccess, onClose }: {
       }
     });
 
-    if (formData.creatorStake < 50) {
-      newErrors.creatorStake = 'Minimum creator stake is 50 tokens';
+    if (formData.creatorStake < currentCurrency.minStake) {
+      newErrors.creatorStake = `Minimum creator stake is ${currentCurrency.minStake.toLocaleString()} ${currentCurrency.symbol}`;
     }
 
     if (formData.betType === 'fixed' && (!formData.fixedBetAmount || formData.fixedBetAmount < 1)) {
@@ -239,7 +250,7 @@ export default function EnhancedComboPoolCreationForm({ onSuccess, onClose }: {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  }, [formData]);
+  }, [formData, currentCurrency.minStake, currentCurrency.symbol]);
 
   const handleSubmit = useCallback(async () => {
     if (!isConnected || !address) {
@@ -267,18 +278,18 @@ export default function EnhancedComboPoolCreationForm({ onSuccess, onClose }: {
     try {
       const comboPoolData = {
         conditions: formData.conditions.map(condition => ({
-          marketId: condition.matchId || condition.cryptoId || '',
+          marketId: condition.matchId || condition.cryptoId || `condition_${condition.id}`,
           expectedOutcome: `${condition.market} ${condition.selection}`,
           description: `${condition.market} ${condition.selection}`,
-          odds: 1.0 // Not used in contract, but required by interface
+          odds: condition.odds || 2.0
         })),
-        combinedOdds: formData.combinedOdds, // Use form input
+        combinedOdds: formData.combinedOdds,
         creatorStake: BigInt(Math.floor(formData.creatorStake * 1e18)),
         earliestEventStart: BigInt(Math.floor(formData.eventStartTime.getTime() / 1000)),
         latestEventEnd: BigInt(Math.floor(formData.eventEndTime.getTime() / 1000)),
         category: formData.category || "football",
         maxBetPerUser: BigInt(Math.floor((formData.betType === 'fixed' ? formData.fixedBetAmount! : formData.maxBetPerUser!) * 1e18)),
-        usePrix: formData.usePrix
+        currencyType: formData.currencyType // 0=BNB, 1=PRIX, 2=USDT
       };
 
       const txHash = await createComboPool(comboPoolData);
@@ -684,8 +695,8 @@ export default function EnhancedComboPoolCreationForm({ onSuccess, onClose }: {
             max={1000000}
             step={0.1}
             allowDecimals={true}
-            currency={formData.usePrix ? 'PRIX' : 'BNB'}
-            help="Your stake that acts as liquidity for the pool"
+            currency={currentCurrency.symbol}
+            help={`Your stake that acts as liquidity for the pool. Minimum: ${currentCurrency.minStake.toLocaleString()} ${currentCurrency.symbol}`}
             error={errors.creatorStake}
           />
         </div>
@@ -733,7 +744,7 @@ export default function EnhancedComboPoolCreationForm({ onSuccess, onClose }: {
               max={1000000}
               step={0.1}
               allowDecimals={true}
-              currency={formData.usePrix ? 'PRIX' : 'BNB'}
+              currency={currentCurrency.symbol}
               help="Exact bet amount users must place"
               error={errors.fixedBetAmount}
             />
@@ -749,40 +760,93 @@ export default function EnhancedComboPoolCreationForm({ onSuccess, onClose }: {
               max={1000000}
               step={0.1}
               allowDecimals={true}
-              currency={formData.usePrix ? 'PRIX' : 'BNB'}
+              currency={currentCurrency.symbol}
               help="Maximum bet amount per user"
               error={errors.maxBetPerUser}
             />
           </div>
         )}
 
-        {/* Payment Token */}
-        <div>
-          <label className="block text-sm font-medium text-text-secondary mb-2">
-            Payment Token
+        {/* Payment Token - 3 Currency Options */}
+        <div className="md:col-span-2">
+          <label className="block text-sm font-medium text-text-secondary mb-3">
+            <SparklesIcon className="h-4 w-4 inline-block mr-1.5 text-primary" />
+            Select Payment Currency
           </label>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
+            {/* BNB Option */}
             <button
-              onClick={() => setFormData(prev => ({ ...prev, usePrix: false }))}
-              className={`p-3 rounded-xl border text-center transition-all ${
-                !formData.usePrix
-                  ? 'border-primary bg-primary/10 text-primary'
-                  : 'border-border-input bg-bg-card text-text-secondary hover:border-primary/50'
+              onClick={() => setFormData(prev => ({
+                ...prev, 
+                currencyType: CurrencyType.BNB,
+                creatorStake: Math.max(prev.creatorStake, CURRENCY_CONFIG[CurrencyType.BNB].minStake)
+              }))}
+              className={`group relative p-4 rounded-2xl border-2 text-center transition-all duration-300 overflow-hidden ${
+                formData.currencyType === CurrencyType.BNB
+                  ? 'border-amber-400 bg-gradient-to-br from-amber-500/20 via-amber-400/10 to-transparent shadow-lg shadow-amber-500/20'
+                  : 'border-border-input bg-bg-card/50 backdrop-blur-sm text-text-secondary hover:border-amber-400/50 hover:bg-amber-500/5'
               }`}
             >
-              <div className="font-semibold">BNB</div>
-              <div className="text-xs mt-1">Somnia Network</div>
+              <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+              <div className="relative z-10">
+                <div className={`text-xl font-bold mb-1 ${formData.currencyType === CurrencyType.BNB ? 'text-amber-400' : 'text-text-primary'}`}>
+                  tBNB
+                </div>
+                <div className="text-xs text-text-muted">Somnia Network</div>
+                <div className="mt-2 text-xs">
+                  <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300">Min: 2 tBNB</span>
+                </div>
+              </div>
             </button>
+            
+            {/* PRIX Option */}
             <button
-              onClick={() => setFormData(prev => ({ ...prev, usePrix: true }))}
-              className={`p-3 rounded-xl border text-center transition-all ${
-                formData.usePrix
-                  ? 'border-primary bg-primary/10 text-primary'
-                  : 'border-border-input bg-bg-card text-text-secondary hover:border-primary/50'
+              onClick={() => setFormData(prev => ({
+                ...prev, 
+                currencyType: CurrencyType.PRIX,
+                creatorStake: Math.max(prev.creatorStake, CURRENCY_CONFIG[CurrencyType.PRIX].minStake)
+              }))}
+              className={`group relative p-4 rounded-2xl border-2 text-center transition-all duration-300 overflow-hidden ${
+                formData.currencyType === CurrencyType.PRIX
+                  ? 'border-primary bg-gradient-to-br from-primary/20 via-primary/10 to-transparent shadow-lg shadow-primary/20'
+                  : 'border-border-input bg-bg-card/50 backdrop-blur-sm text-text-secondary hover:border-primary/50 hover:bg-primary/5'
               }`}
             >
-              <div className="font-semibold">PRIX</div>
-              <div className="text-xs mt-1">Reduced fees</div>
+              <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+              <div className="relative z-10">
+                <div className={`text-xl font-bold mb-1 ${formData.currencyType === CurrencyType.PRIX ? 'text-primary' : 'text-text-primary'}`}>
+                  PRIX
+                </div>
+                <div className="text-xs text-text-muted">Reduced fees</div>
+                <div className="mt-2 text-xs">
+                  <span className="px-2 py-0.5 rounded-full bg-primary/20 text-primary">Min: 5,000 PRIX</span>
+                </div>
+              </div>
+            </button>
+            
+            {/* USDT Option */}
+            <button
+              onClick={() => setFormData(prev => ({
+                ...prev, 
+                currencyType: CurrencyType.USDT,
+                creatorStake: Math.max(prev.creatorStake, CURRENCY_CONFIG[CurrencyType.USDT].minStake)
+              }))}
+              className={`group relative p-4 rounded-2xl border-2 text-center transition-all duration-300 overflow-hidden ${
+                formData.currencyType === CurrencyType.USDT
+                  ? 'border-emerald-400 bg-gradient-to-br from-emerald-500/20 via-emerald-400/10 to-transparent shadow-lg shadow-emerald-500/20'
+                  : 'border-border-input bg-bg-card/50 backdrop-blur-sm text-text-secondary hover:border-emerald-400/50 hover:bg-emerald-500/5'
+              }`}
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+              <div className="relative z-10">
+                <div className={`text-xl font-bold mb-1 ${formData.currencyType === CurrencyType.USDT ? 'text-emerald-400' : 'text-text-primary'}`}>
+                  USDT
+                </div>
+                <div className="text-xs text-text-muted">Stablecoin</div>
+                <div className="mt-2 text-xs">
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">Min: $2,000</span>
+                </div>
+              </div>
             </button>
           </div>
         </div>
@@ -838,7 +902,7 @@ export default function EnhancedComboPoolCreationForm({ onSuccess, onClose }: {
             <div>
               <label className="text-text-muted text-sm">Potential Win</label>
               <p className="text-success font-bold text-xl">
-                {potentialWinnings.toFixed(2)} {formData.usePrix ? 'PRIX' : 'BNB'}
+                {potentialWinnings.toLocaleString(undefined, { maximumFractionDigits: 2 })} {currentCurrency.symbol}
               </p>
             </div>
           </div>
@@ -903,13 +967,13 @@ export default function EnhancedComboPoolCreationForm({ onSuccess, onClose }: {
             <div>
               <label className="text-text-muted text-sm">Creator Stake</label>
               <p className="text-text-primary font-semibold">
-                {formData.creatorStake} {formData.usePrix ? 'PRIX' : 'BNB'}
+                {formData.creatorStake.toLocaleString()} {currentCurrency.symbol}
               </p>
             </div>
             <div>
               <label className="text-text-muted text-sm">Potential Win</label>
               <p className="text-success font-bold text-xl">
-                {potentialWinnings.toFixed(2)} {formData.usePrix ? 'PRIX' : 'BNB'}
+                {potentialWinnings.toLocaleString(undefined, { maximumFractionDigits: 2 })} {currentCurrency.symbol}
               </p>
             </div>
           </div>
