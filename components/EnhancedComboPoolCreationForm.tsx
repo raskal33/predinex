@@ -40,7 +40,7 @@ interface ComboCondition {
   cryptoId?: string;
   market: string;
   odds: number;
-  selection: 'YES' | 'NO';
+  selection: string; // Changed from 'YES' | 'NO' to support all market outcomes
   description: string;
   eventStartTime: Date;
   eventEndTime: Date;
@@ -478,7 +478,7 @@ export default function EnhancedComboPoolCreationForm({ onSuccess, onClose }: {
 
         {/* Search Results - Only show when there's a query AND we have conditions */}
         {searchQuery && searchResults.length > 0 && formData.conditions.length > 0 && (
-          <div className="absolute z-[200] w-full mt-2 bg-bg-card border border-border-input rounded-xl shadow-2xl max-h-96 overflow-y-auto">
+          <div className="absolute z-[9999] w-full mt-2 bg-[#1a1f2e] border-2 border-primary/30 rounded-xl shadow-2xl max-h-96 overflow-y-auto backdrop-blur-xl">
             {searchResults.map((item) => (
               <button
                 key={item.id}
@@ -495,19 +495,19 @@ export default function EnhancedComboPoolCreationForm({ onSuccess, onClose }: {
                     }
                   }
                 }}
-                className="w-full p-4 text-left hover:bg-primary/10 border-b border-border-input last:border-b-0 transition-colors"
+                className="w-full p-4 text-left hover:bg-primary/20 border-b border-white/5 last:border-b-0 transition-all duration-200"
               >
                 {'homeTeam' in item ? (
                   <div>
-                    <div className="font-semibold text-text-primary">
+                    <div className="font-semibold text-white text-base">
                       {item.homeTeam.name} vs {item.awayTeam.name}
                     </div>
-                    <div className="text-sm text-text-secondary mt-1">{item.league.name}</div>
-                    <div className="text-xs text-text-muted mt-1">{new Date(item.matchDate).toLocaleString()}</div>
+                    <div className="text-sm text-gray-400 mt-1">{item.league.name}</div>
+                    <div className="text-xs text-gray-500 mt-1">{new Date(item.matchDate).toLocaleString()}</div>
                   </div>
                 ) : (
                   <div>
-                    <div className="font-semibold text-text-primary">
+                    <div className="font-semibold text-white text-base">
                       {item.symbol} - {item.name}
                     </div>
                     <div className="text-sm text-success mt-1">${item.currentPrice.toLocaleString()}</div>
@@ -590,24 +590,24 @@ export default function EnhancedComboPoolCreationForm({ onSuccess, onClose }: {
                     className="w-full px-4 py-3 bg-bg-card border border-border-input rounded-xl text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all relative z-10"
                   />
                   {activeConditionId === condition.id && searchResults.length > 0 && (
-                    <div className="absolute z-[200] w-full mt-2 bg-bg-card border border-border-input rounded-xl shadow-2xl max-h-96 overflow-y-auto">
+                    <div className="absolute z-[9999] w-full mt-2 bg-[#1a1f2e] border-2 border-primary/30 rounded-xl shadow-2xl max-h-96 overflow-y-auto backdrop-blur-xl">
                       {searchResults.map((item) => (
                         <button
                           key={item.id}
                           onClick={() => selectItem(item, condition.id)}
-                          className="w-full p-4 text-left hover:bg-primary/10 border-b border-border-input last:border-b-0 transition-colors"
+                          className="w-full p-4 text-left hover:bg-primary/20 border-b border-white/5 last:border-b-0 transition-all duration-200"
                         >
                           {'homeTeam' in item ? (
                             <div>
-                              <div className="font-semibold text-text-primary">
+                              <div className="font-semibold text-white text-base">
                                 {item.homeTeam.name} vs {item.awayTeam.name}
                               </div>
-                              <div className="text-sm text-text-secondary mt-1">{item.league.name}</div>
-                              <div className="text-xs text-text-muted mt-1">{new Date(item.matchDate).toLocaleString()}</div>
+                              <div className="text-sm text-gray-400 mt-1">{item.league.name}</div>
+                              <div className="text-xs text-gray-500 mt-1">{new Date(item.matchDate).toLocaleString()}</div>
                             </div>
                           ) : (
                             <div>
-                              <div className="font-semibold text-text-primary">
+                              <div className="font-semibold text-white text-base">
                                 {item.symbol} - {item.name}
                               </div>
                               <div className="text-sm text-success mt-1">${item.currentPrice.toLocaleString()}</div>
@@ -621,13 +621,17 @@ export default function EnhancedComboPoolCreationForm({ onSuccess, onClose }: {
               </div>
 
               {/* Market Selection */}
-              <div>
+              <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-text-secondary mb-2">
                   Market Type *
                 </label>
                 <select
                   value={condition.market}
-                  onChange={(e) => updateCondition(condition.id, 'market', e.target.value)}
+                  onChange={(e) => {
+                    updateCondition(condition.id, 'market', e.target.value);
+                    // Reset selection when market changes
+                    updateCondition(condition.id, 'selection', '');
+                  }}
                   className="w-full px-4 py-3 bg-bg-card border border-border-input rounded-xl text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
                 >
                   <option value="">Select market...</option>
@@ -635,14 +639,16 @@ export default function EnhancedComboPoolCreationForm({ onSuccess, onClose }: {
                     <>
                       <option value="1X2">1X2 (Match Result)</option>
                       <option value="Over/Under 2.5">Over/Under 2.5 Goals</option>
+                      <option value="Over/Under 3.5">Over/Under 3.5 Goals</option>
                       <option value="Both Teams to Score">Both Teams to Score</option>
                       <option value="Half Time Result">Half Time Result</option>
+                      <option value="Double Chance">Double Chance</option>
                     </>
                   ) : (
                     <>
+                      <option value="Price Up/Down">Price Up/Down</option>
+                      <option value="24h Change %">24h Change %</option>
                       <option value="Price Target">Price Target</option>
-                      <option value="24h Change">24h Price Change</option>
-                      <option value="Weekly Change">Weekly Price Change</option>
                     </>
                   )}
                 </select>
@@ -651,65 +657,219 @@ export default function EnhancedComboPoolCreationForm({ onSuccess, onClose }: {
                 )}
               </div>
 
-              {/* Odds */}
-              <div>
-                <label className="block text-sm font-medium text-text-secondary mb-2">
-                  Odds (Decimal)
-                </label>
-                <AmountInput
-                  value={condition.odds.toString()}
-                  onChange={(value) => updateCondition(condition.id, 'odds', parseFloat(value || '0'))}
-                  placeholder="2.00"
-                  min={1.01}
-                  max={100}
-                  step={0.01}
-                  allowDecimals={true}
-                  currency="x"
-                  error={errors[`condition_${index}_odds`]}
-                />
-              </div>
+              {/* Outcome Selection - Dynamic based on market type */}
+              {condition.market && (
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-text-secondary mb-2">
+                    Your Prediction *
+                  </label>
+                  <div className="grid grid-cols-3 gap-3">
+                    {/* 1X2 Markets */}
+                    {condition.market === '1X2' && (
+                      <>
+                        <button
+                          onClick={() => updateCondition(condition.id, 'selection', 'Home')}
+                          className={`p-4 rounded-xl border-2 text-center transition-all ${
+                            condition.selection === 'Home'
+                              ? 'border-success bg-success/20 text-success'
+                              : 'border-border-input bg-bg-card text-text-secondary hover:border-success/50'
+                          }`}
+                        >
+                          <div className="font-bold text-lg">1</div>
+                          <div className="text-xs mt-1">Home Win</div>
+                        </button>
+                        <button
+                          onClick={() => updateCondition(condition.id, 'selection', 'Draw')}
+                          className={`p-4 rounded-xl border-2 text-center transition-all ${
+                            condition.selection === 'Draw'
+                              ? 'border-warning bg-warning/20 text-warning'
+                              : 'border-border-input bg-bg-card text-text-secondary hover:border-warning/50'
+                          }`}
+                        >
+                          <div className="font-bold text-lg">X</div>
+                          <div className="text-xs mt-1">Draw</div>
+                        </button>
+                        <button
+                          onClick={() => updateCondition(condition.id, 'selection', 'Away')}
+                          className={`p-4 rounded-xl border-2 text-center transition-all ${
+                            condition.selection === 'Away'
+                              ? 'border-primary bg-primary/20 text-primary'
+                              : 'border-border-input bg-bg-card text-text-secondary hover:border-primary/50'
+                          }`}
+                        >
+                          <div className="font-bold text-lg">2</div>
+                          <div className="text-xs mt-1">Away Win</div>
+                        </button>
+                      </>
+                    )}
 
-              {/* Selection */}
-              <div>
-                <label className="block text-sm font-medium text-text-secondary mb-2">
-                  Your Prediction
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    onClick={() => updateCondition(condition.id, 'selection', 'YES')}
-                    className={`p-3 rounded-xl border text-center transition-all ${
-                      condition.selection === 'YES'
-                        ? 'border-success bg-success/10 text-success'
-                        : 'border-border-input bg-bg-card text-text-secondary hover:border-success/50'
-                    }`}
-                  >
-                    <div className="font-semibold">YES</div>
-                  </button>
-                  <button
-                    onClick={() => updateCondition(condition.id, 'selection', 'NO')}
-                    className={`p-3 rounded-xl border text-center transition-all ${
-                      condition.selection === 'NO'
-                        ? 'border-error bg-error/10 text-error'
-                        : 'border-border-input bg-bg-card text-text-secondary hover:border-error/50'
-                    }`}
-                  >
-                    <div className="font-semibold">NO</div>
-                  </button>
+                    {/* Half Time Result */}
+                    {condition.market === 'Half Time Result' && (
+                      <>
+                        <button
+                          onClick={() => updateCondition(condition.id, 'selection', 'HT Home')}
+                          className={`p-4 rounded-xl border-2 text-center transition-all ${
+                            condition.selection === 'HT Home'
+                              ? 'border-success bg-success/20 text-success'
+                              : 'border-border-input bg-bg-card text-text-secondary hover:border-success/50'
+                          }`}
+                        >
+                          <div className="font-bold text-lg">1</div>
+                          <div className="text-xs mt-1">HT Home</div>
+                        </button>
+                        <button
+                          onClick={() => updateCondition(condition.id, 'selection', 'HT Draw')}
+                          className={`p-4 rounded-xl border-2 text-center transition-all ${
+                            condition.selection === 'HT Draw'
+                              ? 'border-warning bg-warning/20 text-warning'
+                              : 'border-border-input bg-bg-card text-text-secondary hover:border-warning/50'
+                          }`}
+                        >
+                          <div className="font-bold text-lg">X</div>
+                          <div className="text-xs mt-1">HT Draw</div>
+                        </button>
+                        <button
+                          onClick={() => updateCondition(condition.id, 'selection', 'HT Away')}
+                          className={`p-4 rounded-xl border-2 text-center transition-all ${
+                            condition.selection === 'HT Away'
+                              ? 'border-primary bg-primary/20 text-primary'
+                              : 'border-border-input bg-bg-card text-text-secondary hover:border-primary/50'
+                          }`}
+                        >
+                          <div className="font-bold text-lg">2</div>
+                          <div className="text-xs mt-1">HT Away</div>
+                        </button>
+                      </>
+                    )}
+
+                    {/* Over/Under Markets */}
+                    {(condition.market === 'Over/Under 2.5' || condition.market === 'Over/Under 3.5') && (
+                      <>
+                        <button
+                          onClick={() => updateCondition(condition.id, 'selection', `Over ${condition.market.includes('2.5') ? '2.5' : '3.5'}`)}
+                          className={`p-4 rounded-xl border-2 text-center transition-all col-span-1 ${
+                            condition.selection?.startsWith('Over')
+                              ? 'border-success bg-success/20 text-success'
+                              : 'border-border-input bg-bg-card text-text-secondary hover:border-success/50'
+                          }`}
+                        >
+                          <div className="font-bold text-lg">Over</div>
+                          <div className="text-xs mt-1">{condition.market.includes('2.5') ? '2.5' : '3.5'} Goals</div>
+                        </button>
+                        <button
+                          onClick={() => updateCondition(condition.id, 'selection', `Under ${condition.market.includes('2.5') ? '2.5' : '3.5'}`)}
+                          className={`p-4 rounded-xl border-2 text-center transition-all col-span-1 ${
+                            condition.selection?.startsWith('Under')
+                              ? 'border-error bg-error/20 text-error'
+                              : 'border-border-input bg-bg-card text-text-secondary hover:border-error/50'
+                          }`}
+                        >
+                          <div className="font-bold text-lg">Under</div>
+                          <div className="text-xs mt-1">{condition.market.includes('2.5') ? '2.5' : '3.5'} Goals</div>
+                        </button>
+                      </>
+                    )}
+
+                    {/* Both Teams to Score */}
+                    {condition.market === 'Both Teams to Score' && (
+                      <>
+                        <button
+                          onClick={() => updateCondition(condition.id, 'selection', 'Yes')}
+                          className={`p-4 rounded-xl border-2 text-center transition-all col-span-1 ${
+                            condition.selection === 'Yes'
+                              ? 'border-success bg-success/20 text-success'
+                              : 'border-border-input bg-bg-card text-text-secondary hover:border-success/50'
+                          }`}
+                        >
+                          <div className="font-bold text-lg">YES</div>
+                          <div className="text-xs mt-1">Both Score</div>
+                        </button>
+                        <button
+                          onClick={() => updateCondition(condition.id, 'selection', 'No')}
+                          className={`p-4 rounded-xl border-2 text-center transition-all col-span-1 ${
+                            condition.selection === 'No'
+                              ? 'border-error bg-error/20 text-error'
+                              : 'border-border-input bg-bg-card text-text-secondary hover:border-error/50'
+                          }`}
+                        >
+                          <div className="font-bold text-lg">NO</div>
+                          <div className="text-xs mt-1">Not Both</div>
+                        </button>
+                      </>
+                    )}
+
+                    {/* Double Chance */}
+                    {condition.market === 'Double Chance' && (
+                      <>
+                        <button
+                          onClick={() => updateCondition(condition.id, 'selection', '1X')}
+                          className={`p-4 rounded-xl border-2 text-center transition-all ${
+                            condition.selection === '1X'
+                              ? 'border-success bg-success/20 text-success'
+                              : 'border-border-input bg-bg-card text-text-secondary hover:border-success/50'
+                          }`}
+                        >
+                          <div className="font-bold text-lg">1X</div>
+                          <div className="text-xs mt-1">Home/Draw</div>
+                        </button>
+                        <button
+                          onClick={() => updateCondition(condition.id, 'selection', '12')}
+                          className={`p-4 rounded-xl border-2 text-center transition-all ${
+                            condition.selection === '12'
+                              ? 'border-warning bg-warning/20 text-warning'
+                              : 'border-border-input bg-bg-card text-text-secondary hover:border-warning/50'
+                          }`}
+                        >
+                          <div className="font-bold text-lg">12</div>
+                          <div className="text-xs mt-1">Home/Away</div>
+                        </button>
+                        <button
+                          onClick={() => updateCondition(condition.id, 'selection', 'X2')}
+                          className={`p-4 rounded-xl border-2 text-center transition-all ${
+                            condition.selection === 'X2'
+                              ? 'border-primary bg-primary/20 text-primary'
+                              : 'border-border-input bg-bg-card text-text-secondary hover:border-primary/50'
+                          }`}
+                        >
+                          <div className="font-bold text-lg">X2</div>
+                          <div className="text-xs mt-1">Draw/Away</div>
+                        </button>
+                      </>
+                    )}
+
+                    {/* Crypto Markets */}
+                    {condition.market === 'Price Up/Down' && (
+                      <>
+                        <button
+                          onClick={() => updateCondition(condition.id, 'selection', 'Up')}
+                          className={`p-4 rounded-xl border-2 text-center transition-all col-span-1 ${
+                            condition.selection === 'Up'
+                              ? 'border-success bg-success/20 text-success'
+                              : 'border-border-input bg-bg-card text-text-secondary hover:border-success/50'
+                          }`}
+                        >
+                          <div className="font-bold text-lg">↑ UP</div>
+                          <div className="text-xs mt-1">Price Increase</div>
+                        </button>
+                        <button
+                          onClick={() => updateCondition(condition.id, 'selection', 'Down')}
+                          className={`p-4 rounded-xl border-2 text-center transition-all col-span-1 ${
+                            condition.selection === 'Down'
+                              ? 'border-error bg-error/20 text-error'
+                              : 'border-border-input bg-bg-card text-text-secondary hover:border-error/50'
+                          }`}
+                        >
+                          <div className="font-bold text-lg">↓ DOWN</div>
+                          <div className="text-xs mt-1">Price Decrease</div>
+                        </button>
+                      </>
+                    )}
+                  </div>
+                  {errors[`condition_${index}_selection`] && (
+                    <p className="text-error text-sm mt-1">{errors[`condition_${index}_selection`]}</p>
+                  )}
                 </div>
-              </div>
-
-              {/* Description */}
-              <div>
-                <label className="block text-sm font-medium text-text-secondary mb-2">
-                  Description
-                </label>
-                <Textarea
-                  value={condition.description}
-                  onChange={(e) => updateCondition(condition.id, 'description', e.target.value)}
-                  placeholder="Describe this condition..."
-                  rows={2}
-                />
-              </div>
+              )}
             </div>
           </motion.div>
         ))}
@@ -801,6 +961,59 @@ export default function EnhancedComboPoolCreationForm({ onSuccess, onClose }: {
             rows={4}
             error={errors.description}
           />
+        </div>
+
+        {/* Combined Odds - Calculated Info */}
+        <div className="md:col-span-2 bg-gradient-to-r from-primary/10 to-success/10 border border-primary/30 rounded-xl p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-lg font-bold text-text-primary">Combined Odds</h3>
+              <p className="text-sm text-text-secondary mt-1">Total odds for all {formData.conditions.length} conditions</p>
+            </div>
+            <CalculatorIcon className="h-8 w-8 text-primary" />
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-text-secondary mb-2">
+                Enter Combined Odds *
+              </label>
+              <AmountInput
+                value={formData.combinedOdds.toString()}
+                onChange={(value) => setFormData(prev => ({ ...prev, combinedOdds: parseFloat(value || '2.0') }))}
+                placeholder="2.00"
+                min={1.01}
+                max={500}
+                step={0.01}
+                allowDecimals={true}
+                currency="x"
+                help="Combined odds for all conditions (1.01x - 500x)"
+                error={errors.combinedOdds}
+              />
+            </div>
+            
+            <div className="flex flex-col justify-center">
+              <div className="text-sm text-text-muted mb-2">Potential Multiplier</div>
+              <div className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#FFC107] to-[#10B981]">
+                {formData.combinedOdds.toFixed(2)}x
+              </div>
+              <div className="text-xs text-text-muted mt-1">
+                Win {(formData.creatorStake * formData.combinedOdds).toLocaleString()} {currentCurrency.symbol}
+              </div>
+            </div>
+          </div>
+          
+          <div className="mt-4 p-3 bg-white/5 rounded-lg">
+            <div className="text-xs text-text-muted mb-2">💡 Tip: Higher odds = Higher risk & reward</div>
+            <div className="grid grid-cols-1 gap-1 text-xs">
+              {formData.conditions.map((cond, idx) => (
+                <div key={cond.id} className="flex justify-between text-text-secondary">
+                  <span>Condition {idx + 1}: {cond.market || 'Not selected'}</span>
+                  <span className="text-primary">{cond.selection || 'No selection'}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Creator Stake */}
