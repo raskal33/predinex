@@ -2309,7 +2309,9 @@ function CreateMarketPageContent() {
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-300">Creation Fee:</span>
-                <span className="text-white">{usePrix ? '50 PRIX' : '0.01 BNB'}</span>
+                <span className="text-white">0.01 BNB{' '}
+                  <span className="text-xs text-gray-400">(up to 50% discount with PRIX)</span>
+                </span>
               </div>
               {data.enableBoost && (
                 <div className="flex justify-between">
@@ -2329,7 +2331,8 @@ function CreateMarketPageContent() {
                 <span className="text-white font-bold">
                   {(() => {
                     const stakeDisplay = `${data.creatorStake} ${usePrix ? 'PRIX' : getCurrencyName()}`;
-                    const feeDisplay = usePrix ? '50 PRIX' : '0.01 BNB';
+                    // ✅ FIX: Creation fee is always in BNB, not PRIX
+                    const feeDisplay = '0.01 BNB';
                     const boostDisplay = data.enableBoost
                       ? ` + ${token.rawBalance && token.rawBalance >= BigInt('100000000000000000000000') ? '150' : '300'} PRIX`
                       : '';

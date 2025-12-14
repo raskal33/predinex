@@ -40,6 +40,7 @@ export interface PoolData {
   resultTimestamp?: number;
   oracleType: 'GUIDED' | 'OPEN';
   marketId: string;
+  status?: 'active' | 'closed' | 'settled' | 'cancelled' | 'refunded'; // ✅ FIX: Add status field
 }
 
 /**
@@ -52,6 +53,35 @@ export function getPoolStatus(pool: PoolData): PoolStatusInfo {
   const bettingEndTime = pool.bettingEndTime * 1000;
   // const arprixationDeadline = pool.arprixationDeadline ? pool.arprixationDeadline * 1000 : null;
 
+  // ✅ CRITICAL FIX: Check pool status from database first
+  if (pool.status === 'refunded') {
+    return {
+      status: 'refunded',
+      label: 'Refunded',
+      description: 'Pool was refunded to all participants',
+      color: 'text-orange-400',
+      bgColor: 'bg-gradient-to-r from-orange-500/20 to-amber-500/20',
+      icon: '💰',
+      canBet: false,
+      canClaim: true, // Users can claim their refund
+      canRefund: false
+    };
+  }
+
+  if (pool.status === 'cancelled') {
+    return {
+      status: 'cancelled',
+      label: 'Cancelled',
+      description: 'Pool was cancelled',
+      color: 'text-gray-400',
+      bgColor: 'bg-gradient-to-r from-gray-500/20 to-slate-500/20',
+      icon: '❌',
+      canBet: false,
+      canClaim: false,
+      canRefund: true
+    };
+  }
+
   // Enhanced settlement detection - check multiple indicators
   const isSettled = pool.settled || 
                    (pool.resultTimestamp && pool.resultTimestamp > 0) ||
@@ -63,7 +93,8 @@ export function getPoolStatus(pool: PoolData): PoolStatusInfo {
     resultTimestamp: pool.resultTimestamp,
     result: pool.result,
     isSettled,
-    creatorSideWon: pool.creatorSideWon
+    creatorSideWon: pool.creatorSideWon,
+    dbStatus: pool.status
   });
 
   // Check if pool is settled first

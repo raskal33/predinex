@@ -112,11 +112,13 @@ export class GuidedMarketWalletService {
       if (marketData.usePrix) {
         console.log('🪙 Step 2: Handling PRIX token approval...');
         
-        // Use totalRequiredWei which includes the 50 PRIX creation fee
-        const totalRequiredWei = transactionData.totalRequiredWei || transactionData.parameters[2];
+        // ✅ CRITICAL: Creation fee is always in BNB (0.01 BNB base with discounts)
+        // For PRIX pools: need BNB for creation fee + PRIX for stake
+        // totalRequiredWei includes the creator stake in PRIX, not the creation fee
+        const creatorStake = transactionData.totalRequiredWei || transactionData.parameters[2];
         
         const approvalResult = await this.handlePrixApproval(
-          totalRequiredWei, // totalRequiredWei (creatorStake + 50 PRIX fee)
+          creatorStake, // Only approve creator stake in PRIX (fee is paid in BNB separately)
           walletClient,
           publicClient,
           address
