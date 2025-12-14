@@ -18,7 +18,8 @@ import {
   CubeTransparentIcon,
   WalletIcon,
   SparklesIcon,
-  BookOpenIcon
+  BookOpenIcon,
+  PlusIcon
 } from "@heroicons/react/24/outline";
 import {
   TrophyIcon as TrophyIconSolid,
@@ -155,7 +156,7 @@ export default function Header() {
                 whileHover={{ scale: 1.02 }}
                 transition={{ type: "spring", stiffness: 400, damping: 17 }}
               >
-                <Link href="/" className="relative group">
+                <Link href="/" className="relative group flex items-center">
                   <Image
                     src="/logo.png"
                     alt="Predinex Logo"
@@ -163,7 +164,7 @@ export default function Header() {
                     height={40}
                     className="relative navbar-logo object-contain"
                     priority
-                    style={{ mixBlendMode: 'lighten', width: 'auto', height: 'auto' }}
+                    style={{ mixBlendMode: 'lighten' }}
                   />
                 </Link>
               </motion.div>
@@ -326,7 +327,23 @@ export default function Header() {
               </nav>
 
               {/* Right - Wallet & Actions */}
-              <div className="flex items-center gap-3 flex-shrink-0">
+              <div className="flex items-center gap-3">
+                {/* Create Button */}
+                {isConnected && address && isRender && (
+                  <Link href="/create-prediction" className="hidden sm:block">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="relative px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 overflow-hidden group bg-gradient-to-r from-[#FFC107] to-[#10B981] text-black hover:shadow-lg hover:shadow-[#FFC107]/20"
+                    >
+                      <span className="relative z-10 flex items-center gap-2">
+                        <PlusIcon className="h-4 w-4" />
+                        Create
+                      </span>
+                    </motion.button>
+                  </Link>
+                )}
+
                 {/* Notification Badge */}
                 {isConnected && address && isRender && (
                   <div className="hidden sm:block">

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAccount } from 'wagmi';
 import { 
@@ -104,10 +104,39 @@ export default function EnhancedComboPoolCreationForm({ onSuccess, onClose }: {
   const [step, setStep] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<FootballMatch[] | Cryptocurrency[]>([]);
+  const [allMatches, setAllMatches] = useState<FootballMatch[]>([]); // Store all matches
+  const [allCryptos, setAllCryptos] = useState<Cryptocurrency[]>([]); // Store all cryptos
   const [selectedType, setSelectedType] = useState<'football' | 'crypto' | null>(null);
+  const [activeConditionId, setActiveConditionId] = useState<string | null>(null); // Track which condition is being edited
 
   const userReputation = address ? getUserReputation(address) : null;
   const canCreate = address ? canCreateMarket(address) : false;
+
+  // Load all matches/cryptos when type is selected
+  useEffect(() => {
+    const loadData = async () => {
+      if (selectedType === 'football' && allMatches.length === 0) {
+        try {
+          const matches = await GuidedMarketService.getFootballMatches(7, 100);
+          setAllMatches(matches);
+          setSearchResults(matches); // Show all initially
+        } catch (error) {
+          console.error('Error loading matches:', error);
+          toast.error('Failed to load matches');
+        }
+      } else if (selectedType === 'crypto' && allCryptos.length === 0) {
+        try {
+          const cryptos = await GuidedMarketService.getCryptocurrencies();
+          setAllCryptos(cryptos);
+          setSearchResults(cryptos); // Show all initially
+        } catch (error) {
+          console.error('Error loading cryptocurrencies:', error);
+          toast.error('Failed to load cryptocurrencies');
+        }
+      }
+    };
+    loadData();
+  }, [selectedType, allMatches.length, allCryptos.length]);
 
   // Calculate potential winnings
   const potentialWinnings = formData.creatorStake * (formData.combinedOdds - 1);
@@ -157,20 +186,26 @@ export default function EnhancedComboPoolCreationForm({ onSuccess, onClose }: {
   }, []);
 
   const handleSearch = useCallback(async (query: string, type: 'football' | 'crypto') => {
-    if (!query.trim()) return;
+    if (!query.trim()) {
+      // Show all when search is cleared
+      if (type === 'football') {
+        setSearchResults(allMatches);
+      } else {
+        setSearchResults(allCryptos);
+      }
+      return;
+    }
     
     try {
       if (type === 'football') {
-        const matches = await GuidedMarketService.getFootballMatches(7, 100);
-        const filtered = matches.filter(match => 
+        const filtered = allMatches.filter(match => 
           match.homeTeam.name.toLowerCase().includes(query.toLowerCase()) ||
           match.awayTeam.name.toLowerCase().includes(query.toLowerCase()) ||
           match.league.name?.toLowerCase().includes(query.toLowerCase())
         );
         setSearchResults(filtered);
       } else {
-        const cryptos = await GuidedMarketService.getCryptocurrencies();
-        const filtered = cryptos.filter(crypto => 
+        const filtered = allCryptos.filter(crypto => 
           crypto.name.toLowerCase().includes(query.toLowerCase()) ||
           crypto.symbol.toLowerCase().includes(query.toLowerCase())
         );
@@ -180,7 +215,7 @@ export default function EnhancedComboPoolCreationForm({ onSuccess, onClose }: {
       console.error('Search error:', error);
       toast.error('Failed to search');
     }
-  }, []);
+  }, [allMatches, allCryptos]);
 
   const selectItem = useCallback((item: FootballMatch | Cryptocurrency, conditionId: string) => {
     const condition = formData.conditions.find(c => c.id === conditionId);
@@ -188,25 +223,46 @@ export default function EnhancedComboPoolCreationForm({ onSuccess, onClose }: {
 
     if ('homeTeam' in item) {
       // Football match
-      updateCondition(conditionId, 'type', 'football');
-      updateCondition(conditionId, 'matchId', item.id);
-      updateCondition(conditionId, 'homeTeam', item.homeTeam.name);
-      updateCondition(conditionId, 'awayTeam', item.awayTeam.name);
-      updateCondition(conditionId, 'league', item.league.name || '');
-      updateCondition(conditionId, 'eventStartTime', new Date(item.matchDate));
+      setFormData(prev => ({
+        ...prev,
+        conditions: prev.conditions.map(c =>
+          c.id === conditionId
+            ? {
+                ...c,
+                type: 'football' as 'football' | 'crypto',
+                matchId: item.id,
+                homeTeam: item.homeTeam.name,
+                awayTeam: item.awayTeam.name,
+                league: item.league.name || '',
+                eventStartTime: new Date(item.matchDate)
+              }
+            : c
+        )
+      }));
     } else {
       // Cryptocurrency
-      updateCondition(conditionId, 'type', 'crypto');
-      updateCondition(conditionId, 'cryptoId', item.id);
-      updateCondition(conditionId, 'symbol', item.symbol);
-      updateCondition(conditionId, 'name', item.name);
-      updateCondition(conditionId, 'currentPrice', item.currentPrice);
+      setFormData(prev => ({
+        ...prev,
+        conditions: prev.conditions.map(c =>
+          c.id === conditionId
+            ? {
+                ...c,
+                type: 'crypto' as 'football' | 'crypto',
+                cryptoId: item.id,
+                symbol: item.symbol,
+                name: item.name,
+                currentPrice: item.currentPrice
+              }
+            : c
+        )
+      }));
     }
     
     setSearchQuery('');
     setSearchResults([]);
-    setSelectedType(null);
-  }, [formData.conditions, updateCondition]);
+    setActiveConditionId(null);
+    toast.success('Match selected!');
+  }, [formData.conditions]);
 
   const validateForm = useCallback((): boolean => {
     const newErrors: Record<string, string> = {};
@@ -412,31 +468,33 @@ export default function EnhancedComboPoolCreationForm({ onSuccess, onClose }: {
 
         {/* Search Results */}
         {searchResults.length > 0 && (
-          <div className="absolute z-10 w-full mt-2 bg-bg-card border border-border-input rounded-xl shadow-lg max-h-60 overflow-y-auto">
+          <div className="absolute z-50 w-full mt-2 bg-bg-card border border-border-input rounded-xl shadow-xl max-h-96 overflow-y-auto">
             {searchResults.map((item) => (
               <button
                 key={item.id}
                 onClick={() => {
-                  // This will be handled by the condition form
-                  setSearchQuery('');
-                  setSearchResults([]);
+                  if (activeConditionId) {
+                    selectItem(item, activeConditionId);
+                  } else {
+                    toast.error('Please add a condition first');
+                  }
                 }}
-                className="w-full p-4 text-left hover:bg-bg-card/50 border-b border-border-input last:border-b-0"
+                className="w-full p-4 text-left hover:bg-primary/10 border-b border-border-input last:border-b-0 transition-colors"
               >
                 {'homeTeam' in item ? (
                   <div>
                     <div className="font-semibold text-text-primary">
                       {item.homeTeam.name} vs {item.awayTeam.name}
                     </div>
-                    <div className="text-sm text-text-muted">{item.league.name}</div>
-                    <div className="text-xs text-text-muted">{new Date(item.matchDate).toLocaleString()}</div>
+                    <div className="text-sm text-text-secondary mt-1">{item.league.name}</div>
+                    <div className="text-xs text-text-muted mt-1">{new Date(item.matchDate).toLocaleString()}</div>
                   </div>
                 ) : (
                   <div>
                     <div className="font-semibold text-text-primary">
                       {item.symbol} - {item.name}
                     </div>
-                    <div className="text-sm text-text-muted">${item.currentPrice.toLocaleString()}</div>
+                    <div className="text-sm text-success mt-1">${item.currentPrice.toLocaleString()}</div>
                   </div>
                 )}
               </button>
@@ -491,35 +549,47 @@ export default function EnhancedComboPoolCreationForm({ onSuccess, onClose }: {
                 <div className="relative">
                   <input
                     type="text"
-                    value={searchQuery}
+                    value={activeConditionId === condition.id ? searchQuery : (condition.matchId || condition.cryptoId ? 
+                      (condition.type === 'football' ? `${condition.homeTeam} vs ${condition.awayTeam}` : `${condition.symbol} - ${condition.name}`) : '')}
+                    onFocus={() => {
+                      setActiveConditionId(condition.id);
+                      // Show all matches when focusing
+                      if (selectedType === 'football') {
+                        setSearchResults(allMatches);
+                      } else {
+                        setSearchResults(allCryptos);
+                      }
+                    }}
                     onChange={(e) => {
                       setSearchQuery(e.target.value);
+                      setActiveConditionId(condition.id);
                       handleSearch(e.target.value, selectedType!);
                     }}
                     placeholder={`Search ${selectedType === 'football' ? 'matches' : 'cryptocurrencies'}...`}
                     className="w-full px-4 py-3 bg-bg-card border border-border-input rounded-xl text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
                   />
-                  {searchResults.length > 0 && (
-                    <div className="absolute z-10 w-full mt-2 bg-bg-card border border-border-input rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                  {activeConditionId === condition.id && searchResults.length > 0 && (
+                    <div className="absolute z-50 w-full mt-2 bg-bg-card border border-border-input rounded-xl shadow-xl max-h-96 overflow-y-auto">
                       {searchResults.map((item) => (
                         <button
                           key={item.id}
                           onClick={() => selectItem(item, condition.id)}
-                          className="w-full p-4 text-left hover:bg-bg-card/50 border-b border-border-input last:border-b-0"
+                          className="w-full p-4 text-left hover:bg-primary/10 border-b border-border-input last:border-b-0 transition-colors"
                         >
                           {'homeTeam' in item ? (
                             <div>
                               <div className="font-semibold text-text-primary">
                                 {item.homeTeam.name} vs {item.awayTeam.name}
                               </div>
-                              <div className="text-sm text-text-muted">{item.league.name}</div>
+                              <div className="text-sm text-text-secondary mt-1">{item.league.name}</div>
+                              <div className="text-xs text-text-muted mt-1">{new Date(item.matchDate).toLocaleString()}</div>
                             </div>
                           ) : (
                             <div>
                               <div className="font-semibold text-text-primary">
                                 {item.symbol} - {item.name}
                               </div>
-                              <div className="text-sm text-text-muted">${item.currentPrice.toLocaleString()}</div>
+                              <div className="text-sm text-success mt-1">${item.currentPrice.toLocaleString()}</div>
                             </div>
                           )}
                         </button>

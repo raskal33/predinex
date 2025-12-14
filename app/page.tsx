@@ -353,16 +353,16 @@ export default function HomePage() {
                     }}
                   >
                     {/* Animated gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/0 via-purple-500/0 to-pink-500/0 group-hover:from-cyan-500/10 group-hover:via-purple-500/10 group-hover:to-pink-500/10 transition-all duration-500"></div>
+                    <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/0 via-blue-500/0 to-cyan-600/0 group-hover:from-cyan-500/10 group-hover:via-blue-500/10 group-hover:to-cyan-600/10 transition-all duration-500"></div>
                     
                     {/* Glow effect */}
-                    <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500/20 via-purple-500/20 to-pink-500/20 rounded-xl opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500"></div>
+                    <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-cyan-600/20 rounded-xl opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500"></div>
                     
                     <div className="relative z-10">
                       {/* Header */}
                       <div className="flex items-center justify-between mb-2.5">
                         <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 bg-gradient-to-br from-cyan-500 to-purple-500 rounded-lg flex items-center justify-center shadow-lg shadow-cyan-500/30">
+                          <div className="w-7 h-7 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-cyan-500/30">
                             <span className="text-white text-[10px] font-bold">
                               {pool.creator.slice(0, 2).toUpperCase()}
                             </span>
@@ -452,11 +452,11 @@ export default function HomePage() {
         >
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-xl sm:text-2xl font-bold text-white">
-              <span className="bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-[#FFC107] to-[#10B981] bg-clip-text text-transparent">
                 ⭐ Top Creators This Week
               </span>
             </h2>
-            <Link href="/leaderboard" className="text-purple-400 hover:text-purple-300 text-xs font-medium">
+            <Link href="/leaderboard" className="text-[#FFC107] hover:text-[#F7B600] text-xs font-medium">
               View Leaderboard →
             </Link>
           </div>
