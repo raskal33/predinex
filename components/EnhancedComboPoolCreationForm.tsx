@@ -440,9 +440,9 @@ export default function EnhancedComboPoolCreationForm({ onSuccess, onClose }: {
       </div>
 
       {/* Search */}
-      <div className="relative">
+      <div className="relative z-[100]">
         <div className="relative">
-          <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted" />
+          <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted pointer-events-none z-10" />
           <input
             type="text"
             value={searchQuery}
@@ -451,15 +451,19 @@ export default function EnhancedComboPoolCreationForm({ onSuccess, onClose }: {
               handleSearch(e.target.value, selectedType!);
             }}
             placeholder={`Search ${selectedType === 'football' ? 'football matches' : 'cryptocurrencies'}...`}
-            className="w-full pl-10 pr-4 py-3 bg-bg-card border border-border-input rounded-xl text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
+            className="w-full pl-10 pr-10 py-3 bg-bg-card border border-border-input rounded-xl text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all relative z-10"
           />
           {searchQuery && (
             <button
               onClick={() => {
                 setSearchQuery('');
-                setSearchResults([]);
+                if (selectedType === 'football') {
+                  setSearchResults(allMatches);
+                } else {
+                  setSearchResults(allCryptos);
+                }
               }}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-text-muted hover:text-text-primary"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-text-muted hover:text-text-primary z-20"
             >
               <XMarkIcon className="h-4 w-4" />
             </button>
@@ -468,7 +472,7 @@ export default function EnhancedComboPoolCreationForm({ onSuccess, onClose }: {
 
         {/* Search Results */}
         {searchResults.length > 0 && (
-          <div className="absolute z-50 w-full mt-2 bg-bg-card border border-border-input rounded-xl shadow-xl max-h-96 overflow-y-auto">
+          <div className="absolute z-[200] w-full mt-2 bg-bg-card border border-border-input rounded-xl shadow-2xl max-h-96 overflow-y-auto">
             {searchResults.map((item) => (
               <button
                 key={item.id}
@@ -516,14 +520,14 @@ export default function EnhancedComboPoolCreationForm({ onSuccess, onClose }: {
       </div>
 
       {/* Conditions List */}
-      <div className="space-y-4">
+      <div className="space-y-4 relative">
         {formData.conditions.map((condition, index) => (
           <motion.div
             key={condition.id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="glass-card p-6 border border-border-card"
+            className="glass-card p-6 border border-border-card relative overflow-visible"
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-text-primary flex items-center gap-2">
@@ -542,7 +546,7 @@ export default function EnhancedComboPoolCreationForm({ onSuccess, onClose }: {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Item Selection */}
-              <div className="md:col-span-2">
+              <div className="md:col-span-2 relative z-[90]">
                 <label className="block text-sm font-medium text-text-secondary mb-2">
                   {selectedType === 'football' ? 'Select Match' : 'Select Cryptocurrency'} *
                 </label>
@@ -566,10 +570,10 @@ export default function EnhancedComboPoolCreationForm({ onSuccess, onClose }: {
                       handleSearch(e.target.value, selectedType!);
                     }}
                     placeholder={`Search ${selectedType === 'football' ? 'matches' : 'cryptocurrencies'}...`}
-                    className="w-full px-4 py-3 bg-bg-card border border-border-input rounded-xl text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
+                    className="w-full px-4 py-3 bg-bg-card border border-border-input rounded-xl text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all relative z-10"
                   />
                   {activeConditionId === condition.id && searchResults.length > 0 && (
-                    <div className="absolute z-50 w-full mt-2 bg-bg-card border border-border-input rounded-xl shadow-xl max-h-96 overflow-y-auto">
+                    <div className="absolute z-[200] w-full mt-2 bg-bg-card border border-border-input rounded-xl shadow-2xl max-h-96 overflow-y-auto">
                       {searchResults.map((item) => (
                         <button
                           key={item.id}
