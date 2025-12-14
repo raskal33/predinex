@@ -17,6 +17,7 @@
     "remove-faucet-debug": "node scripts/add-faucet-debug.js remove"
   },
   "dependencies": {
+    "@biconomy/abstractjs": "^1.1.19",
     "@heroicons/react": "^2.2.0",
     "@playwright/test": "^1.56.1",
     "@react-spring/web": "^10.0.1",

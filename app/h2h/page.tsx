@@ -194,7 +194,44 @@ export default function H2HPage() {
 
     const currency: H2HCurrencyType = createForm.currency as H2HCurrencyType; // Already a H2HCurrencyType (0|1|2)
 
-    // Check token approval for PRIX/USDT
+    // For PRIX tokens (currency === 1), try Biconomy first if available
+    if (currency === 1 && biconomyReady) {
+      try {
+        toast.loading('Creating challenge with single signature...', { id: 'create-challenge' });
+        
+        const hash = await createChallengeWithToken({
+          marketId: createForm.marketId,
+          outcome: createForm.outcome,
+          makerStake: parseEther(createForm.makerStake),
+          minBid: parseEther(createForm.minBid),
+          eventTime: BigInt(eventTime),
+          tokenAddress: CONTRACT_ADDRESSES.PRIX_TOKEN as `0x${string}`,
+        });
+
+        if (hash) {
+          toast.success('Challenge created! (Biconomy)', { id: 'create-challenge' });
+          setViewMode('list');
+          setCreateForm({
+            category: 'football',
+            marketId: '',
+            outcome: '',
+            makerStake: '',
+            minBid: '',
+            eventStartTime: '',
+            currency: 0 as H2HCurrencyType,
+          });
+          setSelectedFixture(null);
+          setSelectedCrypto(null);
+        }
+        return; // Exit early if Biconomy succeeds
+      } catch (biconomyError) {
+        console.log('Biconomy failed, falling back to standard flow:', biconomyError);
+        toast.dismiss('create-challenge');
+        // Fall through to standard flow below
+      }
+    }
+
+    // Standard flow: Check token approval for PRIX/USDT
     if (currency === 1) {
       const allowance = await token.getAllowance(CONTRACT_ADDRESSES.H2H as `0x${string}`);
       const stakeAmount = parseEther(createForm.makerStake);
@@ -254,7 +291,32 @@ export default function H2HPage() {
       return;
     }
 
-    // Check token approval for PRIX/USDT
+    // For PRIX tokens (currency !== 0), try Biconomy first if available
+    if (selectedChallenge.currency !== 0 && biconomyReady) {
+      try {
+        toast.loading('Placing bid with single signature...', { id: 'place-bid' });
+        
+        const hash = await placeBidWithToken({
+          challengeId: Number(selectedChallenge.id),
+          bidAmount: parseEther(bidAmount),
+          tokenAddress: CONTRACT_ADDRESSES.PRIX_TOKEN as `0x${string}`,
+        });
+
+        if (hash) {
+          toast.success('Bid placed! (Biconomy)', { id: 'place-bid' });
+          setShowBidModal(false);
+          setBidAmount('');
+          setSelectedChallenge(null);
+        }
+        return; // Exit early if Biconomy succeeds
+      } catch (biconomyError) {
+        console.log('Biconomy failed, falling back to standard flow:', biconomyError);
+        toast.dismiss('place-bid');
+        // Fall through to standard flow below
+      }
+    }
+
+    // Standard flow: Check token approval for PRIX/USDT
     if (selectedChallenge.currency !== 0) {
       const allowance = await token.getAllowance(CONTRACT_ADDRESSES.H2H as `0x${string}`);
       const bidAmountBigInt = parseEther(bidAmount);
