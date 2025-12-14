@@ -440,12 +440,22 @@ export default function EnhancedComboPoolCreationForm({ onSuccess, onClose }: {
       </div>
 
       {/* Search */}
-      <div className="relative z-[100]">
+      <div className="relative">
         <div className="relative">
           <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted pointer-events-none z-10" />
           <input
             type="text"
             value={searchQuery}
+            onFocus={() => {
+              // Show all matches when focusing (only if we have conditions to assign to)
+              if (formData.conditions.length > 0 && !activeConditionId) {
+                // Auto-select first incomplete condition
+                const firstIncomplete = formData.conditions.find(c => !c.matchId && !c.cryptoId);
+                if (firstIncomplete) {
+                  setActiveConditionId(firstIncomplete.id);
+                }
+              }
+            }}
             onChange={(e) => {
               setSearchQuery(e.target.value);
               handleSearch(e.target.value, selectedType!);
@@ -457,11 +467,7 @@ export default function EnhancedComboPoolCreationForm({ onSuccess, onClose }: {
             <button
               onClick={() => {
                 setSearchQuery('');
-                if (selectedType === 'football') {
-                  setSearchResults(allMatches);
-                } else {
-                  setSearchResults(allCryptos);
-                }
+                setSearchResults([]);
               }}
               className="absolute right-3 top-1/2 transform -translate-y-1/2 text-text-muted hover:text-text-primary z-20"
             >
@@ -470,8 +476,8 @@ export default function EnhancedComboPoolCreationForm({ onSuccess, onClose }: {
           )}
         </div>
 
-        {/* Search Results */}
-        {searchResults.length > 0 && (
+        {/* Search Results - Only show when there's a query AND we have conditions */}
+        {searchQuery && searchResults.length > 0 && formData.conditions.length > 0 && (
           <div className="absolute z-[200] w-full mt-2 bg-bg-card border border-border-input rounded-xl shadow-2xl max-h-96 overflow-y-auto">
             {searchResults.map((item) => (
               <button
@@ -480,7 +486,13 @@ export default function EnhancedComboPoolCreationForm({ onSuccess, onClose }: {
                   if (activeConditionId) {
                     selectItem(item, activeConditionId);
                   } else {
-                    toast.error('Please add a condition first');
+                    // Auto-select first incomplete condition
+                    const firstIncomplete = formData.conditions.find(c => !c.matchId && !c.cryptoId);
+                    if (firstIncomplete) {
+                      selectItem(item, firstIncomplete.id);
+                    } else {
+                      toast.error('All conditions already have matches selected');
+                    }
                   }
                 }}
                 className="w-full p-4 text-left hover:bg-primary/10 border-b border-border-input last:border-b-0 transition-colors"
@@ -508,15 +520,20 @@ export default function EnhancedComboPoolCreationForm({ onSuccess, onClose }: {
       </div>
 
       {/* Add Condition Button */}
-      <div className="text-center">
+      <div className="text-center mb-6">
         <Button
           onClick={addCondition}
           variant="outline"
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 mx-auto"
         >
           <PlusIcon className="h-4 w-4" />
           Add {selectedType === 'football' ? 'Match' : 'Crypto'} Condition
         </Button>
+        <p className="text-xs text-text-muted mt-2">
+          {formData.conditions.length === 0 && "Add at least 2 conditions to create a combo pool"}
+          {formData.conditions.length === 1 && "Add 1 more condition (minimum 2 required)"}
+          {formData.conditions.length >= 2 && `${formData.conditions.length} conditions added (you can add up to 5)`}
+        </p>
       </div>
 
       {/* Conditions List */}
@@ -698,14 +715,42 @@ export default function EnhancedComboPoolCreationForm({ onSuccess, onClose }: {
         ))}
       </div>
 
-      {formData.conditions.length >= 2 && (
-        <div className="flex justify-between">
+      {formData.conditions.length >= 2 ? (
+        <div className="flex justify-between items-center">
           <Button onClick={() => setStep(1)} variant="outline">
-            Back: Type Selection
+            <ArrowLeftIcon className="h-4 w-4 mr-2" />
+            Back
           </Button>
-          <Button onClick={() => setStep(3)} variant="primary">
+          <Button 
+            onClick={() => {
+              // Validate all conditions have required fields before proceeding
+              const incompleteConditions = formData.conditions.filter(c => 
+                !c.matchId && !c.cryptoId || !c.market || !c.selection
+              );
+              
+              if (incompleteConditions.length > 0) {
+                toast.error(`Please complete all ${incompleteConditions.length} condition(s) before proceeding`);
+                return;
+              }
+              
+              setStep(3);
+            }} 
+            variant="primary"
+            className="flex items-center gap-2"
+          >
             Next: Configuration
+            <ArrowRightIcon className="h-4 w-4" />
           </Button>
+        </div>
+      ) : (
+        <div className="text-center p-6 bg-primary/5 border border-primary/20 rounded-xl">
+          <TrophyIcon className="h-12 w-12 text-primary mx-auto mb-3" />
+          <h3 className="text-lg font-semibold text-text-primary mb-2">
+            Add {2 - formData.conditions.length} More Condition{2 - formData.conditions.length > 1 ? 's' : ''}
+          </h3>
+          <p className="text-sm text-text-secondary">
+            Combo pools require at least 2 conditions. Add {2 - formData.conditions.length} more to continue.
+          </p>
         </div>
       )}
     </div>
