@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useAccount, useWalletClient } from 'wagmi';
 import { biconomyService } from '@/services/biconomyService';
-import type { BiconomyConfig } from '@/services/biconomyService';
+import type { BiconomyConfig, SessionKeyConfig, ActiveSession } from '@/services/biconomyService';
 import type { Address } from 'viem';
 
 // Type for composable instruction (from Biconomy)
@@ -34,6 +34,17 @@ export interface UseBiconomyReturn {
   executeBatch: (instructions: ComposableInstruction[]) => Promise<{ hash: string; receipt: any }>;
   getMeeScanLink: (hash: string) => string;
   reset: () => void;
+  // Session Keys
+  createSession: (config: SessionKeyConfig) => Promise<ActiveSession>;
+  executeWithSession: (params: {
+    instruction: ComposableInstruction;
+    contractAddress?: Address;
+    value?: bigint;
+  }) => Promise<{ hash: string; receipt: any }>;
+  hasActiveSession: (contractAddress?: Address, value?: bigint) => boolean;
+  getActiveSessions: () => ActiveSession[];
+  revokeSession: (sessionKey: Address) => boolean;
+  revokeAllSessions: () => void;
 }
 
 /**
@@ -175,6 +186,35 @@ export function useBiconomy(config?: BiconomyConfig): UseBiconomyReturn {
     setAccountAddress(null);
   }, []);
 
+  // Session key methods
+  const createSession = useCallback(async (config: SessionKeyConfig) => {
+    return await biconomyService.createSessionKey(config);
+  }, []);
+
+  const executeWithSession = useCallback(async (params: {
+    instruction: ComposableInstruction;
+    contractAddress?: Address;
+    value?: bigint;
+  }) => {
+    return await biconomyService.executeWithSession(params);
+  }, []);
+
+  const hasActiveSession = useCallback((contractAddress?: Address, value?: bigint) => {
+    return biconomyService.hasActiveSession(contractAddress, value);
+  }, []);
+
+  const getActiveSessions = useCallback(() => {
+    return biconomyService.getActiveSessions();
+  }, []);
+
+  const revokeSession = useCallback((sessionKey: Address) => {
+    return biconomyService.revokeSession(sessionKey);
+  }, []);
+
+  const revokeAllSessions = useCallback(() => {
+    biconomyService.revokeAllSessions();
+  }, []);
+
   return {
     isInitialized,
     isReady: biconomyService.isReady(),
@@ -185,6 +225,13 @@ export function useBiconomy(config?: BiconomyConfig): UseBiconomyReturn {
     executeBatch,
     getMeeScanLink,
     reset,
+    // Session Keys
+    createSession,
+    executeWithSession,
+    hasActiveSession,
+    getActiveSessions,
+    revokeSession,
+    revokeAllSessions,
   };
 }
 

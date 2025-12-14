@@ -1,7 +1,8 @@
 import { useCallback } from 'react';
 import { useAccount } from 'wagmi';
 import { type Address } from 'viem';
-import { useBiconomy, type BiconomyConfig } from './useBiconomy';
+import { useBiconomy } from './useBiconomy';
+import type { BiconomyConfig } from '@/services/biconomyService';
 import { useH2H } from './useH2H';
 import { CONTRACTS } from '@/contracts';
 import { usePRIXToken } from './usePRIXToken';

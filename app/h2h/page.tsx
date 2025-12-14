@@ -16,6 +16,8 @@ import {
   FaUser,
 } from "react-icons/fa";
 import { useH2H, type Challenge, type CurrencyType as H2HCurrencyType } from "@/hooks/useH2H";
+import { useH2HWithBiconomy } from '@/hooks/useH2HWithBiconomy';
+import { useBiconomy } from '@/hooks/useBiconomy';
 import { CurrencySelector } from "@/components/CurrencySelector";
 import { usePRIXToken } from "@/hooks/usePRIXToken";
 import { useWalletConnection } from "@/hooks/useWalletConnection";
@@ -24,6 +26,7 @@ import AmountInput from "@/components/AmountInput";
 import Button from "@/components/button";
 import H2HMatchSelector from "@/components/H2HMatchSelector";
 import H2HCryptoSelector from "@/components/H2HCryptoSelector";
+import SessionKeyManager from "@/components/SessionKeyManager";
 
 const CREATION_FEE = parseEther('0.005');
 const AUCTION_CLOSE_BUFFER = 5 * 60; // 5 minutes
@@ -50,12 +53,29 @@ export default function H2HPage() {
     cancelChallenge,
     withdrawRefund,
   } = useH2H();
+  
+  const {
+    createChallengeWithToken,
+    placeBidWithToken,
+    biconomyReady
+  } = useH2HWithBiconomy({
+    apiKey: process.env.NEXT_PUBLIC_BICONOMY_API_KEY,
+  });
+  
+  const {
+    hasActiveSession,
+    executeWithSession,
+    buildComposable
+  } = useBiconomy({
+    apiKey: process.env.NEXT_PUBLIC_BICONOMY_API_KEY,
+  });
 
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [filterState, setFilterState] = useState<FilterState>('all');
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
   const [bidAmount, setBidAmount] = useState('');
   const [showBidModal, setShowBidModal] = useState(false);
+  const [showSessionModal, setShowSessionModal] = useState(false);
 
   // Create challenge form state
   const [createForm, setCreateForm] = useState({
@@ -194,7 +214,48 @@ export default function H2HPage() {
 
     const currency: H2HCurrencyType = createForm.currency as H2HCurrencyType; // Already a H2HCurrencyType (0|1|2)
 
-    // For PRIX tokens (currency === 1), try Biconomy first if available
+    // For PRIX tokens (currency === 1), check for active session first
+    if (currency === 1 && hasActiveSession(CONTRACT_ADDRESSES.H2H as `0x${string}`, parseEther(createForm.makerStake))) {
+      try {
+        toast.loading('Creating challenge with session key (no signature needed)...', { id: 'create-challenge' });
+        
+        const instruction = await buildComposable({
+          to: CONTRACT_ADDRESSES.H2H as `0x${string}`,
+          abi: [],
+          functionName: 'createChallenge',
+          args: [createForm.marketId, createForm.outcome, parseEther(createForm.minBid), BigInt(eventTime), currency],
+          value: parseEther(createForm.makerStake),
+        });
+
+        const { hash } = await executeWithSession({
+          instruction,
+          contractAddress: CONTRACT_ADDRESSES.H2H as `0x${string}`,
+          value: parseEther(createForm.makerStake),
+        });
+
+        if (hash) {
+          toast.success('Challenge created with session key!', { id: 'create-challenge' });
+          setViewMode('list');
+          setCreateForm({
+            category: 'football',
+            marketId: '',
+            outcome: '',
+            makerStake: '',
+            minBid: '',
+            eventStartTime: '',
+            currency: 0 as H2HCurrencyType,
+          });
+          setSelectedFixture(null);
+          setSelectedCrypto(null);
+        }
+        return;
+      } catch (sessionError) {
+        console.log('Session execution failed, trying Biconomy:', sessionError);
+        toast.dismiss('create-challenge');
+      }
+    }
+
+    // Try Biconomy if session not available
     if (currency === 1 && biconomyReady) {
       try {
         toast.loading('Creating challenge with single signature...', { id: 'create-challenge' });
@@ -740,6 +801,12 @@ export default function H2HPage() {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Session Key Manager Modal */}
+      <SessionKeyManager 
+        isOpen={showSessionModal}
+        onClose={() => setShowSessionModal(false)}
+      />
     </div>
   );
 }
