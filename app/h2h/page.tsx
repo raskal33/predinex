@@ -27,6 +27,7 @@ import Button from "@/components/button";
 import H2HMatchSelector from "@/components/H2HMatchSelector";
 import H2HCryptoSelector from "@/components/H2HCryptoSelector";
 import SessionKeyManager from "@/components/SessionKeyManager";
+import { MinimumBidCalculator } from '@/components/MinimumBidCalculator';
 
 const CREATION_FEE = parseEther('0.005');
 const AUCTION_CLOSE_BUFFER = 5 * 60; // 5 minutes
@@ -664,6 +665,30 @@ export default function H2HPage() {
                   />
                 </div>
               </div>
+
+              {/* Minimum Bid Calculator */}
+              {selectedFixture && createForm.outcome && createForm.makerStake && (
+                <MinimumBidCalculator
+                  makerStake={createForm.makerStake}
+                  selectedOutcome={{
+                    value: createForm.outcome,
+                    odds: selectedFixture.odds?.[
+                      createForm.outcome === 'HOME_WIN' ? 'home' :
+                      createForm.outcome === 'AWAY_WIN' ? 'away' :
+                      createForm.outcome === 'OVER_2.5' ? 'over25' :
+                      createForm.outcome === 'UNDER_2.5' ? 'under25' : 'draw'
+                    ] || 2.0,
+                    marketType: createForm.outcome.includes('OVER') || createForm.outcome.includes('UNDER') ? 'over_under' : 'home_away'
+                  }}
+                  fixtureOdds={selectedFixture.odds}
+                  onMinBidCalculated={(minBid) => {
+                    // Auto-fill if field is empty or 0
+                    if (!createForm.minBid || parseFloat(createForm.minBid) === 0) {
+                      setCreateForm({ ...createForm, minBid });
+                    }
+                  }}
+                />
+              )}
 
               <div>
                 <label className="block text-xs font-semibold mb-2 text-white/80 uppercase tracking-wider">Currency</label>
