@@ -181,10 +181,8 @@ export function useH2H() {
       if (currency === 0) {
         // BNB: creation fee + stake
         value = CREATION_FEE + stakeAmount;
-      } else {
-        // Tokens: only creation fee in BNB
-        value = CREATION_FEE;
       }
+      // For tokens (currency 1 or 2): only creation fee in BNB
 
       toast.loading('Creating challenge...', { id: 'create-challenge' });
 
@@ -193,7 +191,7 @@ export function useH2H() {
         abi: CONTRACTS.H2H.abi,
         functionName: 'createChallenge',
         args: [marketId, outcomeBytes32, stakeAmount, minBidAmount, BigInt(eventStartTime), currency],
-        value: currency === 0 ? value : CREATION_FEE,
+        value, // Use calculated value (CREATION_FEE for tokens, CREATION_FEE + stake for BNB)
       });
 
       toast.loading('Waiting for confirmation...', { id: 'create-challenge' });

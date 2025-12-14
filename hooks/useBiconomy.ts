@@ -80,22 +80,35 @@ export function useBiconomy(config?: BiconomyConfig): UseBiconomyReturn {
     if (isConnected && walletClient && !isInitialized) {
       const init = async () => {
         try {
+          console.log('🔄 Initializing Biconomy...', { 
+            connected: isConnected, 
+            hasWallet: !!walletClient,
+            account: walletClient.account?.address 
+          });
+
+          // ✅ FIX: wagmi walletClient has account.address, not getAddresses()
+          if (!walletClient.account) {
+            console.error('❌ No account in walletClient');
+            return;
+          }
+
           // Create signer adapter for Biconomy
           // Biconomy expects a signer with specific methods
           const signerAdapter = {
             getAddress: async () => {
-              const accounts = await walletClient.getAddresses();
-              return accounts[0];
+              return walletClient.account!.address;
             },
             signMessage: async (message: string) => {
-              const accounts = await walletClient.getAddresses();
               return await walletClient.signMessage({ 
-                account: accounts[0],
+                account: walletClient.account!,
                 message 
               });
             },
             signTypedData: async (params: any) => {
-              return await walletClient.signTypedData(params);
+              return await walletClient.signTypedData({
+                account: walletClient.account!,
+                ...params
+              });
             },
           };
           
@@ -119,24 +132,25 @@ export function useBiconomy(config?: BiconomyConfig): UseBiconomyReturn {
   }, [isConnected, walletClient, isInitialized, config]);
 
   const initialize = useCallback(async (initConfig?: BiconomyConfig) => {
-    if (!walletClient) {
-      throw new Error('Wallet not connected');
+    if (!walletClient || !walletClient.account) {
+      throw new Error('Wallet not connected or no account');
     }
 
     const signerAdapter = {
       getAddress: async () => {
-        const accounts = await walletClient.getAddresses();
-        return accounts[0];
+        return walletClient.account!.address;
       },
       signMessage: async (message: string) => {
-        const accounts = await walletClient.getAddresses();
         return await walletClient.signMessage({ 
-          account: accounts[0],
+          account: walletClient.account!,
           message 
         });
       },
       signTypedData: async (params: any) => {
-        return await walletClient.signTypedData(params);
+        return await walletClient.signTypedData({
+          account: walletClient.account!,
+          ...params
+        });
       },
     };
     
