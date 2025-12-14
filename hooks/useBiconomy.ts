@@ -70,55 +70,41 @@ export interface UseBiconomyReturn {
  * ```
  */
 export function useBiconomy(config?: BiconomyConfig): UseBiconomyReturn {
-  const { isConnected } = useAccount();
+  const { isConnected, address } = useAccount();
   const { data: walletClient } = useWalletClient();
   const [isInitialized, setIsInitialized] = useState(false);
   const [accountAddress, setAccountAddress] = useState<Address | null>(null);
+  const [initializationAttempted, setInitializationAttempted] = useState(false);
 
-  // Initialize Biconomy when wallet connects
+  // Initialize Biconomy when wallet connects - ONLY ONCE
   useEffect(() => {
-    if (isConnected && walletClient && !isInitialized) {
+    // Prevent multiple initializations
+    if (initializationAttempted) {
+      return;
+    }
+
+    if (isConnected && walletClient && walletClient.account && !isInitialized) {
+      setInitializationAttempted(true);
+      
       const init = async () => {
         try {
           console.log('🔄 Initializing Biconomy...', { 
-            connected: isConnected, 
-            hasWallet: !!walletClient,
-            account: walletClient.account?.address 
+            address: walletClient.account?.address 
           });
 
-          // ✅ FIX: wagmi walletClient has account.address, not getAddresses()
-          if (!walletClient.account) {
-            console.error('❌ No account in walletClient');
-            return;
-          }
-
-          // Create signer adapter for Biconomy
-          // Biconomy expects a signer with specific methods
-          const signerAdapter = {
-            getAddress: async () => {
-              return walletClient.account!.address;
-            },
-            signMessage: async (message: string) => {
-              return await walletClient.signMessage({ 
-                account: walletClient.account!,
-                message 
-              });
-            },
-            signTypedData: async (params: any) => {
-              return await walletClient.signTypedData({
-                account: walletClient.account!,
-                ...params
-              });
-            },
-          };
+          // ✅ According to Biconomy docs, signer should be a viem Account
+          // We pass the walletClient.account directly
+          const signer = walletClient.account;
           
-          await biconomyService.initialize(signerAdapter as any, config);
+          await biconomyService.initialize(signer, config);
 
           const accountAddr = await biconomyService.getAccountAddress();
           setAccountAddress(accountAddr);
           setIsInitialized(true);
+          console.log('✅ Biconomy initialized successfully', { accountAddr });
         } catch (error) {
-          console.error('Failed to initialize Biconomy:', error);
+          console.error('❌ Failed to initialize Biconomy:', error);
+          setInitializationAttempted(false); // Allow retry on error
         }
       };
 
@@ -128,33 +114,20 @@ export function useBiconomy(config?: BiconomyConfig): UseBiconomyReturn {
       biconomyService.reset();
       setIsInitialized(false);
       setAccountAddress(null);
+      setInitializationAttempted(false);
     }
-  }, [isConnected, walletClient, isInitialized, config]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isConnected, walletClient, address]); // Only depend on connection state, not initialization state
 
   const initialize = useCallback(async (initConfig?: BiconomyConfig) => {
     if (!walletClient || !walletClient.account) {
       throw new Error('Wallet not connected or no account');
     }
 
-    const signerAdapter = {
-      getAddress: async () => {
-        return walletClient.account!.address;
-      },
-      signMessage: async (message: string) => {
-        return await walletClient.signMessage({ 
-          account: walletClient.account!,
-          message 
-        });
-      },
-      signTypedData: async (params: any) => {
-        return await walletClient.signTypedData({
-          account: walletClient.account!,
-          ...params
-        });
-      },
-    };
+    // ✅ Pass viem account directly as signer
+    const signer = walletClient.account;
     
-    await biconomyService.initialize(signerAdapter as any, initConfig || config);
+    await biconomyService.initialize(signer, initConfig || config);
 
     const accountAddr = await biconomyService.getAccountAddress();
     setAccountAddress(accountAddr);
