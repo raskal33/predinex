@@ -28,6 +28,7 @@ import H2HMatchSelector from "@/components/H2HMatchSelector";
 import H2HCryptoSelector from "@/components/H2HCryptoSelector";
 import SessionKeyManager from "@/components/SessionKeyManager";
 import { MinimumBidCalculator } from '@/components/MinimumBidCalculator';
+import { H2HChallengeCard } from '@/components/H2HChallengeCard';
 
 const CREATION_FEE = parseEther('0.005');
 const AUCTION_CLOSE_BUFFER = 5 * 60; // 5 minutes
@@ -782,9 +783,9 @@ export default function H2HPage() {
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredChallenges.map((challenge) => (
-                  <ChallengeCard
+                  <H2HChallengeCard
                     key={Number(challenge.id)}
                     challenge={challenge}
                     address={address}
@@ -833,138 +834,6 @@ export default function H2HPage() {
         onClose={() => setShowSessionModal(false)}
       />
     </div>
-  );
-}
-
-// Challenge Card Component - Glassmorphism
-function ChallengeCard({
-  challenge,
-  address,
-  isConnected,
-  onBid,
-  onClaim,
-  onCancel,
-  isBiddingOpen,
-  canClaim,
-  getCurrencyName,
-  getStateLabel,
-  getStateColor,
-  getStateBgColor,
-}: {
-  challenge: Challenge;
-  address: string | undefined;
-  isConnected: boolean;
-  onBid: () => void;
-  onClaim: () => void;
-  onCancel: () => void;
-  isBiddingOpen: boolean;
-  canClaim: boolean;
-  getCurrencyName: (currency: CurrencyType) => string;
-  getStateLabel: (challenge: Challenge) => string;
-  getStateColor: (challenge: Challenge) => string;
-  getStateBgColor: (challenge: Challenge) => string;
-}) {
-  const isCreator = address && challenge.creator.toLowerCase() === address.toLowerCase();
-  const _isBidder = address && challenge.highestBidder.toLowerCase() === address.toLowerCase();
-  const minBid = challenge.highestBidder === '0x0000000000000000000000000000000000000000'
-    ? challenge.minBid
-    : challenge.highestBid + 1n;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      whileHover={{ scale: 1.02 }}
-      className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-5 transition-all hover:border-[#FFC107]/30"
-    >
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex-1 min-w-0">
-          <div className="text-xs text-white/50 mb-1 uppercase tracking-wider">Challenge #{Number(challenge.id)}</div>
-          <div className="text-base font-black text-white truncate">{challenge.marketId}</div>
-        </div>
-        <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold border ${getStateColor(challenge)} ${getStateBgColor(challenge)}`}>
-          {getStateLabel(challenge)}
-        </span>
-      </div>
-
-      <div className="space-y-3 mb-4">
-        <div>
-          <div className="text-xs text-white/50 mb-1 uppercase tracking-wider">Creator Prediction</div>
-          <div className="font-semibold text-white text-sm">{challenge.creatorOutcome}</div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <div className="relative overflow-hidden rounded-lg backdrop-blur-sm bg-[#0A0E13]/60 border border-white/10 p-2.5">
-            <div className="text-xs text-white/50 mb-1 uppercase tracking-wider">Stake</div>
-            <div className="font-black text-white text-sm">
-              {formatEther(challenge.makerStake)} {getCurrencyName(challenge.currency)}
-            </div>
-          </div>
-          <div className="relative overflow-hidden rounded-lg backdrop-blur-sm bg-[#0A0E13]/60 border border-white/10 p-2.5">
-            <div className="text-xs text-white/50 mb-1 uppercase tracking-wider">Highest Bid</div>
-            <div className="font-black text-white text-sm">
-              {challenge.highestBid > 0n 
-                ? `${formatEther(challenge.highestBid)} ${getCurrencyName(challenge.currency)}`
-                : 'No bids'
-              }
-            </div>
-          </div>
-        </div>
-
-        {challenge.highestBidder !== '0x0000000000000000000000000000000000000000' && (
-          <div className="relative overflow-hidden rounded-lg backdrop-blur-sm bg-[#0A0E13]/60 border border-white/10 p-2.5">
-            <div className="text-xs text-white/50 mb-1 uppercase tracking-wider">Current Leader</div>
-            <div className="font-semibold text-white text-xs truncate">
-              {challenge.highestBidder.slice(0, 6)}...{challenge.highestBidder.slice(-4)}
-            </div>
-          </div>
-        )}
-
-        {challenge.state === 2 && challenge.result && (
-          <div className="relative overflow-hidden rounded-lg backdrop-blur-sm bg-gradient-to-br from-[#8B5CF6]/10 via-[#8B5CF6]/5 to-transparent border border-[#8B5CF6]/20 p-2.5">
-            <div className="text-xs text-white/50 mb-1 uppercase tracking-wider">Result</div>
-            <div className="font-semibold text-white text-sm mb-1">{challenge.result}</div>
-            <div className="text-xs">
-              {challenge.creatorWon ? (
-                <span className="text-[#10B981] font-semibold">Creator Won</span>
-              ) : (
-                <span className="text-[#3B82F6] font-semibold">Bidder Won</span>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="flex gap-2 mt-4">
-        {isBiddingOpen && !isCreator && (
-          <Button
-            onClick={onBid}
-            disabled={!isConnected}
-            className="flex-1 bg-gradient-to-r from-[#FFC107] to-[#F7B600] hover:from-[#FFC107]/90 hover:to-[#F7B600]/90 text-black font-semibold text-xs py-2 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Bid ({formatEther(minBid)}+ {getCurrencyName(challenge.currency)})
-          </Button>
-        )}
-
-        {canClaim && (
-          <Button
-            onClick={onClaim}
-            className="flex-1 bg-gradient-to-r from-[#10B981] to-[#059669] hover:from-[#10B981]/90 hover:to-[#059669]/90 font-semibold text-xs py-2 rounded-lg transition-all"
-          >
-            Claim Winnings
-          </Button>
-        )}
-
-        {isCreator && challenge.state === 0 && challenge.highestBidder === '0x0000000000000000000000000000000000000000' && (
-          <Button
-            onClick={onCancel}
-            className="flex-1 bg-gradient-to-r from-[#EF4444] to-[#DC2626] hover:from-[#EF4444]/90 hover:to-[#DC2626]/90 font-semibold text-xs py-2 rounded-lg transition-all"
-          >
-            Cancel
-          </Button>
-        )}
-      </div>
-    </motion.div>
   );
 }
 
