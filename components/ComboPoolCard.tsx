@@ -4,7 +4,6 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { 
   TrophyIcon, 
-  CurrencyDollarIcon,
   ClockIcon,
   CheckCircleIcon,
   XCircleIcon,
@@ -51,14 +50,14 @@ export default function ComboPoolCard({
   poolId,
   title,
   description,
-  creator,
+  creator: _creator,
   creatorStake,
   combinedOdds,
   conditions,
   totalCreatorSideStake,
   totalBettorStake,
   bettorCount,
-  lpCount,
+  lpCount: _lpCount,
   currencySymbol,
   isSettled,
   creatorWon,
@@ -73,7 +72,7 @@ export default function ComboPoolCard({
   const resolvedCount = conditions.filter(c => c.isResolved).length;
   const correctCount = conditions.filter(c => c.isCorrect).length;
   
-  const potentialPayout = parseFloat(totalBettorStake) * (combinedOdds / 100);
+  const _potentialPayout = parseFloat(totalBettorStake) * (combinedOdds / 100);
   const totalVolume = parseFloat(totalCreatorSideStake) + parseFloat(totalBettorStake);
 
   // Get status badge
