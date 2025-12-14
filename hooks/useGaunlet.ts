@@ -101,9 +101,14 @@ export function useGaunlet() {
 
   /**
    * Create a pool
+   * @param entryFee Entry fee in BNB (e.g., "0.1")
+   * @param creatorStake Creator stake in BNB (e.g., "100") - the target jackpot
+   * @param matchCount Number of matches (6-12)
+   * @param matches Array of matches
    */
   const createPool = useCallback(async (
     entryFee: string,
+    creatorStake: string,
     matchCount: number,
     matches: Match[]
   ) => {
@@ -111,34 +116,48 @@ export function useGaunlet() {
     if (matchCount < 6 || matchCount > 12) throw new Error('Match count must be between 6 and 12');
     if (matches.length !== matchCount) throw new Error(`Must provide exactly ${matchCount} matches`);
 
+    console.log('🔄 Creating Gaunlet pool...', {
+      entryFee,
+      creatorStake,
+      matchCount,
+      matchesCount: matches.length
+    });
+
     // Format matches for contract
     const formattedMatches = matches.map(match => ({
       id: match.id,
       startTime: match.startTime,
-      oddsHome: BigInt(match.oddsHome),
-      oddsDraw: BigInt(match.oddsDraw),
-      oddsAway: BigInt(match.oddsAway),
-      oddsOver: BigInt(match.oddsOver),
-      oddsUnder: BigInt(match.oddsUnder),
+      oddsHome: match.oddsHome,
+      oddsDraw: match.oddsDraw,
+      oddsAway: match.oddsAway,
+      oddsOver: match.oddsOver,
+      oddsUnder: match.oddsUnder,
       homeTeam: match.homeTeam || '',
       awayTeam: match.awayTeam || '',
       leagueName: match.leagueName || '',
+      result: { moneyline: 0, overUnder: 0 } // Default empty result
     }));
 
-    // Calculate creator stake (target jackpot)
-    // For now, we'll use entryFee * 1000 as default creator stake
-    // In production, this should be user-selectable
-    const creatorStake = parseUnits(entryFee, 18) * 1000n;
+    const entryFeeWei = parseUnits(entryFee, 18);
+    const creatorStakeWei = parseUnits(creatorStake, 18);
 
+    console.log('📝 Contract params:', {
+      entryFeeWei: entryFeeWei.toString(),
+      matchCount,
+      creatorStakeWei: creatorStakeWei.toString(),
+      formattedMatches: formattedMatches.length
+    });
+
+    // Call writeContract - it will trigger wallet interaction
     writeContract({
       ...CONTRACTS.GAUNLET,
       functionName: 'createPool',
       args: [
-        parseUnits(entryFee, 18),
+        entryFeeWei,
         matchCount,
         formattedMatches
       ],
-      value: creatorStake,
+      value: creatorStakeWei, // Creator stake sent as msg.value
     });
   }, [address, writeContract]);
 

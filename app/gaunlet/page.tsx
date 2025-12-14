@@ -229,9 +229,17 @@ export default function GaunletPage() {
     });
 
     try {
-      await createPool(entryFee, matchCount, contractMatches);
+      console.log('🎯 Creating Gaunlet pool with:', {
+        entryFee,
+        creatorStake,
+        matchCount,
+        matchesCount: contractMatches.length
+      });
+      
+      await createPool(entryFee, creatorStake, matchCount, contractMatches);
       setShowCreateModal(false);
     } catch (error: any) {
+      console.error('❌ Error creating pool:', error);
       showError("Failed to Create Pool", error.message || "An error occurred");
     }
   };
