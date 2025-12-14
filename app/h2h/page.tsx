@@ -16,9 +16,8 @@ import {
   FaUser,
 } from "react-icons/fa";
 import { useH2H, type Challenge, type CurrencyType as H2HCurrencyType } from "@/hooks/useH2H";
-// Biconomy imports are dynamic to avoid build issues
-// import { useH2HWithBiconomy } from '@/hooks/useH2HWithBiconomy';
-// import { useBiconomy } from '@/hooks/useBiconomy';
+import { useH2HWithBiconomy } from '@/hooks/useH2HWithBiconomy';
+import { useBiconomy } from '@/hooks/useBiconomy';
 import { CurrencySelector } from "@/components/CurrencySelector";
 import { usePRIXToken } from "@/hooks/usePRIXToken";
 import { useWalletConnection } from "@/hooks/useWalletConnection";
@@ -55,30 +54,21 @@ export default function H2HPage() {
     withdrawRefund,
   } = useH2H();
   
-  // Biconomy hooks disabled due to build issues - will be re-enabled after fixing dependencies
-  // const {
-  //   createChallengeWithToken,
-  //   placeBidWithToken,
-  //   biconomyReady
-  // } = useH2HWithBiconomy({
-  //   apiKey: process.env.NEXT_PUBLIC_BICONOMY_API_KEY,
-  // });
+  const {
+    createChallengeWithToken,
+    placeBidWithToken,
+    biconomyReady
+  } = useH2HWithBiconomy({
+    apiKey: process.env.NEXT_PUBLIC_BICONOMY_API_KEY,
+  });
   
-  // const {
-  //   hasActiveSession,
-  //   executeWithSession,
-  //   buildComposable
-  // } = useBiconomy({
-  //   apiKey: process.env.NEXT_PUBLIC_BICONOMY_API_KEY,
-  // });
-  
-  // Placeholder values - Biconomy disabled due to build issues
-  const biconomyReady = false;
-  const hasActiveSession = (_contractAddress?: `0x${string}`, _value?: bigint) => false;
-  const executeWithSession = async (_params: any) => { throw new Error('Biconomy not available'); };
-  const buildComposable = async (_params: any) => { throw new Error('Biconomy not available'); };
-  const createChallengeWithToken = async (_params: any) => { throw new Error('Biconomy not available'); };
-  const placeBidWithToken = async (_params: any) => { throw new Error('Biconomy not available'); };
+  const {
+    hasActiveSession,
+    executeWithSession,
+    buildComposable
+  } = useBiconomy({
+    apiKey: process.env.NEXT_PUBLIC_BICONOMY_API_KEY,
+  });
 
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [filterState, setFilterState] = useState<FilterState>('all');

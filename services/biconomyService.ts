@@ -1,11 +1,11 @@
-// Dynamic imports for Biconomy to avoid build-time issues
-// These will be loaded only on the client side
-let createMeeClient: any;
-let getMeeScanLink: any;
-let toMultichainNexusAccount: any;
-let getMEEVersion: any;
-let MEEVersion: any;
-type Trigger = any;
+import { 
+  createMeeClient, 
+  getMeeScanLink, 
+  toMultichainNexusAccount, 
+  type Trigger, 
+  getMEEVersion, 
+  MEEVersion,
+} from "@biconomy/abstractjs";
 
 // Type for composable instruction
 type ComposableInstruction = any;
@@ -68,24 +68,6 @@ class BiconomyService {
   async initialize(signer: any, config: BiconomyConfig = {}) {
     if (this.isInitialized && this.orchestrator) {
       return;
-    }
-
-    // Dynamically import Biconomy only on client side
-    if (typeof window === 'undefined') {
-      throw new Error('Biconomy can only be initialized on the client side');
-    }
-
-    try {
-      // Dynamic import to avoid build-time issues
-      const biconomyModule = await import("@biconomy/abstractjs");
-      createMeeClient = biconomyModule.createMeeClient;
-      getMeeScanLink = biconomyModule.getMeeScanLink;
-      toMultichainNexusAccount = biconomyModule.toMultichainNexusAccount;
-      getMEEVersion = biconomyModule.getMEEVersion;
-      MEEVersion = biconomyModule.MEEVersion;
-    } catch (error) {
-      console.error('Failed to load Biconomy module:', error);
-      throw new Error('Biconomy package not available');
     }
 
     this.config = config;
@@ -256,10 +238,6 @@ class BiconomyService {
    * Get MEE scan link for transaction
    */
   getMeeScanLink(hash: string): string {
-    if (!getMeeScanLink) {
-      // Fallback if Biconomy not loaded
-      return `https://testnet.bscscan.com/tx/${hash}`;
-    }
     return getMeeScanLink(hash as `0x${string}`);
   }
 
