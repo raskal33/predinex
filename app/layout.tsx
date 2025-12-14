@@ -20,8 +20,11 @@ export const metadata: Metadata = {
   creator: "Predinex",
   publisher: "Predinex",
   icons: {
-    icon: "/logo.png",
-    shortcut: "/logo.png",
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/logo.png", sizes: "any" }
+    ],
+    shortcut: "/favicon.svg",
     apple: "/logo.png",
   },
   formatDetection: {

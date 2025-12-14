@@ -203,18 +203,30 @@ export default function GaunletPage() {
     }
 
     // Convert fixtures to Match format for contract
-    const contractMatches: Match[] = matches.map((fixture) => ({
-      id: BigInt(fixture.id),
-      startTime: BigInt(Math.floor(new Date(fixture.matchDate).getTime() / 1000)),
-      oddsHome: fixture.odds?.home || 0,
-      oddsDraw: fixture.odds?.draw || 0,
-      oddsAway: fixture.odds?.away || 0,
-      oddsOver: fixture.odds?.over25 || 0,
-      oddsUnder: fixture.odds?.under25 || 0,
-      homeTeam: fixture.homeTeam.name,
-      awayTeam: fixture.awayTeam.name,
-      leagueName: fixture.league.name,
-    }));
+    // ✅ CRITICAL FIX: Odds must be scaled by 1000 (ODDS_SCALING_FACTOR) as uint32
+    // Contract expects: 2.1 odds → 2100, 1.5 odds → 1500, etc.
+    const ODDS_SCALING_FACTOR = 1000;
+    
+    const contractMatches: Match[] = matches.map((fixture) => {
+      // Parse odds as numbers and scale by 1000, then convert to uint32
+      const scaleOdd = (odd: any): number => {
+        const parsed = parseFloat(odd) || 1.0; // Default to 1.0 if invalid
+        return Math.round(parsed * ODDS_SCALING_FACTOR);
+      };
+      
+      return {
+        id: BigInt(fixture.id),
+        startTime: BigInt(Math.floor(new Date(fixture.matchDate).getTime() / 1000)),
+        oddsHome: scaleOdd(fixture.odds?.home),
+        oddsDraw: scaleOdd(fixture.odds?.draw),
+        oddsAway: scaleOdd(fixture.odds?.away),
+        oddsOver: scaleOdd(fixture.odds?.over25),
+        oddsUnder: scaleOdd(fixture.odds?.under25),
+        homeTeam: fixture.homeTeam.name,
+        awayTeam: fixture.awayTeam.name,
+        leagueName: fixture.league.name,
+      };
+    });
 
     try {
       await createPool(entryFee, matchCount, contractMatches);
