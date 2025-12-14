@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useAccount } from 'wagmi';
-import { parseEther, type Address } from 'viem';
+import { type Address } from 'viem';
 import { useBiconomy, type BiconomyConfig } from './useBiconomy';
 import { useH2H } from './useH2H';
 import { CONTRACTS } from '@/contracts';
