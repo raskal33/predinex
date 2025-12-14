@@ -134,8 +134,9 @@ export function usePoolCore() {
         : poolData.marketId; // For custom markets, use as-is
 
       // Calculate total required amount (creation fee + creator stake + boost cost)
-      // ✅ FIX: Match contract values - PRIX = 50e18, BNB = 1e16 (with discounts applied)
-      const creationFeePRIX = 50n * 10n**18n; // 50 PRIX base fee (contract constant)
+      // ✅ FIX: Creation fee is ALWAYS in BNB (not PRIX) - contract requires msg.value for fee
+      // For PRIX pools: msg.value = creationFeeBNB, transferFrom = creatorStake (in PRIX)
+      // For BNB pools: msg.value = creationFeeBNB + creatorStake (in BNB)
       const baseCreationFeeBNB = 1n * 10n**16n; // 0.01 BNB base fee (contract constant)
       
       // ✅ FIX: Boost cost is handled by contract (300 PRIX or 150 PRIX with discount)
@@ -177,18 +178,21 @@ export function usePoolCore() {
       // Boost is always paid in PRIX tokens, not BNB
       const boostCostPRIX = hasBoost ? 300n * 10n**18n : 0n; // Max boost cost (contract applies discount)
       
-      // ✅ FIX: For PRIX pools, totalRequired includes boost cost (paid in PRIX)
+      // ✅ CRITICAL FIX: For PRIX pools, totalRequired is ONLY stake + boost (NO creation fee in PRIX)
+      // Creation fee is ALWAYS paid in BNB via msg.value, never in PRIX!
       // For BNB pools: totalRequired = creatorStake + creationFeeBNB (with discount applied)
-      const totalRequired = poolData.usePrix 
-        ? poolData.creatorStake + creationFeePRIX + boostCostPRIX  // Stake + fee + boost (all in PRIX)
-        : poolData.creatorStake + creationFeeBNB;   // ✅ FIX: For BNB pools, use adjusted fee with discount
+      const totalRequiredPRIX = poolData.usePrix 
+        ? poolData.creatorStake + boostCostPRIX  // Stake + boost (both in PRIX)
+        : 0n; // BNB pools don't use PRIX
+      
+      const totalRequiredBNB = poolData.usePrix
+        ? creationFeeBNB  // PRIX pools: only creation fee in BNB
+        : poolData.creatorStake + creationFeeBNB;  // BNB pools: stake + fee in BNB
       
       // ✅ FIX: Transaction value calculation for factory
       // Factory expects: BNB pools = stake + fee, PRIX pools = fee only (stake via token transfer)
       // Boost cost is handled by factory (transfers PRIX from user)
-      const transactionValue = poolData.usePrix 
-        ? creationFeeBNB  // PRIX pools: only creation fee in BNB (stake + boost via PRIX transfer)
-        : totalRequired; // BNB pools: creatorStake + creationFeeBNB (boost via PRIX transfer)
+      const transactionValue = totalRequiredBNB;
       
       // ✅ FIX: Boost is available for both BNB and PRIX pools
       // Boost is paid in PRIX tokens via the factory's createPoolWithBoost function
@@ -199,44 +203,57 @@ export function usePoolCore() {
         console.log(`   Base Creation Fee: ${baseCreationFeeBNB / BigInt(10**16)} BNB`);
         console.log(`   Adjusted Creation Fee: ${creationFeeBNB / BigInt(10**16)} BNB`);
         console.log(`   Creator Stake: ${poolData.creatorStake / BigInt(10**18)} BNB`);
-        console.log(`   Total Required: ${totalRequired / BigInt(10**18)} BNB`);
+        console.log(`   Total Required BNB: ${totalRequiredBNB / BigInt(10**18)} BNB`);
         
         // Check BNB balance
         const bnbBalance = await publicClient?.getBalance({ address });
-        console.log(`🔍 BNB Balance Check: ${bnbBalance ? bnbBalance / BigInt(10**18) : 0} BNB (required: ${totalRequired / BigInt(10**18)} BNB)`);
+        console.log(`🔍 BNB Balance Check: ${bnbBalance ? bnbBalance / BigInt(10**18) : 0} BNB (required: ${totalRequiredBNB / BigInt(10**18)} BNB)`);
         
-        if (!bnbBalance || bnbBalance < totalRequired) {
-          const shortfall = totalRequired - (bnbBalance || 0n);
-          const errorMsg = `Insufficient BNB balance. You have ${bnbBalance ? bnbBalance / BigInt(10**18) : 0} BNB but need ${totalRequired / BigInt(10**18)} BNB (shortfall: ${shortfall / BigInt(10**18)} BNB)`;
+        if (!bnbBalance || bnbBalance < totalRequiredBNB) {
+          const shortfall = totalRequiredBNB - (bnbBalance || 0n);
+          const errorMsg = `Insufficient BNB balance. You have ${bnbBalance ? bnbBalance / BigInt(10**18) : 0} BNB but need ${totalRequiredBNB / BigInt(10**18)} BNB (shortfall: ${shortfall / BigInt(10**18)} BNB)`;
           console.error(`❌ ${errorMsg}`);
           toast.error(errorMsg);
           throw new Error(errorMsg);
         }
         
-        console.log(`✅ BNB balance check passed: ${bnbBalance / BigInt(10**18)} BNB >= ${totalRequired / BigInt(10**18)} BNB`);
+        console.log(`✅ BNB balance check passed: ${bnbBalance / BigInt(10**18)} BNB >= ${totalRequiredBNB / BigInt(10**18)} BNB`);
       }
 
       // For PRIX pools, we need to ensure the contract has sufficient allowance
       // The contract will handle the token transfer internally
       if (poolData.usePrix) {
         console.log(`💰 PRIX Pool Creation Flow Started`);
-        console.log(`   Base Creation Fee: ${creationFeePRIX / BigInt(10**18)} PRIX (discounts may apply on-chain)`);
-        console.log(`   Creator Stake: ${poolData.creatorStake / BigInt(10**18)} PRIX`);
-        console.log(`   Total Required: ${totalRequired / BigInt(10**18)} PRIX`);
+        console.log(`   Creation Fee (BNB): ${creationFeeBNB / BigInt(10**16)} BNB`);
+        console.log(`   Creator Stake (PRIX): ${poolData.creatorStake / BigInt(10**18)} PRIX`);
+        console.log(`   Total Required PRIX: ${totalRequiredPRIX / BigInt(10**18)} PRIX`);
+        console.log(`   Total Required BNB: ${totalRequiredBNB / BigInt(10**16)} BNB (creation fee only)`);
         if (boostCostPRIX > 0n) {
           console.log(`   Boost Cost: ${boostCostPRIX / BigInt(10**18)} PRIX (300 PRIX max, 150 PRIX with 100k+ PRIX discount)`);
         }
         
-        // Check PRIX balance first (for creation fee + creator stake only, NOT boost cost)
+        // Check PRIX balance first (for creator stake + boost cost)
         const balance = await getBalance();
-        console.log(`🔍 PRIX Balance Check: ${balance / BigInt(10**18)} PRIX (required: ${totalRequired / BigInt(10**18)} PRIX)`);
+        console.log(`🔍 PRIX Balance Check: ${balance / BigInt(10**18)} PRIX (required: ${totalRequiredPRIX / BigInt(10**18)} PRIX)`);
         if (boostCostPRIX > 0n) {
           console.log(`   Note: Boost cost (${boostCostPRIX / BigInt(10**18)} PRIX max) is included in total required`);
         }
         
-        if (balance < totalRequired) {
-          const shortfall = totalRequired - balance;
-          const errorMsg = `Insufficient PRIX balance. You have ${balance / BigInt(10**18)} PRIX but need ${totalRequired / BigInt(10**18)} PRIX (shortfall: ${shortfall / BigInt(10**18)} PRIX)`;
+        if (balance < totalRequiredPRIX) {
+          const shortfall = totalRequiredPRIX - balance;
+          const errorMsg = `Insufficient PRIX balance. You have ${balance / BigInt(10**18)} PRIX but need ${totalRequiredPRIX / BigInt(10**18)} PRIX (shortfall: ${shortfall / BigInt(10**18)} PRIX)`;
+          console.error(`❌ ${errorMsg}`);
+          toast.error(errorMsg);
+          throw new Error(errorMsg);
+        }
+        
+        // Check BNB balance for creation fee
+        const bnbBalance = await publicClient?.getBalance({ address: address as `0x${string}` });
+        console.log(`🔍 BNB Balance Check (for creation fee): ${bnbBalance ? bnbBalance / BigInt(10**16) : 0} BNB (required: ${totalRequiredBNB / BigInt(10**16)} BNB)`);
+        
+        if (!bnbBalance || bnbBalance < totalRequiredBNB) {
+          const shortfall = totalRequiredBNB - (bnbBalance || 0n);
+          const errorMsg = `Insufficient BNB balance for creation fee. You have ${bnbBalance ? bnbBalance / BigInt(10**16) : 0} BNB but need ${totalRequiredBNB / BigInt(10**16)} BNB (shortfall: ${shortfall / BigInt(10**16)} BNB)`;
           console.error(`❌ ${errorMsg}`);
           toast.error(errorMsg);
           throw new Error(errorMsg);
@@ -254,23 +271,23 @@ export function usePoolCore() {
         console.log(`🔍 PRIX Allowance Check:`, {
           currentAllowance: currentAllowance.toString(),
           currentAllowanceFormatted: `${currentAllowance / BigInt(10**18)} PRIX`,
-          totalRequired: totalRequired.toString(),
-          totalRequiredFormatted: `${totalRequired / BigInt(10**18)} PRIX`,
-          needsApproval: currentAllowance < totalRequired,
-          shortfall: currentAllowance < totalRequired ? (totalRequired - currentAllowance).toString() : '0'
+          totalRequired: totalRequiredPRIX.toString(),
+          totalRequiredFormatted: `${totalRequiredPRIX / BigInt(10**18)} PRIX`,
+          needsApproval: currentAllowance < totalRequiredPRIX,
+          shortfall: currentAllowance < totalRequiredPRIX ? (totalRequiredPRIX - currentAllowance).toString() : '0'
         });
         
-        if (currentAllowance < totalRequired) {
-          const shortfall = totalRequired - currentAllowance;
+        if (currentAllowance < totalRequiredPRIX) {
+          const shortfall = totalRequiredPRIX - currentAllowance;
           console.log(`⚠️ Insufficient allowance detected!`);
           console.log(`   Current: ${currentAllowance / BigInt(10**18)} PRIX`);
-          console.log(`   Required: ${totalRequired / BigInt(10**18)} PRIX`);
+          console.log(`   Required: ${totalRequiredPRIX / BigInt(10**18)} PRIX`);
           console.log(`   Shortfall: ${shortfall / BigInt(10**18)} PRIX`);
-          console.log(`🔄 Requesting approval for ${totalRequired / BigInt(10**18)} PRIX tokens...`);
+          console.log(`🔄 Requesting approval for ${totalRequiredPRIX / BigInt(10**18)} PRIX tokens...`);
           
           toast.loading('Approving PRIX tokens for pool creation...', { id: 'prix-approval' });
           try {
-            await approve(approvalTarget, totalRequired);
+            await approve(approvalTarget, totalRequiredPRIX);
             console.log(`✅ Approval transaction confirmed`);
             toast.dismiss('prix-approval');
             toast.success('PRIX tokens approved for pool creation!');
@@ -280,10 +297,10 @@ export function usePoolCore() {
             const newAllowance = await getAllowance(address as `0x${string}`, approvalTarget);
             console.log(`✅ New allowance after approval: ${newAllowance.toString()}`);
             console.log(`   Approval target: ${approvalTarget}`);
-            console.log(`   Required: ${totalRequired.toString()}`);
+            console.log(`   Required: ${totalRequiredPRIX.toString()}`);
             
-            if (newAllowance < totalRequired) {
-              throw new Error(`Approval failed: Allowance is still insufficient (${newAllowance} < ${totalRequired})`);
+            if (newAllowance < totalRequiredPRIX) {
+              throw new Error(`Approval failed: Allowance is still insufficient (${newAllowance} < ${totalRequiredPRIX})`);
             }
           } catch (approveError) {
             toast.dismiss('prix-approval');
@@ -292,12 +309,12 @@ export function usePoolCore() {
             throw approveError;
           }
         } else {
-          console.log(`✅ Sufficient allowance already exists (${currentAllowance / BigInt(10**18)} PRIX >= ${totalRequired / BigInt(10**18)} PRIX)`);
+          console.log(`✅ Sufficient allowance already exists (${currentAllowance / BigInt(10**18)} PRIX >= ${totalRequiredPRIX / BigInt(10**18)} PRIX)`);
           
           // 🚨 CRITICAL FIX: Even if allowance is "sufficient", it might be EXACTLY equal
           // If it's exactly equal or close, we should refresh it to avoid edge cases
           // This happens when a previous pool creation approved exactly this amount
-          if (currentAllowance === totalRequired || currentAllowance < totalRequired + BigInt(10**18)) {
+          if (currentAllowance === totalRequiredPRIX || currentAllowance < totalRequiredPRIX + BigInt(10**18)) {
             console.log(`⚠️ Allowance is exactly equal or very close to required amount`);
             console.log(`   This might cause issues if there's any rounding or previous consumption`);
             console.log(`   Refreshing approval to ensure sufficient buffer...`);
@@ -305,7 +322,7 @@ export function usePoolCore() {
             toast.loading('Refreshing PRIX token approval...', { id: 'prix-approval-refresh' });
             try {
               // Approve a larger amount to avoid this issue in future
-              const bufferAmount = totalRequired * 2n; // Approve 2x to cover multiple pools
+              const bufferAmount = totalRequiredPRIX * 2n; // Approve 2x to cover multiple pools
               await approve(CONTRACT_ADDRESSES.POOL_CORE, bufferAmount);
               console.log(`✅ Approval refreshed with buffer: ${bufferAmount / BigInt(10**18)} PRIX`);
               toast.dismiss('prix-approval-refresh');
@@ -315,7 +332,7 @@ export function usePoolCore() {
               const newAllowance = await getAllowance(address as `0x${string}`, CONTRACT_ADDRESSES.POOL_CORE);
               console.log(`✅ New allowance after refresh: ${newAllowance / BigInt(10**18)} PRIX`);
               
-              if (newAllowance < totalRequired) {
+              if (newAllowance < totalRequiredPRIX) {
                 throw new Error(`Approval refresh failed: Allowance is still insufficient`);
               }
             } catch (refreshError) {
@@ -333,8 +350,9 @@ export function usePoolCore() {
         odds: poolData.odds,
         creatorStake: poolData.creatorStake,
         usePrix: poolData.usePrix,
-        totalRequired,
-        value: poolData.usePrix ? 0n : totalRequired
+        totalRequiredPRIX,
+        totalRequiredBNB,
+        transactionValue
       });
 
       // Format team names to ensure they fit within bytes32 constraints
@@ -434,7 +452,8 @@ export function usePoolCore() {
         address: address,
         usePrix: poolData.usePrix,
         creatorStake: poolData.creatorStake.toString(),
-        totalRequired: totalRequired.toString(),
+        totalRequiredPRIX: totalRequiredPRIX.toString(),
+        totalRequiredBNB: totalRequiredBNB.toString(),
         transactionValue: transactionValue.toString(),
         enableBoost: poolData.enableBoost,
         hasBoost,
