@@ -111,7 +111,10 @@ export function H2HChallengeCard({
               </span>
             )}
           </div>
-          <div className="text-base font-black text-white truncate mb-1">{challenge.marketId}</div>
+          {/* Display engaging title if available, otherwise marketId */}
+          <div className="text-base font-black text-white mb-1" title={challenge.title || challenge.marketId}>
+            {challenge.title || challenge.marketId}
+          </div>
           <div className="flex items-center gap-2 text-xs text-white/60">
             <span className="flex items-center gap-1">
               <FaChartLine className="text-white/40" />

@@ -14,6 +14,7 @@ export interface Challenge {
   creator: Address;
   marketId: string;
   creatorOutcome: string; // bytes32 decoded
+  title?: string; // Generated engaging title from backend
   currency: CurrencyType;
   makerStake: bigint;
   minBid: bigint;
