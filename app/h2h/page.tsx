@@ -428,24 +428,33 @@ export default function H2HPage() {
                 </div>
               </div>
               
-              {isConnected && (
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg backdrop-blur-sm bg-white/5 border border-white/10">
-                    <FaChartLine className="h-3.5 w-3.5 text-[#FFC107]" />
-                    <div>
-                      <div className="text-xs text-white/60">Challenges</div>
-                      <div className="text-sm font-black text-white">{userTotalChallenges || 0}</div>
+              <div className="flex items-center gap-4">
+                {isConnected ? (
+                  <>
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg backdrop-blur-sm bg-white/5 border border-white/10">
+                      <FaChartLine className="h-3.5 w-3.5 text-[#FFC107]" />
+                      <div>
+                        <div className="text-xs text-white/60">Challenges</div>
+                        <div className="text-sm font-black text-white">{userTotalChallenges || 0}</div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg backdrop-blur-sm bg-white/5 border border-white/10">
-                    <FaTrophy className="h-3.5 w-3.5 text-[#10B981]" />
-                    <div>
-                      <div className="text-xs text-white/60">Wins</div>
-                      <div className="text-sm font-black text-white">{userTotalWins || 0}</div>
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg backdrop-blur-sm bg-white/5 border border-white/10">
+                      <FaTrophy className="h-3.5 w-3.5 text-[#10B981]" />
+                      <div>
+                        <div className="text-xs text-white/60">Wins</div>
+                        <div className="text-sm font-black text-white">{userTotalWins || 0}</div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              )}
+                  </>
+                ) : (
+                  <Button
+                    onClick={connectWallet}
+                    className="bg-gradient-to-r from-[#FFC107] to-[#F7B600] hover:from-[#FFC107]/90 hover:to-[#F7B600]/90 text-black font-bold text-sm px-4 py-2 rounded-lg transition-all shadow-lg shadow-[#FFC107]/15"
+                  >
+                    Connect to Participate
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -511,7 +520,13 @@ export default function H2HPage() {
               <span className="hidden sm:inline">All Challenges</span>
             </motion.button>
             <motion.button
-              onClick={() => setViewMode('create')}
+              onClick={() => {
+                if (!isConnected) {
+                  toast.error('Connect your wallet to create challenges');
+                  return;
+                }
+                setViewMode('create');
+              }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-sm transition-all ${
@@ -548,9 +563,27 @@ export default function H2HPage() {
             animate={{ opacity: 1, y: 0 }}
             className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-6 mb-8"
           >
-            <h2 className="text-xl font-black mb-6 bg-gradient-to-r from-[#FFC107] via-[#F7B600] to-[#FFC107] bg-clip-text text-transparent">
-              Create New Challenge
-            </h2>
+            {!isConnected ? (
+              <div className="text-center py-12">
+                <FaHandshake className="text-6xl mx-auto mb-4 text-[#FFC107]/50" />
+                <h3 className="text-2xl font-black mb-3 bg-gradient-to-r from-[#FFC107] via-[#F7B600] to-[#FFC107] bg-clip-text text-transparent">
+                  Connect Your Wallet
+                </h3>
+                <p className="text-white/60 mb-6 max-w-md mx-auto">
+                  To create H2H challenges and participate in betting, please connect your wallet first.
+                </p>
+                <Button
+                  onClick={connectWallet}
+                  className="bg-gradient-to-r from-[#FFC107] to-[#F7B600] hover:from-[#FFC107]/90 hover:to-[#F7B600]/90 text-black font-black px-8 py-3 rounded-lg transition-all shadow-lg shadow-[#FFC107]/20"
+                >
+                  Connect Wallet
+                </Button>
+              </div>
+            ) : (
+              <>
+                <h2 className="text-xl font-black mb-6 bg-gradient-to-r from-[#FFC107] via-[#F7B600] to-[#FFC107] bg-clip-text text-transparent">
+                  Create New Challenge
+                </h2>
             
             <div className="space-y-4">
               {/* Category Selector */}
@@ -739,12 +772,13 @@ export default function H2HPage() {
 
               <Button
                 onClick={handleCreateChallenge}
-                disabled={!isConnected}
-                className="w-full bg-gradient-to-r from-[#FFC107] to-[#F7B600] hover:from-[#FFC107]/90 hover:to-[#F7B600]/90 text-black font-black py-3 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-gradient-to-r from-[#FFC107] to-[#F7B600] hover:from-[#FFC107]/90 hover:to-[#F7B600]/90 text-black font-black py-3 rounded-lg transition-all"
               >
-                {!isConnected ? 'Connect Wallet' : 'Create Challenge'}
+                Create Challenge
               </Button>
             </div>
+            </>
+            )}
           </motion.div>
         )}
 
@@ -779,7 +813,18 @@ export default function H2HPage() {
               <div className="text-center py-20">
                 <div className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-12 inline-block">
                   <FaHandshake className="text-6xl mx-auto mb-4 text-white/30" />
-                  <p className="text-lg font-semibold text-white/60">No challenges found</p>
+                  <p className="text-lg font-semibold text-white/60 mb-4">No challenges found</p>
+                  {!isConnected && (
+                    <div className="mt-4">
+                      <p className="text-sm text-white/40 mb-3">Connect to create the first challenge!</p>
+                      <Button
+                        onClick={connectWallet}
+                        className="bg-gradient-to-r from-[#FFC107] to-[#F7B600] hover:from-[#FFC107]/90 hover:to-[#F7B600]/90 text-black font-bold text-sm px-6 py-2 rounded-lg transition-all"
+                      >
+                        Connect Wallet
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (
