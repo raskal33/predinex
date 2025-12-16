@@ -30,6 +30,28 @@ export interface Challenge {
 const CREATION_FEE = parseEther('0.005'); // 0.005 BNB
 const AUCTION_CLOSE_BUFFER = 5 * 60; // 5 minutes
 
+// Helper to safely decode outcome (handles both Buffer and string)
+function safeDecodeOutcome(outcome: any): string {
+  if (!outcome) return '';
+  
+  // If it's already a string, return it
+  if (typeof outcome === 'string') return outcome;
+  
+  // If it's a Buffer object from API
+  if (outcome.type === 'Buffer' && Array.isArray(outcome.data)) {
+    try {
+      // Convert Buffer data array to string
+      const buffer = Buffer.from(outcome.data);
+      return buffer.toString('utf8');
+    } catch (error) {
+      console.error('Error decoding buffer:', error);
+      return '';
+    }
+  }
+  
+  return '';
+}
+
 export function useH2H() {
   const { address, isConnected } = useAccount();
   const { writeContractAsync } = useWriteContract();
@@ -146,7 +168,7 @@ export function useH2H() {
               id: BigInt(c.challenge_id),
               creator: c.creator_address as Address,
               marketId: c.market_id,
-              creatorOutcome: c.outcome,
+              creatorOutcome: safeDecodeOutcome(c.outcome), // ✅ Safely decode outcome
               title: c.title, // Title from backend!
               currency: c.currency_type as CurrencyType,
               makerStake: BigInt(c.maker_stake),
@@ -155,7 +177,7 @@ export function useH2H() {
               highestBidder: c.highest_bidder as Address,
               eventStartTime: BigInt(c.event_start_time),
               state: c.state as ChallengeState,
-              result: c.result || '',
+              result: safeDecodeOutcome(c.result) || '', // ✅ Safely decode result
               creatorWon: c.creator_won || false,
               creationTime: BigInt(c.creation_time),
             }));
