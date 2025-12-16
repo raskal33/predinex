@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { formatEther } from 'viem';
 import { 
@@ -51,16 +51,35 @@ export function H2HChallengeCard({
   const totalPot = challenge.makerStake + challenge.highestBid;
   const potentialWinnings = totalPot > 0n ? (totalPot * 97n) / 100n : 0n; // After 3% fee
 
-  // Time until event starts
-  const timeUntilEvent = Number(challenge.eventStartTime) * 1000 - Date.now();
-  const hoursUntilEvent = Math.floor(timeUntilEvent / (1000 * 60 * 60));
-  const daysUntilEvent = Math.floor(hoursUntilEvent / 24);
+  // Live countdown to event start (bidding closes at event start)
+  const [timeRemaining, setTimeRemaining] = useState<number>(0);
+  
+  useEffect(() => {
+    const updateCountdown = () => {
+      const eventTime = Number(challenge.eventStartTime) * 1000;
+      const now = Date.now();
+      const remaining = Math.max(0, eventTime - now);
+      setTimeRemaining(remaining);
+    };
+    
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000); // Update every second
+    
+    return () => clearInterval(interval);
+  }, [challenge.eventStartTime]);
 
-  const formatTimeUntilEvent = () => {
-    if (timeUntilEvent <= 0) return 'Event Started';
-    if (daysUntilEvent > 0) return `${daysUntilEvent}d ${hoursUntilEvent % 24}h`;
-    if (hoursUntilEvent > 0) return `${hoursUntilEvent}h`;
-    return `${Math.floor(timeUntilEvent / (1000 * 60))}m`;
+  const formatCountdown = () => {
+    if (timeRemaining <= 0) return 'Bidding Closed';
+    
+    const days = Math.floor(timeRemaining / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((timeRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
+    
+    if (days > 0) return `${days}d ${hours}h ${minutes}m`;
+    if (hours > 0) return `${hours}h ${minutes}m ${seconds}s`;
+    if (minutes > 0) return `${minutes}m ${seconds}s`;
+    return `${seconds}s`;
   };
 
   // Determine card accent color based on state and user role - Harmonized palette
@@ -118,7 +137,11 @@ export function H2HChallengeCard({
           <div className="flex items-center gap-2 text-xs text-white/60">
             <span className="flex items-center gap-1">
               <FaChartLine className="text-white/40" />
-              {formatTimeUntilEvent()}
+              {challenge.state === 0 && isBiddingOpen ? (
+                <span className="font-mono text-[#FFC107] font-bold">{formatCountdown()}</span>
+              ) : (
+                <span>{timeRemaining <= 0 ? 'Bidding Closed' : formatCountdown()}</span>
+              )}
             </span>
             <span className="text-white/30">•</span>
             <span className="font-semibold text-[#FFC107]">{getCurrencyName(challenge.currency)}</span>

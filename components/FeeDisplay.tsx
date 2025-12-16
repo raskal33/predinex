@@ -20,19 +20,21 @@ export function FeeDisplay({
 }: FeeDisplayProps) {
   const { feeCalculation, discountTier, discountPercent } = useTokenDiscounts();
 
-  // ✅ NEW: Creation fee is always in BNB (with discounts), regardless of pool currency
-  // Combo pools may have different base fees, but discounts still apply
+  // ✅ FIX: Creation fee is ALWAYS in BNB (with discounts), regardless of pool currency
+  // Discounts are based on PRIX balance, NOT pool currency
+  // So we show discount for ALL currencies (BNB, PRIX, USDT)
   const adjustedFee = useMemo(() => {
-    if (!feeCalculation || currency !== 'BNB') return baseFee;
+    if (!feeCalculation) return baseFee;
     return feeCalculation.adjustedFee;
-  }, [feeCalculation, baseFee, currency]);
+  }, [feeCalculation, baseFee]);
 
   const savings = useMemo(() => {
-    if (!feeCalculation || currency !== 'BNB') return 0n;
+    if (!feeCalculation) return 0n;
     return feeCalculation.savings;
-  }, [feeCalculation, currency]);
+  }, [feeCalculation]);
 
-  const hasDiscount = discountPercent > 0 && currency === 'BNB'; // Discounts only apply to BNB fees
+  // ✅ FIX: Discount applies to creation fee (always BNB), regardless of pool currency
+  const hasDiscount = discountPercent > 0;
 
   // ✅ NEW: Show currency-specific fee information
   const feeCurrency = 'BNB'; // Creation fee is always in BNB
