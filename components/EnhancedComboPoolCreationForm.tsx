@@ -660,9 +660,9 @@ export default function EnhancedComboPoolCreationForm({ onSuccess, onClose }: {
               {/* Outcome Selection - Dynamic based on market type */}
               {condition.market && (
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-text-secondary mb-2">
+                <label className="block text-sm font-medium text-text-secondary mb-2">
                     Your Prediction *
-                  </label>
+                </label>
                   <div className="grid grid-cols-3 gap-3">
                     {/* 1X2 Markets */}
                     {condition.market === '1X2' && (
@@ -706,18 +706,18 @@ export default function EnhancedComboPoolCreationForm({ onSuccess, onClose }: {
                     {/* Half Time Result */}
                     {condition.market === 'Half Time Result' && (
                       <>
-                        <button
+                  <button
                           onClick={() => updateCondition(condition.id, 'selection', 'HT Home')}
                           className={`p-4 rounded-xl border-2 text-center transition-all ${
                             condition.selection === 'HT Home'
                               ? 'border-success bg-success/20 text-success'
-                              : 'border-border-input bg-bg-card text-text-secondary hover:border-success/50'
-                          }`}
-                        >
+                        : 'border-border-input bg-bg-card text-text-secondary hover:border-success/50'
+                    }`}
+                  >
                           <div className="font-bold text-lg">1</div>
                           <div className="text-xs mt-1">HT Home</div>
-                        </button>
-                        <button
+                  </button>
+                  <button
                           onClick={() => updateCondition(condition.id, 'selection', 'HT Draw')}
                           className={`p-4 rounded-xl border-2 text-center transition-all ${
                             condition.selection === 'HT Draw'
@@ -761,12 +761,12 @@ export default function EnhancedComboPoolCreationForm({ onSuccess, onClose }: {
                           className={`p-4 rounded-xl border-2 text-center transition-all col-span-1 ${
                             condition.selection?.startsWith('Under')
                               ? 'border-error bg-error/20 text-error'
-                              : 'border-border-input bg-bg-card text-text-secondary hover:border-error/50'
-                          }`}
-                        >
+                        : 'border-border-input bg-bg-card text-text-secondary hover:border-error/50'
+                    }`}
+                  >
                           <div className="font-bold text-lg">Under</div>
                           <div className="text-xs mt-1">{condition.market.includes('2.5') ? '2.5' : '3.5'} Goals</div>
-                        </button>
+                  </button>
                       </>
                     )}
 
@@ -864,7 +864,7 @@ export default function EnhancedComboPoolCreationForm({ onSuccess, onClose }: {
                         </button>
                       </>
                     )}
-                  </div>
+              </div>
                   {errors[`condition_${index}_selection`] && (
                     <p className="text-error text-sm mt-1">{errors[`condition_${index}_selection`]}</p>
                   )}
