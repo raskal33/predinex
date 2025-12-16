@@ -70,7 +70,7 @@ export interface UseBiconomyReturn {
  * ```
  */
 export function useBiconomy(config?: BiconomyConfig): UseBiconomyReturn {
-  const { isConnected, address } = useAccount();
+  const { isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
   const [isInitialized, setIsInitialized] = useState(false);
   const [accountAddress, setAccountAddress] = useState<Address | null>(null);
@@ -78,12 +78,12 @@ export function useBiconomy(config?: BiconomyConfig): UseBiconomyReturn {
 
   // Initialize Biconomy when wallet connects - ONLY ONCE
   useEffect(() => {
-    // Prevent multiple initializations
-    if (initializationAttempted) {
+    // Prevent multiple initializations - strict guard
+    if (initializationAttempted || isInitialized) {
       return;
     }
 
-    if (isConnected && walletClient && walletClient.account && !isInitialized) {
+    if (isConnected && walletClient && walletClient.account) {
       setInitializationAttempted(true);
       
       const init = async () => {
@@ -96,7 +96,7 @@ export function useBiconomy(config?: BiconomyConfig): UseBiconomyReturn {
           // We pass the walletClient.account directly
           const signer = walletClient.account;
           
-          await biconomyService.initialize(signer, config);
+          await biconomyService.initialize(signer as any, config);
 
           const accountAddr = await biconomyService.getAccountAddress();
           setAccountAddress(accountAddr);
@@ -117,7 +117,7 @@ export function useBiconomy(config?: BiconomyConfig): UseBiconomyReturn {
       setInitializationAttempted(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isConnected, walletClient, address]); // Only depend on connection state, not initialization state
+  }, [isConnected, walletClient?.account?.address]); // Only depend on connection state and address
 
   const initialize = useCallback(async (initConfig?: BiconomyConfig) => {
     if (!walletClient || !walletClient.account) {

@@ -125,7 +125,7 @@ export function useH2H() {
     }
   }, [publicClient]);
 
-  // Fetch all challenges
+  // Fetch all challenges (with titles from API)
   const fetchAllChallenges = useCallback(async () => {
     if (!publicClient || !challengeCount || CONTRACT_ADDRESSES.H2H === '0x0000000000000000000000000000000000000000') {
       setChallenges([]);
@@ -134,6 +134,41 @@ export function useH2H() {
 
     setLoading(true);
     try {
+      // Try to fetch from API first (has titles and is faster)
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://predinex.fly.dev';
+        const response = await fetch(`${apiUrl}/api/h2h/challenges`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data) {
+            // Convert API data to Challenge format
+            const apiChallenges = data.data.map((c: any) => ({
+              id: BigInt(c.challenge_id),
+              creator: c.creator_address as Address,
+              marketId: c.market_id,
+              creatorOutcome: c.outcome,
+              title: c.title, // Title from backend!
+              currency: c.currency_type as CurrencyType,
+              makerStake: BigInt(c.maker_stake),
+              minBid: BigInt(c.min_bid),
+              highestBid: BigInt(c.highest_bid),
+              highestBidder: c.highest_bidder as Address,
+              eventStartTime: BigInt(c.event_start_time),
+              state: c.state as ChallengeState,
+              result: c.result || '',
+              creatorWon: c.creator_won || false,
+              creationTime: BigInt(c.creation_time),
+            }));
+            setChallenges(apiChallenges);
+            setLoading(false);
+            return;
+          }
+        }
+      } catch (apiError) {
+        console.warn('API fetch failed, falling back to contract:', apiError);
+      }
+
+      // Fallback: Fetch from contract (no titles)
       const count = Number(challengeCount);
       const challengePromises = [];
       
