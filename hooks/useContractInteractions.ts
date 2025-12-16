@@ -172,9 +172,11 @@ export function usePoolCore() {
           
           if (discountMultiplier < 100n) {
             const discountPercent = 100n - discountMultiplier;
+            const baseFeeBNB = Number(baseCreationFeeBNB) / 1e18;
+            const adjustedFeeBNB = Number(creationFeeBNB) / 1e18;
             console.log(`💰 PRIX Balance Discount Applied: ${discountPercent}% off (PRIX balance: ${prixBalanceForDiscount / BigInt(10**18)} PRIX)`);
-            console.log(`   Base fee: ${baseCreationFeeBNB / BigInt(10**16)} BNB → Adjusted fee: ${creationFeeBNB / BigInt(10**16)} BNB`);
-            console.log(`   ⚠️ Contract will verify: msg.value (${creationFeeBNB.toString()} wei) == adjustedCreationFee (calculated on-chain)`);
+            console.log(`   Base fee: ${baseFeeBNB} BNB → Adjusted fee: ${adjustedFeeBNB} BNB`);
+            console.log(`   ⚠️ Contract will verify: msg.value (${creationFeeBNB.toString()} wei = ${adjustedFeeBNB} BNB) == adjustedCreationFee (calculated on-chain)`);
           } else {
             console.log(`💰 No discount applied (PRIX balance: ${prixBalanceForDiscount / BigInt(10**18)} PRIX < 5,000 PRIX threshold)`);
           }
@@ -208,11 +210,16 @@ export function usePoolCore() {
       const transactionValue = totalRequiredBNB;
       
       // ✅ DEBUG: Log exact values being sent
+      const creationFeeBNBFormatted = Number(creationFeeBNB) / 1e18;
+      const baseFeeBNBFormatted = Number(baseCreationFeeBNB) / 1e18;
+      const txValueBNBFormatted = Number(transactionValue) / 1e18;
+      const discountPercent = baseCreationFeeBNB > 0n ? Number((baseCreationFeeBNB - creationFeeBNB) * 100n / baseCreationFeeBNB) : 0;
+      
       console.log('💰 Final Transaction Values:', {
-        creationFeeBNB: `${creationFeeBNB / BigInt(10**16)} BNB (${creationFeeBNB.toString()} wei)`,
-        baseCreationFeeBNB: `${baseCreationFeeBNB / BigInt(10**16)} BNB`,
-        discountApplied: `${((baseCreationFeeBNB - creationFeeBNB) * 100n) / baseCreationFeeBNB}%`,
-        transactionValue: `${transactionValue / BigInt(10**16)} BNB (${transactionValue.toString()} wei)`,
+        creationFeeBNB: `${creationFeeBNBFormatted} BNB (${creationFeeBNB.toString()} wei)`,
+        baseCreationFeeBNB: `${baseFeeBNBFormatted} BNB`,
+        discountApplied: `${discountPercent}%`,
+        transactionValue: `${txValueBNBFormatted} BNB (${transactionValue.toString()} wei)`,
         currencyType: finalCurrencyType,
         usePrix: poolData.usePrix,
         note: 'Contract will recalculate discount on-chain and verify msg.value matches'
