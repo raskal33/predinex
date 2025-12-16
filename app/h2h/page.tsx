@@ -715,6 +715,7 @@ export default function H2HPage() {
                     marketType: createForm.outcome.includes('OVER') || createForm.outcome.includes('UNDER') ? 'over_under' : 'home_away'
                   }}
                   fixtureOdds={selectedFixture.odds}
+                  currency={createForm.currency}
                   onMinBidCalculated={(minBid) => {
                     // Auto-fill if field is empty or 0
                     if (!createForm.minBid || parseFloat(createForm.minBid) === 0) {

@@ -18,6 +18,7 @@ interface MinimumBidCalculatorProps {
     over25?: number;
     under25?: number;
   };
+  currency?: number; // 0=BNB, 1=PRIX, 2=USDT
   onMinBidCalculated?: (minBid: string) => void;
 }
 
@@ -25,11 +26,24 @@ export const MinimumBidCalculator: React.FC<MinimumBidCalculatorProps> = ({
   makerStake,
   selectedOutcome,
   fixtureOdds,
+  currency = 0, // Default to BNB
   onMinBidCalculated
 }) => {
   const [showExplanation, setShowExplanation] = useState(false);
   const [calculatedMinBid, setCalculatedMinBid] = useState<string>('0');
   const [fairRatio, setFairRatio] = useState<number>(1);
+  
+  // Currency display helper
+  const getCurrencyName = (curr: number) => {
+    switch (curr) {
+      case 0: return 'BNB';
+      case 1: return 'PRIX';
+      case 2: return 'USDT';
+      default: return 'BNB';
+    }
+  };
+  
+  const currencyName = getCurrencyName(currency);
 
   useEffect(() => {
     if (!makerStake || !selectedOutcome || !fixtureOdds) {
@@ -102,7 +116,7 @@ export const MinimumBidCalculator: React.FC<MinimumBidCalculatorProps> = ({
             <div>
               <p className="text-xs text-gray-400 mb-1">Suggested Minimum Bid</p>
               <p className="text-2xl font-bold text-cyan-400">
-                {calculatedMinBid} {selectedOutcome.value.includes('BNB') ? 'BNB' : 'BNB'}
+                {calculatedMinBid} {currencyName}
               </p>
               <p className="text-xs text-gray-500 mt-1">
                 Based on {selectedOutcome.odds.toFixed(2)}x odds (ratio: {fairRatio.toFixed(2)}x)
@@ -162,7 +176,7 @@ export const MinimumBidCalculator: React.FC<MinimumBidCalculatorProps> = ({
                   <div className="space-y-1 text-gray-300">
                     <p>• You predict: <span className="text-cyan-400 font-semibold">{selectedOutcome.value.replace(/_/g, ' ')}</span></p>
                     <p>• Your odds: <span className="text-cyan-400 font-semibold">{selectedOutcome.odds.toFixed(2)}x</span></p>
-                    <p>• Your stake: <span className="text-cyan-400 font-semibold">{makerStake} BNB</span></p>
+                    <p>• Your stake: <span className="text-cyan-400 font-semibold">{makerStake} {currencyName}</span></p>
                   </div>
                 </div>
 
@@ -172,7 +186,7 @@ export const MinimumBidCalculator: React.FC<MinimumBidCalculatorProps> = ({
                   <div className="space-y-1 text-gray-300">
                     <p>• Opponent bets: <span className="text-orange-400 font-semibold">OPPOSITE of your prediction</span></p>
                     <p>• Implied odds ratio: <span className="text-orange-400 font-semibold">{fairRatio.toFixed(2)}x</span></p>
-                    <p>• Fair minimum bid: <span className="text-orange-400 font-semibold">{(parseFloat(makerStake) * fairRatio).toFixed(4)} BNB</span></p>
+                    <p>• Fair minimum bid: <span className="text-orange-400 font-semibold">{(parseFloat(makerStake) * fairRatio).toFixed(4)} {currencyName}</span></p>
                   </div>
                 </div>
 
@@ -182,11 +196,11 @@ export const MinimumBidCalculator: React.FC<MinimumBidCalculatorProps> = ({
                   <div className="font-mono text-xs bg-black/30 p-3 rounded">
                     <p className="text-purple-400">minBid = yourStake × (opponentOdds / yourOdds)</p>
                     <p className="text-gray-400 mt-2">
-                      = {makerStake} × {fairRatio.toFixed(2)} = {(parseFloat(makerStake) * fairRatio).toFixed(4)} BNB
+                      = {makerStake} × {fairRatio.toFixed(2)} = {(parseFloat(makerStake) * fairRatio).toFixed(4)} {currencyName}
                     </p>
                   </div>
                   <p className="text-xs text-gray-400 mt-2">
-                    💡 We suggest 90% of fair value to attract bidders: <span className="text-cyan-400 font-semibold">{calculatedMinBid} BNB</span>
+                    💡 We suggest 90% of fair value to attract bidders: <span className="text-cyan-400 font-semibold">{calculatedMinBid} {currencyName}</span>
                   </p>
                 </div>
 
@@ -199,7 +213,7 @@ export const MinimumBidCalculator: React.FC<MinimumBidCalculatorProps> = ({
                       <p className="font-semibold text-green-400 mb-1">✅ If you&apos;re CORRECT:</p>
                       <p className="text-gray-300">
                         You win: ({makerStake} + {calculatedMinBid}) × 0.97 = <span className="text-green-400 font-semibold">
-                          {(parseFloat(makerStake || '0') + parseFloat(calculatedMinBid || '0') * 0.97).toFixed(4)} BNB
+                          {(parseFloat(makerStake || '0') + parseFloat(calculatedMinBid || '0') * 0.97).toFixed(4)} {currencyName}
                         </span>
                       </p>
                       <p className="text-xs text-gray-500 mt-1">(3% fee deducted)</p>
@@ -208,7 +222,7 @@ export const MinimumBidCalculator: React.FC<MinimumBidCalculatorProps> = ({
                     <div className="p-3 bg-red-500/10 rounded border-l-2 border-red-500">
                       <p className="font-semibold text-red-400 mb-1">❌ If you&apos;re WRONG:</p>
                       <p className="text-gray-300">
-                        Opponent wins pot, you lose your stake: <span className="text-red-400 font-semibold">-{makerStake} BNB</span>
+                        Opponent wins pot, you lose your stake: <span className="text-red-400 font-semibold">-{makerStake} {currencyName}</span>
                       </p>
                     </div>
                   </div>
