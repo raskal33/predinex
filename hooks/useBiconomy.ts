@@ -84,12 +84,23 @@ export function useBiconomy(config?: BiconomyConfig): UseBiconomyReturn {
     }
 
     if (isConnected && walletClient && walletClient.account) {
+      // ⚠️ BSC Testnet (97) is NOT supported by Biconomy MEE node
+      // Supported chains: 1, 10, 56, 100, 130, 137, 143, 146, 480, 999, 1135, 1329, 8453, 9745, 33139, 42161, 43114, 84532, 534352, 747474
+      const chainId = walletClient.chain?.id;
+      if (chainId === 97) {
+        console.warn('⚠️ Biconomy not available on BSC Testnet (97). Using standard transactions.');
+        setInitializationAttempted(true);
+        setIsInitialized(false);
+        return;
+      }
+
       setInitializationAttempted(true);
       
       const init = async () => {
         try {
           console.log('🔄 Initializing Biconomy...', { 
-            address: walletClient.account?.address 
+            address: walletClient.account?.address,
+            chainId 
           });
 
           // ✅ According to Biconomy docs, signer should be the walletClient itself

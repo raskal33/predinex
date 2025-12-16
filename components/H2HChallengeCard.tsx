@@ -131,125 +131,123 @@ export function H2HChallengeCard({
         </div>
       </div>
 
-      {/* Prediction Badge - Large & Prominent - Harmonized */}
-      <div className="relative mb-5">
-        <div className="relative overflow-hidden rounded-xl backdrop-blur-sm bg-gradient-to-br from-[#FFC107]/12 via-[#F7B600]/8 to-transparent border border-[#FFC107]/25 p-4">
-          <div className="text-xs text-[#FFC107]/70 mb-1 uppercase tracking-wider font-semibold">Creator Predicts</div>
-          <div className="text-2xl font-black bg-gradient-to-r from-white via-white/95 to-white/90 bg-clip-text text-transparent">{challenge.creatorOutcome}</div>
+      {/* Creator Info & Prediction - Compact */}
+      <div className="relative mb-3">
+        <div className="relative overflow-hidden rounded-xl backdrop-blur-sm bg-gradient-to-br from-[#FFC107]/12 via-[#F7B600]/8 to-transparent border border-[#FFC107]/25 p-3">
+          <div className="flex items-start justify-between gap-2 mb-2">
+            <div className="flex-1">
+              <div className="text-[10px] text-[#FFC107]/60 mb-0.5 uppercase tracking-wider font-semibold">Creator</div>
+              <div className="font-mono text-xs text-white/80 truncate">
+                {challenge.creator.slice(0, 6)}...{challenge.creator.slice(-4)}
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-[10px] text-[#FFC107]/60 mb-0.5 uppercase tracking-wider font-semibold">Predicts</div>
+              <div className="text-sm font-black text-white">
+                {challenge.title || challenge.creatorOutcome}
+              </div>
+            </div>
+          </div>
           {challenge.state === 0 && (
-            <div className="mt-2 text-xs text-white/50">
-              <span className="text-white/70 font-semibold">You bet opposite</span> to challenge
+            <div className="text-[10px] text-white/45 border-t border-white/5 pt-2">
+              <span className="text-white/60 font-semibold">You bet opposite</span> to win
             </div>
           )}
         </div>
       </div>
 
-      {/* Stakes Grid - Harmonized Colors */}
-      <div className="grid grid-cols-2 gap-3 mb-4">
-        <div className="relative overflow-hidden rounded-xl backdrop-blur-sm bg-white/4 border border-white/8 p-3 group-hover:border-white/15 transition-colors">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-white/45 uppercase tracking-wider font-semibold">Creator Stake</span>
+      {/* Stakes Grid - Compact */}
+      <div className="grid grid-cols-2 gap-2 mb-3">
+        <div className="relative overflow-hidden rounded-lg backdrop-blur-sm bg-white/4 border border-white/8 p-2 group-hover:border-white/15 transition-colors">
+          <div className="flex items-center justify-between mb-0.5">
+            <span className="text-[10px] text-white/40 uppercase tracking-wider font-semibold">Creator Stake</span>
             {isCreator && <span className="text-amber-400/80 text-xs">👤</span>}
           </div>
-          <div className="font-black text-white text-lg">
-            {formatEther(challenge.makerStake)}
+          <div className="font-black text-white text-base">
+            {formatEther(challenge.makerStake)} <span className="text-xs text-white/30">{getCurrencyName(challenge.currency)}</span>
           </div>
-          <div className="text-xs text-white/35">{getCurrencyName(challenge.currency)}</div>
         </div>
 
-        <div className="relative overflow-hidden rounded-xl backdrop-blur-sm bg-white/4 border border-white/8 p-3 group-hover:border-white/15 transition-colors">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-white/45 uppercase tracking-wider font-semibold">Highest Bid</span>
+        <div className="relative overflow-hidden rounded-lg backdrop-blur-sm bg-white/4 border border-white/8 p-2 group-hover:border-white/15 transition-colors">
+          <div className="flex items-center justify-between mb-0.5">
+            <span className="text-[10px] text-white/40 uppercase tracking-wider font-semibold">Highest Bid</span>
             {isBidder && <span className="text-cyan-400/80 text-xs">👤</span>}
           </div>
-          <div className="font-black text-white text-lg">
+          <div className="font-black text-white text-base">
             {challenge.highestBid > 0n 
-              ? formatEther(challenge.highestBid)
-              : '—'
-            }
-          </div>
-          <div className="text-xs text-white/35">
-            {challenge.highestBid > 0n 
-              ? getCurrencyName(challenge.currency)
-              : 'No bids yet'
+              ? <>{formatEther(challenge.highestBid)} <span className="text-xs text-white/30">{getCurrencyName(challenge.currency)}</span></>
+              : <span className="text-xs text-white/30">No bids</span>
             }
           </div>
         </div>
       </div>
 
-      {/* Total Pot Display - Harmonized Purple Tones */}
+      {/* Total Pot & Leader - Compact Combined */}
       {totalPot > 0n && (
-        <div className="relative overflow-hidden rounded-xl backdrop-blur-sm bg-gradient-to-r from-violet-500/8 via-purple-500/8 to-violet-500/8 border border-violet-500/20 p-3 mb-4">
-          <div className="flex items-center justify-between">
+        <div className="relative overflow-hidden rounded-lg backdrop-blur-sm bg-gradient-to-r from-violet-500/8 via-purple-500/8 to-violet-500/8 border border-violet-500/20 p-2 mb-3">
+          <div className="flex items-center justify-between mb-2">
             <div>
-              <div className="text-xs text-violet-300/70 mb-0.5 uppercase tracking-wider font-semibold">Total Pot</div>
-              <div className="font-black text-white text-xl">{formatEther(totalPot)} {getCurrencyName(challenge.currency)}</div>
+              <div className="text-[10px] text-violet-300/60 mb-0.5 uppercase tracking-wider font-semibold">Total Pot</div>
+              <div className="font-black text-white text-base">{formatEther(totalPot)} <span className="text-xs text-white/30">{getCurrencyName(challenge.currency)}</span></div>
             </div>
             <div className="text-right">
-              <div className="text-xs text-violet-300/70 mb-0.5 uppercase tracking-wider font-semibold">Winner Gets</div>
-              <div className="font-bold text-violet-200 text-lg">{formatEther(potentialWinnings)}</div>
-              <div className="text-[10px] text-white/35">(97% after fee)</div>
+              <div className="text-[10px] text-violet-300/60 mb-0.5 uppercase tracking-wider font-semibold">Winner Gets</div>
+              <div className="font-bold text-violet-200 text-sm">{formatEther(potentialWinnings)} <span className="text-[10px] text-white/30">(97%)</span></div>
             </div>
           </div>
+          {challenge.highestBidder !== '0x0000000000000000000000000000000000000000' && (
+            <div className="flex items-center justify-between border-t border-white/5 pt-2">
+              <div className="flex items-center gap-1">
+                <FaTrophy className="text-cyan-400/60 text-xs" />
+                <span className="text-[10px] text-cyan-300/60 uppercase tracking-wider font-semibold">Leader</span>
+                <span className="font-mono text-xs text-white/80">
+                  {challenge.highestBidder.slice(0, 6)}...{challenge.highestBidder.slice(-4)}
+                </span>
+              </div>
+              {isBidder && (
+                <div className="px-1.5 py-0.5 rounded bg-cyan-400/15 border border-cyan-400/30">
+                  <span className="text-[10px] font-bold text-cyan-300">You</span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
-      {/* Current Leader Info - Harmonized Cyan */}
-      {challenge.highestBidder !== '0x0000000000000000000000000000000000000000' && (
-        <div className="relative overflow-hidden rounded-xl backdrop-blur-sm bg-cyan-500/8 border border-cyan-500/20 p-3 mb-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-xs text-cyan-300/70 mb-1 uppercase tracking-wider font-semibold flex items-center gap-1">
-                <FaTrophy className="text-cyan-400/80" />
-                Current Leader
-              </div>
-              <div className="font-mono text-xs text-white/90 truncate">
-                {challenge.highestBidder.slice(0, 10)}...{challenge.highestBidder.slice(-8)}
-              </div>
-            </div>
-            {isBidder && (
-              <div className="px-2 py-1 rounded-lg bg-cyan-400/15 border border-cyan-400/30">
-                <span className="text-xs font-bold text-cyan-300">You</span>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Result Display - If Resolved - Harmonized */}
+      {/* Result Display - Compact */}
       {challenge.state === 2 && challenge.result && (
-        <div className="relative overflow-hidden rounded-xl backdrop-blur-sm bg-gradient-to-br from-violet-500/12 via-purple-500/8 to-transparent border border-violet-500/25 p-4 mb-4">
-          <div className="text-xs text-violet-300/70 mb-2 uppercase tracking-wider font-semibold">Final Result</div>
-          <div className="font-black text-white text-lg mb-2">{challenge.result}</div>
+        <div className="relative overflow-hidden rounded-lg backdrop-blur-sm bg-gradient-to-br from-violet-500/12 via-purple-500/8 to-transparent border border-violet-500/25 p-2 mb-3">
+          <div className="text-[10px] text-violet-300/60 mb-1 uppercase tracking-wider font-semibold">Final Result</div>
+          <div className="font-black text-white text-sm mb-1.5">{challenge.result}</div>
           <div className="flex items-center gap-2">
             {challenge.creatorWon ? (
               <>
-                <span className="px-2 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-bold flex items-center gap-1">
-                  <FaTrophy />
+                <span className="px-1.5 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[10px] font-bold flex items-center gap-1">
+                  <FaTrophy className="text-xs" />
                   Creator Won
                 </span>
-                {isCreator && <span className="text-xs text-emerald-300 font-semibold">🎉 You won!</span>}
-                {isBidder && <span className="text-xs text-rose-300 font-semibold">You lost</span>}
+                {isCreator && <span className="text-[10px] text-emerald-300 font-semibold">🎉 You won!</span>}
+                {isBidder && <span className="text-[10px] text-rose-300 font-semibold">You lost</span>}
               </>
             ) : (
               <>
-                <span className="px-2 py-1 rounded-lg bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-xs font-bold flex items-center gap-1">
-                  <FaTrophy />
+                <span className="px-1.5 py-0.5 rounded bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-[10px] font-bold flex items-center gap-1">
+                  <FaTrophy className="text-xs" />
                   Bidder Won
                 </span>
-                {isBidder && <span className="text-xs text-emerald-300 font-semibold">🎉 You won!</span>}
-                {isCreator && <span className="text-xs text-rose-300 font-semibold">You lost</span>}
+                {isBidder && <span className="text-[10px] text-emerald-300 font-semibold">🎉 You won!</span>}
+                {isCreator && <span className="text-[10px] text-rose-300 font-semibold">You lost</span>}
               </>
             )}
           </div>
         </div>
       )}
 
-      {/* Betting Closed Notice - Harmonized Orange */}
+      {/* Betting Closed Notice - Compact */}
       {!isBiddingOpen && challenge.state === 0 && (
-        <div className="relative overflow-hidden rounded-xl backdrop-blur-sm bg-orange-500/8 border border-orange-500/25 p-3 mb-4">
-          <div className="flex items-center gap-2 text-xs text-orange-300/80">
-            <FaTimesCircle />
+        <div className="relative overflow-hidden rounded-lg backdrop-blur-sm bg-orange-500/8 border border-orange-500/25 p-2 mb-3">
+          <div className="flex items-center gap-2 text-[10px] text-orange-300/80">
+            <FaTimesCircle className="text-xs" />
             <span className="font-semibold">Betting Closed</span>
             <span className="text-white/40">• Event starts soon</span>
           </div>
