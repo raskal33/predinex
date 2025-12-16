@@ -5,10 +5,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
 import { toast } from "@/utils/toast";
-import { useGaunlet, PoolState, type Match, type UserPrediction } from "@/hooks/useGaunlet";
+import { useGaunlet, PoolState, type Match } from "@/hooks/useGaunlet";
 import { gaunletService, type GaunletPool } from "@/services/gaunletService";
 import { useTransactionFeedback, TransactionFeedback } from "@/components/TransactionFeedback";
 import GaunletMatchSelection from "@/components/GaunletMatchSelection";
+import GaunletPoolModal from "@/components/GaunletPoolModal";
 import { 
   FireIcon, 
   TrophyIcon, 
@@ -129,7 +130,6 @@ export default function GaunletPage() {
     activePools,
     userPools,
     createPool,
-    placeSlip,
     settlePool,
     hash,
     isPending,
@@ -144,8 +144,7 @@ export default function GaunletPage() {
   const [activeTab, setActiveTab] = useState<"browse" | "create" | "my-pools" | "my-slips">("browse");
   const [selectedPool, setSelectedPool] = useState<GaunletPool | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showSlipModal, setShowSlipModal] = useState(false);
-  const [predictions] = useState<UserPrediction[]>([]);
+  const [showPoolModal, setShowPoolModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   // Create pool form state
@@ -186,7 +185,7 @@ export default function GaunletPage() {
       showSuccess("Transaction Confirmed", "Your transaction has been confirmed!");
       refetchPools();
       setShowCreateModal(false);
-      setShowSlipModal(false);
+      setShowPoolModal(false);
     }
   }, [isConfirmed, showSuccess, refetchPools]);
 
@@ -244,25 +243,6 @@ export default function GaunletPage() {
     }
   };
 
-  // Handle place slip
-  const handlePlaceSlip = async () => {
-    if (!selectedPool) return;
-    if (!isConnected) {
-      toast.error("Please connect your wallet");
-      return;
-    }
-
-    if (predictions.length !== selectedPool.matchCount) {
-      toast.error(`Please make predictions for all ${selectedPool.matchCount} matches`);
-      return;
-    }
-
-    try {
-      await placeSlip(selectedPool.poolId, predictions);
-    } catch (error: any) {
-      showError("Failed to Place Slip", error.message || "An error occurred");
-    }
-  };
 
   // Handle settle pool
   const handleSettlePool = async (poolId: number) => {
@@ -456,7 +436,7 @@ export default function GaunletPage() {
                         pool={pool}
                         onSelect={(pool) => {
                           setSelectedPool(pool);
-                          setShowSlipModal(true);
+                          setShowPoolModal(true);
                         }}
                       />
                     ))
@@ -615,46 +595,15 @@ export default function GaunletPage() {
         creatorStake={creatorStake}
       />
 
-      {/* Place Slip Modal */}
-      <AnimatePresence>
-        {showSlipModal && selectedPool && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={() => setShowSlipModal(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-[#0F1419] via-[#1A1F2E] to-[#0F1419] border border-white/20 p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
-            >
-              <h2 className="text-2xl font-bold mb-4">Place Slip - Pool #{selectedPool.poolId}</h2>
-              <p className="text-sm text-gray-400 mb-6">
-                Make predictions for all {selectedPool.matchCount} matches. Prediction interface coming soon.
-              </p>
-              <div className="flex gap-4">
-                <button
-                  onClick={() => setShowSlipModal(false)}
-                  className="flex-1 px-4 py-2 bg-gray-500/20 text-gray-300 rounded-lg hover:bg-gray-500/30 transition-all"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handlePlaceSlip}
-                  disabled={predictions.length !== selectedPool.matchCount || isPending}
-                  className="flex-1 px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-semibold rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-all disabled:opacity-50"
-                >
-                  Place Slip ({formatBNB(selectedPool.entryFee)} BNB)
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Pool Modal with Match Table and Slip Builder */}
+      <GaunletPoolModal
+        isOpen={showPoolModal}
+        onClose={() => {
+          setShowPoolModal(false);
+          setSelectedPool(null);
+        }}
+        pool={selectedPool}
+      />
     </div>
   );
 }

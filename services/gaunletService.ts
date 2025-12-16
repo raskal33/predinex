@@ -375,6 +375,65 @@ class GaunletService {
       return 0n;
     }
   }
+
+  /**
+   * Get pool matches
+   */
+  async getPoolMatches(poolId: number): Promise<GaunletMatch[]> {
+    try {
+      const client = this.getPublicClient();
+      const matches = await client.readContract({
+        ...CONTRACTS.GAUNLET,
+        functionName: 'getPoolMatches',
+        args: [BigInt(poolId)],
+      }) as any[];
+
+      if (!matches || matches.length === 0) {
+        return [];
+      }
+
+      // Convert contract matches to GaunletMatch format
+      // Odds are scaled by 1000 (ODDS_SCALING_FACTOR)
+      const ODDS_SCALING_FACTOR = 1000;
+      
+      return matches.map((match: any) => {
+        // Handle both array and object returns
+        const matchData = Array.isArray(match) ? {
+          id: match[0],
+          startTime: match[1],
+          oddsHome: match[2],
+          oddsDraw: match[3],
+          oddsAway: match[4],
+          oddsOver: match[5],
+          oddsUnder: match[6],
+          homeTeam: match[7],
+          awayTeam: match[8],
+          leagueName: match[9],
+          result: match[10] || { moneyline: 0, overUnder: 0 }
+        } : match;
+
+        return {
+          id: matchData.id as bigint,
+          startTime: matchData.startTime as bigint,
+          oddsHome: Number(matchData.oddsHome) / ODDS_SCALING_FACTOR,
+          oddsDraw: Number(matchData.oddsDraw) / ODDS_SCALING_FACTOR,
+          oddsAway: Number(matchData.oddsAway) / ODDS_SCALING_FACTOR,
+          oddsOver: Number(matchData.oddsOver) / ODDS_SCALING_FACTOR,
+          oddsUnder: Number(matchData.oddsUnder) / ODDS_SCALING_FACTOR,
+          homeTeam: matchData.homeTeam as string,
+          awayTeam: matchData.awayTeam as string,
+          leagueName: matchData.leagueName as string,
+          result: matchData.result ? {
+            moneyline: Number(matchData.result.moneyline),
+            overUnder: Number(matchData.result.overUnder)
+          } : undefined
+        };
+      });
+    } catch (error) {
+      console.error('Error getting pool matches:', error);
+      return [];
+    }
+  }
 }
 
 export const gaunletService = new GaunletService();
