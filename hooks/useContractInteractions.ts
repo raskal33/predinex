@@ -133,6 +133,10 @@ export function usePoolCore() {
         ? poolData.marketId // Use original SportMonks fixture ID directly
         : poolData.marketId; // For custom markets, use as-is
 
+      // ✅ NEW: Map legacy usePrix to currencyType if not provided (moved early for use in logging)
+      const finalCurrencyType: 0 | 1 | 2 = poolData.currencyType !== undefined ? poolData.currencyType : (poolData.usePrix ? 1 : 0);
+      const finalLeverage: 1 | 2 | 3 | 4 | 5 = poolData.leverage !== undefined ? poolData.leverage : 1;
+
       // Calculate total required amount (creation fee + creator stake + boost cost)
       // ✅ FIX: Creation fee is ALWAYS in BNB (not PRIX) - contract requires msg.value for fee
       // For PRIX pools: msg.value = creationFeeBNB, transferFrom = creatorStake (in PRIX)
@@ -413,10 +417,6 @@ export function usePoolCore() {
           });
         });
       }
-
-      // ✅ NEW: Map legacy usePrix to currencyType if not provided
-      const finalCurrencyType: 0 | 1 | 2 = poolData.currencyType !== undefined ? poolData.currencyType : (poolData.usePrix ? 1 : 0);
-      const finalLeverage: 1 | 2 | 3 | 4 | 5 = poolData.leverage !== undefined ? poolData.leverage : 1;
 
       // Helper function to safely encode strings as bytes32
       const safeEncodeBytes32 = (str: string, fieldName: string): string => {
