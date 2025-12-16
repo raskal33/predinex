@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { formatEther } from 'viem';
+import Image from 'next/image';
+import { formatTokenAmount } from '@/utils/number-helpers';
 import { 
   FaHandshake, 
   FaTimesCircle,
@@ -16,9 +17,9 @@ interface H2HChallengeCardProps {
   challenge: Challenge;
   address: string | undefined;
   isConnected: boolean;
-  onBid: () => void;
-  onClaim: () => void;
-  onCancel: () => void;
+  onBid: (e?: React.MouseEvent) => void;
+  onClaim: (e?: React.MouseEvent) => void;
+  onCancel: (e?: React.MouseEvent) => void;
   isBiddingOpen: boolean;
   canClaim: boolean;
   getCurrencyName: (currency: CurrencyType) => string;
@@ -47,6 +48,11 @@ export function H2HChallengeCard({
   const minBid = challenge.highestBidder === '0x0000000000000000000000000000000000000000'
     ? challenge.minBid
     : challenge.highestBid + 1n;
+
+  // Image error states for fallback handling
+  const [homeTeamImageError, setHomeTeamImageError] = useState(false);
+  const [awayTeamImageError, setAwayTeamImageError] = useState(false);
+  const [cryptoImageError, setCryptoImageError] = useState(false);
 
   const totalPot = challenge.makerStake + challenge.highestBid;
   const potentialWinnings = totalPot > 0n ? (totalPot * 97n) / 100n : 0n; // After 3% fee
@@ -154,6 +160,92 @@ export function H2HChallengeCard({
         </div>
       </div>
 
+      {/* Team Logos / Crypto Logo Display */}
+      {(challenge.homeTeamLogo || challenge.awayTeamLogo || challenge.cryptoLogo) && (
+        <div className="relative mb-3">
+          <div className="relative overflow-hidden rounded-xl backdrop-blur-sm bg-gradient-to-br from-white/5 via-white/3 to-transparent border border-white/10 p-3">
+            {challenge.homeTeamLogo && challenge.awayTeamLogo ? (
+              // Football: Display team logos
+              <div className="flex items-center justify-center gap-4">
+                <div className="flex flex-col items-center gap-1.5">
+                  <div className="relative w-12 h-12 rounded-full border-2 border-white/20 overflow-hidden bg-white/5">
+                    {homeTeamImageError && challenge.homeTeam ? (
+                      <Image 
+                        src={`https://ui-avatars.com/api/?name=${encodeURIComponent(challenge.homeTeam)}&background=22C7FF&color=000&size=64&font-size=0.4&bold=true`}
+                        alt={challenge.homeTeam || 'Home Team'}
+                        width={48}
+                        height={48}
+                        className="object-cover"
+                        unoptimized
+                      />
+                    ) : (
+                      <Image 
+                        src={challenge.homeTeamLogo} 
+                        alt={challenge.homeTeam || 'Home Team'}
+                        width={48}
+                        height={48}
+                        className="object-cover"
+                        unoptimized
+                        onError={() => setHomeTeamImageError(true)}
+                      />
+                    )}
+                  </div>
+                  <span className="text-xs font-semibold text-white truncate max-w-[80px] text-center">
+                    {challenge.homeTeam}
+                  </span>
+                </div>
+                <div className="text-white/40 font-bold text-lg">VS</div>
+                <div className="flex flex-col items-center gap-1.5">
+                  <div className="relative w-12 h-12 rounded-full border-2 border-white/20 overflow-hidden bg-white/5">
+                    {awayTeamImageError && challenge.awayTeam ? (
+                      <Image 
+                        src={`https://ui-avatars.com/api/?name=${encodeURIComponent(challenge.awayTeam)}&background=22C7FF&color=000&size=64&font-size=0.4&bold=true`}
+                        alt={challenge.awayTeam || 'Away Team'}
+                        width={48}
+                        height={48}
+                        className="object-cover"
+                        unoptimized
+                      />
+                    ) : (
+                      <Image 
+                        src={challenge.awayTeamLogo} 
+                        alt={challenge.awayTeam || 'Away Team'}
+                        width={48}
+                        height={48}
+                        className="object-cover"
+                        unoptimized
+                        onError={() => setAwayTeamImageError(true)}
+                      />
+                    )}
+                  </div>
+                  <span className="text-xs font-semibold text-white truncate max-w-[80px] text-center">
+                    {challenge.awayTeam}
+                  </span>
+                </div>
+              </div>
+            ) : challenge.cryptoLogo && !cryptoImageError ? (
+              // Crypto: Display coin logo
+              <div className="flex items-center justify-center gap-3">
+                <div className="relative w-12 h-12 rounded-full border-2 border-white/20 overflow-hidden bg-white/5">
+                  <Image 
+                    src={challenge.cryptoLogo} 
+                    alt="Crypto"
+                    width={48}
+                    height={48}
+                    className="object-cover"
+                    unoptimized
+                    onError={() => setCryptoImageError(true)}
+                  />
+                </div>
+                <div className="text-xs text-white/60">
+                  Cryptocurrency Market
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      )}
+
       {/* Creator Info & Prediction - Compact */}
       <div className="relative mb-3">
         <div className="relative overflow-hidden rounded-xl backdrop-blur-sm bg-gradient-to-br from-[#FFC107]/12 via-[#F7B600]/8 to-transparent border border-[#FFC107]/25 p-3">
@@ -187,7 +279,7 @@ export function H2HChallengeCard({
             {isCreator && <span className="text-amber-400/80 text-xs">👤</span>}
           </div>
           <div className="font-black text-white text-base">
-            {formatEther(challenge.makerStake)} <span className="text-xs text-white/30">{getCurrencyName(challenge.currency)}</span>
+            {formatTokenAmount(challenge.makerStake)} <span className="text-xs text-white/30">{getCurrencyName(challenge.currency)}</span>
           </div>
         </div>
 
@@ -198,7 +290,7 @@ export function H2HChallengeCard({
           </div>
           <div className="font-black text-white text-base">
             {challenge.highestBid > 0n 
-              ? <>{formatEther(challenge.highestBid)} <span className="text-xs text-white/30">{getCurrencyName(challenge.currency)}</span></>
+              ? <>{formatTokenAmount(challenge.highestBid)} <span className="text-xs text-white/30">{getCurrencyName(challenge.currency)}</span></>
               : <span className="text-xs text-white/30">No bids</span>
             }
           </div>
@@ -211,11 +303,11 @@ export function H2HChallengeCard({
           <div className="flex items-center justify-between mb-2">
             <div>
               <div className="text-[10px] text-violet-300/60 mb-0.5 uppercase tracking-wider font-semibold">Total Pot</div>
-              <div className="font-black text-white text-base">{formatEther(totalPot)} <span className="text-xs text-white/30">{getCurrencyName(challenge.currency)}</span></div>
+              <div className="font-black text-white text-base">{formatTokenAmount(totalPot)} <span className="text-xs text-white/30">{getCurrencyName(challenge.currency)}</span></div>
             </div>
             <div className="text-right">
               <div className="text-[10px] text-violet-300/60 mb-0.5 uppercase tracking-wider font-semibold">Winner Gets</div>
-              <div className="font-bold text-violet-200 text-sm">{formatEther(potentialWinnings)} <span className="text-[10px] text-white/30">(97%)</span></div>
+              <div className="font-bold text-violet-200 text-sm">{formatTokenAmount(potentialWinnings)} <span className="text-[10px] text-white/30">(97%)</span></div>
             </div>
           </div>
           {challenge.highestBidder !== '0x0000000000000000000000000000000000000000' && (
@@ -282,7 +374,9 @@ export function H2HChallengeCard({
         {/* Bid Button - Only if bidding is open and not creator */}
         {isBiddingOpen && !isConnected && (
           <Button
-            onClick={onBid}
+            onClick={() => {
+              onBid();
+            }}
             className="flex-1 relative overflow-hidden bg-gradient-to-r from-[#FFC107] via-[#F7B600] to-[#FFC107] hover:from-[#FFC107]/90 hover:to-[#F7B600]/90 text-black font-bold text-sm py-3 rounded-xl transition-all shadow-lg shadow-[#FFC107]/15 hover:shadow-xl hover:shadow-[#FFC107]/25"
           >
             <span className="relative z-10 flex items-center justify-center gap-2">
@@ -293,12 +387,14 @@ export function H2HChallengeCard({
         )}
         {isBiddingOpen && !isCreator && isConnected && (
           <Button
-            onClick={onBid}
+            onClick={() => {
+              onBid();
+            }}
             className="flex-1 relative overflow-hidden bg-gradient-to-r from-[#FFC107] via-[#F7B600] to-[#FFC107] hover:from-[#FFC107]/90 hover:to-[#F7B600]/90 text-black font-bold text-sm py-3 rounded-xl transition-all shadow-lg shadow-[#FFC107]/15 hover:shadow-xl hover:shadow-[#FFC107]/25"
           >
             <span className="relative z-10 flex items-center justify-center gap-2">
               <FaHandshake />
-              Bid {formatEther(minBid)}+ {getCurrencyName(challenge.currency)}
+              Bid {formatTokenAmount(minBid)}+ {getCurrencyName(challenge.currency)}
             </span>
           </Button>
         )}
@@ -306,12 +402,14 @@ export function H2HChallengeCard({
         {/* Claim Button - Only if user can claim */}
         {canClaim && (
           <Button
-            onClick={onClaim}
+            onClick={() => {
+              onClaim();
+            }}
             className="flex-1 relative overflow-hidden bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-500 hover:from-emerald-600 hover:to-green-600 text-white font-bold text-sm py-3 rounded-xl transition-all shadow-lg shadow-emerald-500/15 hover:shadow-xl hover:shadow-emerald-500/25"
           >
             <span className="relative z-10 flex items-center justify-center gap-2">
               <FaTrophy />
-              Claim {formatEther(potentialWinnings)} {getCurrencyName(challenge.currency)}
+              Claim {formatTokenAmount(potentialWinnings)} {getCurrencyName(challenge.currency)}
             </span>
           </Button>
         )}
@@ -319,7 +417,9 @@ export function H2HChallengeCard({
         {/* Cancel Button - Only creator can cancel if no bids */}
         {isCreator && challenge.state === 0 && challenge.highestBidder === '0x0000000000000000000000000000000000000000' && (
           <Button
-            onClick={onCancel}
+            onClick={() => {
+              onCancel();
+            }}
             className="flex-1 relative overflow-hidden bg-gradient-to-r from-rose-500 to-red-500 hover:from-rose-600 hover:to-red-600 text-white font-bold text-sm py-3 rounded-xl transition-all shadow-lg shadow-rose-500/15"
           >
             <span className="relative z-10 flex items-center justify-center gap-2">
@@ -349,7 +449,7 @@ export function H2HChallengeCard({
       {challenge.highestBidder === '0x0000000000000000000000000000000000000000' && !isCreator && isBiddingOpen && (
         <div className="mt-3 pt-3 border-t border-white/10">
           <div className="text-xs text-white/50">
-            💡 Minimum bid: <span className="text-[#FFC107] font-semibold">{formatEther(challenge.minBid)} {getCurrencyName(challenge.currency)}</span>
+            💡 Minimum bid: <span className="text-[#FFC107] font-semibold">{formatTokenAmount(challenge.minBid)} {getCurrencyName(challenge.currency)}</span>
           </div>
         </div>
       )}

@@ -25,6 +25,13 @@ export interface Challenge {
   result: string; // bytes32 decoded
   creatorWon: boolean;
   creationTime: bigint;
+  // Team logos for football challenges
+  homeTeam?: string;
+  awayTeam?: string;
+  homeTeamLogo?: string;
+  awayTeamLogo?: string;
+  // Crypto logo for cryptocurrency challenges
+  cryptoLogo?: string;
 }
 
 const CREATION_FEE = parseEther('0.005'); // 0.005 BNB

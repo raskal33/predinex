@@ -4,6 +4,7 @@ import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAccount } from "wagmi";
 import { formatEther, parseEther } from "viem";
+import { formatTokenAmount } from "@/utils/number-helpers";
 import { toast } from "react-hot-toast";
 import {
   FaHandshake, 
@@ -29,6 +30,7 @@ import H2HCryptoSelector from "@/components/H2HCryptoSelector";
 import SessionKeyManager from "@/components/SessionKeyManager";
 import { MinimumBidCalculator } from '@/components/MinimumBidCalculator';
 import { H2HChallengeCard } from '@/components/H2HChallengeCard';
+import MatchCenter from '@/components/MatchCenter';
 
 const CREATION_FEE = parseEther('0.005');
 const AUCTION_CLOSE_BUFFER = 5 * 60; // 5 minutes
@@ -78,6 +80,8 @@ export default function H2HPage() {
   const [bidAmount, setBidAmount] = useState('');
   const [showBidModal, setShowBidModal] = useState(false);
   const [showSessionModal, setShowSessionModal] = useState(false);
+  const [showMatchCenter, setShowMatchCenter] = useState(false);
+  const [selectedMarketId, setSelectedMarketId] = useState<string | null>(null);
 
   // Create challenge form state
   const [createForm, setCreateForm] = useState({
@@ -830,26 +834,60 @@ export default function H2HPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredChallenges.map((challenge) => (
-                  <H2HChallengeCard
-                    key={Number(challenge.id)}
-                    challenge={challenge}
-                    address={address}
-                    isConnected={isConnected}
-                    onBid={() => {
-                      setSelectedChallenge(challenge);
-                      setShowBidModal(true);
-                    }}
-                    onClaim={() => claim(Number(challenge.id))}
-                    onCancel={() => cancelChallenge(Number(challenge.id))}
-                    isBiddingOpen={isBiddingOpen(challenge)}
-                    canClaim={canClaim(challenge)}
-                    getCurrencyName={getCurrencyName}
-                    getStateLabel={getStateLabel}
-                    getStateColor={getStateColor}
-                    getStateBgColor={getStateBgColor}
-                  />
-                ))}
+                {filteredChallenges.map((challenge) => {
+                  // Extract fixture ID from marketId (format: "fixture_123" or just "123")
+                  const extractFixtureId = (marketId: string): string | null => {
+                    if (!marketId) return null;
+                    if (marketId.startsWith('fixture_')) {
+                      return marketId.split('_')[1];
+                    }
+                    // If marketId is just a number, use it directly
+                    if (/^\d+$/.test(marketId)) {
+                      return marketId;
+                    }
+                    return null;
+                  };
+
+                  const fixtureId = extractFixtureId(challenge.marketId);
+
+                  return (
+                    <div
+                      key={Number(challenge.id)}
+                      onClick={() => {
+                        if (fixtureId) {
+                          setSelectedMarketId(fixtureId);
+                          setShowMatchCenter(true);
+                        }
+                      }}
+                      className="cursor-pointer"
+                    >
+                      <H2HChallengeCard
+                        challenge={challenge}
+                        address={address}
+                        isConnected={isConnected}
+                        onBid={(e) => {
+                          e?.stopPropagation();
+                          setSelectedChallenge(challenge);
+                          setShowBidModal(true);
+                        }}
+                        onClaim={(e) => {
+                          e?.stopPropagation();
+                          claim(Number(challenge.id));
+                        }}
+                        onCancel={(e) => {
+                          e?.stopPropagation();
+                          cancelChallenge(Number(challenge.id));
+                        }}
+                        isBiddingOpen={isBiddingOpen(challenge)}
+                        canClaim={canClaim(challenge)}
+                        getCurrencyName={getCurrencyName}
+                        getStateLabel={getStateLabel}
+                        getStateColor={getStateColor}
+                        getStateBgColor={getStateBgColor}
+                      />
+                    </div>
+                  );
+                })}
               </div>
             )}
           </>
@@ -879,6 +917,36 @@ export default function H2HPage() {
         isOpen={showSessionModal}
         onClose={() => setShowSessionModal(false)}
       />
+
+      {/* Match Center Modal */}
+      <AnimatePresence>
+        {showMatchCenter && selectedMarketId && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="relative overflow-hidden rounded-2xl backdrop-blur-md bg-gradient-to-br from-white/10 via-white/5 to-transparent border border-white/20 p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-black bg-gradient-to-r from-[#FFC107] via-[#F7B600] to-[#FFC107] bg-clip-text text-transparent">
+                  Match Center
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowMatchCenter(false);
+                    setSelectedMarketId(null);
+                  }}
+                  className="text-white/60 hover:text-white transition-colors"
+                >
+                  <FaTimesCircle className="text-2xl" />
+                </button>
+              </div>
+              <MatchCenter marketId={selectedMarketId} />
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -926,12 +994,17 @@ function BidModal({
         <div className="space-y-4">
           <div className="relative overflow-hidden rounded-lg backdrop-blur-sm bg-[#0A0E13]/60 border border-white/10 p-3">
             <div className="text-xs text-white/50 mb-1 uppercase tracking-wider">Challenge #{Number(challenge.id)}</div>
-            <div className="font-semibold text-white">{challenge.creatorOutcome}</div>
+            <div className="font-semibold text-white">{challenge.title || challenge.creatorOutcome}</div>
+            {challenge.homeTeam && challenge.awayTeam && (
+              <div className="text-xs text-white/60 mt-1">
+                {challenge.homeTeam} vs {challenge.awayTeam}
+              </div>
+            )}
           </div>
 
           <div>
             <label className="block text-xs font-semibold mb-2 text-white/80 uppercase tracking-wider">
-              Bid Amount (Min: {formatEther(minBid)} {getCurrencyName(challenge.currency)})
+              Bid Amount (Min: {formatTokenAmount(minBid)} {getCurrencyName(challenge.currency)})
             </label>
             <AmountInput
               value={bidAmount}
@@ -949,7 +1022,7 @@ function BidModal({
             </Button>
             <Button
               onClick={onConfirm}
-              disabled={!bidAmount || parseFloat(bidAmount) < parseFloat(formatEther(minBid))}
+              disabled={!bidAmount || parseFloat(bidAmount) < parseFloat(formatTokenAmount(minBid))}
               className="flex-1 bg-gradient-to-r from-[#FFC107] to-[#F7B600] hover:from-[#FFC107]/90 hover:to-[#F7B600]/90 text-black font-semibold text-sm py-2.5 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Place Bid
