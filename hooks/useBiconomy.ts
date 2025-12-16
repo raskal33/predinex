@@ -92,11 +92,9 @@ export function useBiconomy(config?: BiconomyConfig): UseBiconomyReturn {
             address: walletClient.account?.address 
           });
 
-          // ✅ According to Biconomy docs, signer should be a viem Account
-          // We pass the walletClient.account directly
-          const signer = walletClient.account;
-          
-          await biconomyService.initialize(signer as any, config);
+          // ✅ According to Biconomy docs, signer should be the walletClient itself
+          // The walletClient contains the account and implements the required interface
+          await biconomyService.initialize(walletClient as any, config);
 
           const accountAddr = await biconomyService.getAccountAddress();
           setAccountAddress(accountAddr);
@@ -124,10 +122,8 @@ export function useBiconomy(config?: BiconomyConfig): UseBiconomyReturn {
       throw new Error('Wallet not connected or no account');
     }
 
-    // ✅ Pass viem account directly as signer
-    const signer = walletClient.account;
-    
-    await biconomyService.initialize(signer, initConfig || config);
+    // ✅ Pass walletClient as signer (contains account and implements required interface)
+    await biconomyService.initialize(walletClient, initConfig || config);
 
     const accountAddr = await biconomyService.getAccountAddress();
     setAccountAddress(accountAddr);
