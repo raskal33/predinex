@@ -1847,7 +1847,7 @@ function CreateMarketPageContent() {
             <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
               Creation Fee
             </label>
-            <FeeDisplay baseFee={parseEther('0.01')} currency={currency} />
+            <FeeDisplay baseFee={parseEther('0.01')} currency={currency} showDiscount={true} />
           </div>
         </div>
 

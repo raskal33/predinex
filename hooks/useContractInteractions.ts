@@ -144,29 +144,39 @@ export function usePoolCore() {
       const hasBoost = poolData.enableBoost || false;
       
       // ✅ NEW: Calculate discount based on PRIX balance (applies to all pools, fee always in BNB)
+      // ⚠️ CRITICAL: Contract calculates discount on-chain, so we must match exactly
+      // We fetch balance right before transaction to ensure accuracy
       let creationFeeBNB = baseCreationFeeBNB;
+      let prixBalanceForDiscount = 0n;
+      
       if (address) {
         try {
-          const prixBalance = await getBalance();
+          // ✅ FIX: Fetch PRIX balance right before calculating discount to ensure accuracy
+          // This ensures our calculation matches what the contract will calculate on-chain
+          prixBalanceForDiscount = await getBalance();
           let discountMultiplier = 100n; // 100% = no discount
           
-          // Apply discount based on PRIX balance (matching contract logic)
-          if (prixBalance >= 500000n * 10n**18n) {
+          // Apply discount based on PRIX balance (matching contract logic EXACTLY)
+          if (prixBalanceForDiscount >= 500000n * 10n**18n) {
             discountMultiplier = 50n; // 50% discount
-          } else if (prixBalance >= 200000n * 10n**18n) {
+          } else if (prixBalanceForDiscount >= 200000n * 10n**18n) {
             discountMultiplier = 70n; // 30% discount
-          } else if (prixBalance >= 50000n * 10n**18n) {
+          } else if (prixBalanceForDiscount >= 50000n * 10n**18n) {
             discountMultiplier = 80n; // 20% discount
-          } else if (prixBalance >= 5000n * 10n**18n) {
+          } else if (prixBalanceForDiscount >= 5000n * 10n**18n) {
             discountMultiplier = 90n; // 10% discount
           }
           
+          // ✅ CRITICAL: Calculate discount exactly as contract does: (baseFee * multiplier) / 100
           creationFeeBNB = (baseCreationFeeBNB * discountMultiplier) / 100n;
           
           if (discountMultiplier < 100n) {
             const discountPercent = 100n - discountMultiplier;
-            console.log(`💰 PRIX Balance Discount Applied: ${discountPercent}% off (PRIX balance: ${prixBalance / BigInt(10**18)} PRIX)`);
+            console.log(`💰 PRIX Balance Discount Applied: ${discountPercent}% off (PRIX balance: ${prixBalanceForDiscount / BigInt(10**18)} PRIX)`);
             console.log(`   Base fee: ${baseCreationFeeBNB / BigInt(10**16)} BNB → Adjusted fee: ${creationFeeBNB / BigInt(10**16)} BNB`);
+            console.log(`   ⚠️ Contract will verify: msg.value (${creationFeeBNB.toString()} wei) == adjustedCreationFee (calculated on-chain)`);
+          } else {
+            console.log(`💰 No discount applied (PRIX balance: ${prixBalanceForDiscount / BigInt(10**18)} PRIX < 5,000 PRIX threshold)`);
           }
         } catch (error) {
           console.warn('⚠️ Could not fetch PRIX balance for discount calculation, using base fee:', error);
@@ -192,7 +202,21 @@ export function usePoolCore() {
       // ✅ FIX: Transaction value calculation for factory
       // Factory expects: BNB pools = stake + fee, PRIX pools = fee only (stake via token transfer)
       // Boost cost is handled by factory (transfers PRIX from user)
+      // ⚠️ CRITICAL: Contract calculates discount on-chain, so we must send the EXACT discounted fee
+      // The contract will verify: msg.value == adjustedCreationFee (calculated on-chain from PRIX balance)
+      // We calculate discount off-chain to show user, but contract validates on-chain
       const transactionValue = totalRequiredBNB;
+      
+      // ✅ DEBUG: Log exact values being sent
+      console.log('💰 Final Transaction Values:', {
+        creationFeeBNB: `${creationFeeBNB / BigInt(10**16)} BNB (${creationFeeBNB.toString()} wei)`,
+        baseCreationFeeBNB: `${baseCreationFeeBNB / BigInt(10**16)} BNB`,
+        discountApplied: `${((baseCreationFeeBNB - creationFeeBNB) * 100n) / baseCreationFeeBNB}%`,
+        transactionValue: `${transactionValue / BigInt(10**16)} BNB (${transactionValue.toString()} wei)`,
+        currencyType: finalCurrencyType,
+        usePrix: poolData.usePrix,
+        note: 'Contract will recalculate discount on-chain and verify msg.value matches'
+      });
       
       // ✅ FIX: Boost is available for both BNB and PRIX pools
       // Boost is paid in PRIX tokens via the factory's createPoolWithBoost function
@@ -710,7 +734,52 @@ export function usePoolCore() {
                   // This is the masked error - try to get more info
                   console.error('⚠️ RPC error detected - this might mask the actual revert reason');
                   console.error('   The contract might be reverting, but the RPC is not returning the reason');
-                  throw new Error('Transaction failed due to RPC error. The contract may be reverting. Please check: 1) PRIX balance is sufficient, 2) PRIX allowance is sufficient, 3) All parameters are valid.');
+                  console.error('   Common causes:');
+                  console.error('   1. msg.value mismatch (contract calculates discount on-chain)');
+                  console.error('   2. PRIX allowance insufficient (even if approval succeeded)');
+                  console.error('   3. PRIX balance changed between calculation and transaction');
+                  console.error('   4. Contract validation failed (timing, parameters, etc.)');
+                  
+                  // Try to simulate the contract call to get the actual revert reason
+                  if (publicClient && address) {
+                    try {
+                      console.log('🔍 Attempting to simulate contract call to get revert reason...');
+                      await publicClient.simulateContract({
+                        address: CONTRACT_ADDRESSES.POOL_CORE,
+                        abi: CONTRACTS.POOL_CORE.abi,
+                        functionName: 'createPool',
+                        args: [
+                          poolData.creatorStake,
+                          Number(poolData.odds),
+                          predictedOutcomeBytes32,
+                          poolData.eventStartTime,
+                          poolData.eventEndTime,
+                          poolData.isPrivate,
+                          poolData.maxBetPerUser,
+                          poolData.oracleType,
+                          poolData.marketType,
+                          finalCurrencyType,
+                          leagueBytes32,
+                          categoryBytes32,
+                          homeTeamBytes32,
+                          awayTeamBytes32,
+                          titleBytes32,
+                          finalLeverage,
+                          marketIdString,
+                          poolData.isDynamicOdds || false,
+                        ],
+                        value: finalCurrencyType === 0 ? (poolData.creatorStake + creationFeeBNB) : creationFeeBNB,
+                        account: address as `0x${string}`,
+                      });
+                    } catch (simError: any) {
+                      console.error('   Simulated contract call error:', simError);
+                      if (simError.message && !simError.message.includes('RPC endpoint')) {
+                        throw new Error(`Contract revert: ${simError.message}`);
+                      }
+                    }
+                  }
+                  
+                  throw new Error('Transaction failed due to RPC error. The contract may be reverting. Please check: 1) PRIX balance is sufficient, 2) PRIX allowance is sufficient, 3) All parameters are valid, 4) Try refreshing the page and recalculating the fee.');
                 }
                 
                 // Re-throw with more context
