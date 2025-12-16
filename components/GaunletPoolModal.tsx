@@ -9,7 +9,6 @@ import { useGaunlet, BetType, type UserPrediction } from "@/hooks/useGaunlet";
 import { 
   XMarkIcon,
   TrophyIcon,
-  ClockIcon,
   ShieldCheckIcon,
   BoltIcon,
   CheckCircleIcon,
@@ -97,16 +96,6 @@ export default function GaunletPoolModal({
       hour: "2-digit",
       minute: "2-digit",
       hour12: false,
-    });
-  };
-
-  // Format date
-  const formatDate = (timestamp: bigint) => {
-    const date = new Date(Number(timestamp) * 1000);
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
     });
   };
 
@@ -352,7 +341,27 @@ export default function GaunletPoolModal({
                   <p className="text-gray-400">No matches found</p>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-2">
+                  {/* Header Row */}
+                  <div className="grid grid-cols-12 gap-2 mb-2 px-2">
+                    <div className="col-span-1 text-center">
+                      <div className="text-[10px] text-gray-400 font-semibold">Time</div>
+                    </div>
+                    <div className="col-span-4 text-center">
+                      <div className="text-[10px] text-gray-400 font-semibold">Match</div>
+                    </div>
+                    <div className="col-span-3 text-center">
+                      <div className="text-[10px] text-gray-400 font-semibold">1 X 2</div>
+                    </div>
+                    <div className="col-span-2 text-center">
+                      <div className="text-[10px] text-gray-400 font-semibold">Over - Under</div>
+                    </div>
+                    <div className="col-span-2 text-center">
+                      <div className="text-[10px] text-gray-400 font-semibold">League</div>
+                    </div>
+                  </div>
+                  
+                  {/* Match Rows */}
                   {matches.map((match, index) => {
                     const matchStarted = isMatchStarted(match.startTime);
                     const existingPick = picks.find(p => p.matchIndex === index);
@@ -361,133 +370,135 @@ export default function GaunletPoolModal({
                     return (
                       <motion.div
                         key={index}
-                        initial={{ opacity: 0, y: 10 }}
+                        initial={{ opacity: 0, y: 5 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.05 }}
-                        className="relative overflow-hidden rounded-xl backdrop-blur-md bg-gradient-to-br from-[#0F1419] via-[#1A1F2E] to-[#0F1419] border border-white/10 p-4 hover:border-white/20 transition-all duration-300"
+                        transition={{ delay: index * 0.03 }}
+                        className={`grid grid-cols-12 gap-2 p-3 rounded-lg backdrop-blur-md bg-gradient-to-br from-[#0F1419]/80 via-[#1A1F2E]/60 to-[#0F1419]/80 border ${
+                          existingPick 
+                            ? "border-cyan-500/40 bg-cyan-500/5" 
+                            : "border-white/10 hover:border-white/20"
+                        } transition-all duration-200 relative`}
                       >
-                        {/* Match Header */}
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center gap-3">
-                            <span className="text-xs font-semibold text-cyan-400 bg-cyan-500/10 px-2 py-1 rounded">
-                              Match {index + 1}
-                            </span>
-                            <span className="text-xs text-gray-400">{match.leagueName}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <ClockIcon className="h-4 w-4 text-gray-500" />
-                            <span className="text-xs text-gray-400">
-                              {formatDate(match.startTime)} • {formatTime(match.startTime)}
-                            </span>
-                            {matchStarted && (
-                              <span className="text-xs text-red-400 font-semibold">STARTED</span>
+                        {/* Time */}
+                        <div className="col-span-1 flex items-center justify-center">
+                          <div className={`text-xs font-mono px-2 py-1 rounded ${
+                            matchStarted
+                              ? "text-red-400 bg-red-500/10 border border-red-500/20"
+                              : "text-gray-400 bg-white/5"
+                          }`}>
+                            <div className="font-bold text-[10px]">
+                              {formatTime(match.startTime)}
+                            </div>
+                            {matchStarted ? (
+                              <div className="text-[8px] text-red-400 font-bold">STARTED</div>
+                            ) : (
+                              <div className="text-[8px] text-gray-500">AM</div>
                             )}
                           </div>
                         </div>
 
-                        {/* Teams */}
-                        <div className="mb-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-semibold text-white">{match.homeTeam}</span>
-                          </div>
-                          <div className="text-center text-xs text-gray-500 mb-2">VS</div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm font-semibold text-white">{match.awayTeam}</span>
+                        {/* Match Teams */}
+                        <div className="col-span-4 flex items-center justify-center">
+                          <div className="text-xs font-semibold text-white text-center leading-tight">
+                            <div className="truncate max-w-[140px]">{match.homeTeam}</div>
+                            <div className="text-[10px] text-gray-500">vs</div>
+                            <div className="truncate max-w-[140px]">{match.awayTeam}</div>
                           </div>
                         </div>
 
                         {/* 1X2 Market */}
-                        <div className="mb-3">
-                          <div className="text-xs text-gray-400 mb-2">Match Result</div>
-                          <div className="grid grid-cols-3 gap-2">
-                            <button
-                              onClick={() => handlePickSelection(index, match, "home")}
-                              disabled={isDisabled}
-                              className={`px-3 py-2 text-center rounded transition-all duration-200 font-bold text-sm ${
-                                isDisabled
-                                  ? "bg-[#0A0E13]/80 text-white/30 cursor-not-allowed opacity-50 border border-white/5"
-                                  : existingPick?.pick === "home"
-                                  ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white scale-105 shadow-lg shadow-cyan-500/30"
-                                  : "bg-white/5 text-white hover:bg-cyan-500/20 hover:text-cyan-300 border border-transparent hover:border-cyan-500/30"
-                              }`}
-                            >
-                              <div className="text-xs opacity-75">1</div>
-                              <div>{match.oddsHome.toFixed(2)}</div>
-                            </button>
-                            
-                            <button
-                              onClick={() => handlePickSelection(index, match, "draw")}
-                              disabled={isDisabled}
-                              className={`px-3 py-2 text-center rounded transition-all duration-200 font-bold text-sm ${
-                                isDisabled
-                                  ? "bg-[#0A0E13]/80 text-white/30 cursor-not-allowed opacity-50 border border-white/5"
-                                  : existingPick?.pick === "draw"
-                                  ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white scale-105 shadow-lg shadow-purple-500/30"
-                                  : "bg-white/5 text-white hover:bg-purple-500/20 hover:text-purple-300 border border-transparent hover:border-purple-500/30"
-                              }`}
-                            >
-                              <div className="text-xs opacity-75">X</div>
-                              <div>{match.oddsDraw.toFixed(2)}</div>
-                            </button>
-                            
-                            <button
-                              onClick={() => handlePickSelection(index, match, "away")}
-                              disabled={isDisabled}
-                              className={`px-3 py-2 text-center rounded transition-all duration-200 font-bold text-sm ${
-                                isDisabled
-                                  ? "bg-[#0A0E13]/80 text-white/30 cursor-not-allowed opacity-50 border border-white/5"
-                                  : existingPick?.pick === "away"
-                                  ? "bg-gradient-to-r from-orange-500 to-red-500 text-white scale-105 shadow-lg shadow-orange-500/30"
-                                  : "bg-white/5 text-white hover:bg-orange-500/20 hover:text-orange-300 border border-transparent hover:border-orange-500/30"
-                              }`}
-                            >
-                              <div className="text-xs opacity-75">2</div>
-                              <div>{match.oddsAway.toFixed(2)}</div>
-                            </button>
-                          </div>
+                        <div className="col-span-3 flex items-center gap-1">
+                          <button
+                            onClick={() => handlePickSelection(index, match, "home")}
+                            disabled={isDisabled}
+                            className={`flex-1 px-2 py-1.5 text-center rounded transition-all duration-200 font-bold text-xs ${
+                              isDisabled
+                                ? "bg-[#0A0E13]/80 text-white/30 cursor-not-allowed opacity-50 border border-white/5"
+                                : existingPick?.pick === "home"
+                                ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white scale-105 shadow-lg shadow-cyan-500/30"
+                                : "bg-white/5 text-white hover:bg-cyan-500/20 hover:text-cyan-300 border border-transparent hover:border-cyan-500/30"
+                            }`}
+                          >
+                            <div className="text-[10px] opacity-75">1</div>
+                            <div>{match.oddsHome.toFixed(2)}</div>
+                          </button>
+                          
+                          <button
+                            onClick={() => handlePickSelection(index, match, "draw")}
+                            disabled={isDisabled}
+                            className={`flex-1 px-2 py-1.5 text-center rounded transition-all duration-200 font-bold text-xs ${
+                              isDisabled
+                                ? "bg-[#0A0E13]/80 text-white/30 cursor-not-allowed opacity-50 border border-white/5"
+                                : existingPick?.pick === "draw"
+                                ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white scale-105 shadow-lg shadow-purple-500/30"
+                                : "bg-white/5 text-white hover:bg-purple-500/20 hover:text-purple-300 border border-transparent hover:border-purple-500/30"
+                            }`}
+                          >
+                            <div className="text-[10px] opacity-75">X</div>
+                            <div>{match.oddsDraw.toFixed(2)}</div>
+                          </button>
+                          
+                          <button
+                            onClick={() => handlePickSelection(index, match, "away")}
+                            disabled={isDisabled}
+                            className={`flex-1 px-2 py-1.5 text-center rounded transition-all duration-200 font-bold text-xs ${
+                              isDisabled
+                                ? "bg-[#0A0E13]/80 text-white/30 cursor-not-allowed opacity-50 border border-white/5"
+                                : existingPick?.pick === "away"
+                                ? "bg-gradient-to-r from-orange-500 to-red-500 text-white scale-105 shadow-lg shadow-orange-500/30"
+                                : "bg-white/5 text-white hover:bg-orange-500/20 hover:text-orange-300 border border-transparent hover:border-orange-500/30"
+                            }`}
+                          >
+                            <div className="text-[10px] opacity-75">2</div>
+                            <div>{match.oddsAway.toFixed(2)}</div>
+                          </button>
                         </div>
 
                         {/* Over/Under Market */}
-                        <div>
-                          <div className="text-xs text-gray-400 mb-2">Total Goals O/U 2.5</div>
-                          <div className="grid grid-cols-2 gap-2">
-                            <button
-                              onClick={() => handlePickSelection(index, match, "over")}
-                              disabled={isDisabled}
-                              className={`px-2 py-2 text-center rounded transition-all duration-200 font-bold text-sm ${
-                                isDisabled
-                                  ? "bg-[#0A0E13]/80 text-white/30 cursor-not-allowed opacity-50 border border-white/5"
-                                  : existingPick?.pick === "over"
-                                  ? "bg-gradient-to-r from-blue-500 to-cyan-500 text-white scale-105 shadow-lg shadow-blue-500/30"
-                                  : "bg-white/5 text-white hover:bg-blue-500/20 hover:text-blue-300 border border-transparent hover:border-blue-500/30"
-                              }`}
-                            >
-                              <div className="text-xs opacity-75">O</div>
-                              <div>{match.oddsOver.toFixed(2)}</div>
-                            </button>
-                            
-                            <button
-                              onClick={() => handlePickSelection(index, match, "under")}
-                              disabled={isDisabled}
-                              className={`px-2 py-2 text-center rounded transition-all duration-200 font-bold text-sm ${
-                                isDisabled
-                                  ? "bg-[#0A0E13]/80 text-white/30 cursor-not-allowed opacity-50 border border-white/5"
-                                  : existingPick?.pick === "under"
-                                  ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white scale-105 shadow-lg shadow-indigo-500/30"
-                                  : "bg-white/5 text-white hover:bg-indigo-500/20 hover:text-indigo-300 border border-transparent hover:border-indigo-500/30"
-                              }`}
-                            >
-                              <div className="text-xs opacity-75">U</div>
-                              <div>{match.oddsUnder.toFixed(2)}</div>
-                            </button>
+                        <div className="col-span-2 flex items-center gap-1">
+                          <button
+                            onClick={() => handlePickSelection(index, match, "over")}
+                            disabled={isDisabled}
+                            className={`flex-1 px-1.5 py-1.5 text-center rounded transition-all duration-200 font-bold text-xs ${
+                              isDisabled
+                                ? "bg-[#0A0E13]/80 text-white/30 cursor-not-allowed opacity-50 border border-white/5"
+                                : existingPick?.pick === "over"
+                                ? "bg-gradient-to-r from-blue-500 to-cyan-500 text-white scale-105 shadow-lg shadow-blue-500/30"
+                                : "bg-white/5 text-white hover:bg-blue-500/20 hover:text-blue-300 border border-transparent hover:border-blue-500/30"
+                            }`}
+                          >
+                            <div className="text-[10px] opacity-75">O</div>
+                            <div>{match.oddsOver.toFixed(2)}</div>
+                          </button>
+                          
+                          <button
+                            onClick={() => handlePickSelection(index, match, "under")}
+                            disabled={isDisabled}
+                            className={`flex-1 px-1.5 py-1.5 text-center rounded transition-all duration-200 font-bold text-xs ${
+                              isDisabled
+                                ? "bg-[#0A0E13]/80 text-white/30 cursor-not-allowed opacity-50 border border-white/5"
+                                : existingPick?.pick === "under"
+                                ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white scale-105 shadow-lg shadow-indigo-500/30"
+                                : "bg-white/5 text-white hover:bg-indigo-500/20 hover:text-indigo-300 border border-transparent hover:border-indigo-500/30"
+                            }`}
+                          >
+                            <div className="text-[10px] opacity-75">U</div>
+                            <div>{match.oddsUnder.toFixed(2)}</div>
+                          </button>
+                        </div>
+
+                        {/* League */}
+                        <div className="col-span-2 flex items-center justify-center">
+                          <div className="text-[10px] text-gray-400 truncate max-w-[100px]">
+                            {match.leagueName}
                           </div>
                         </div>
 
                         {/* Selection Indicator */}
                         {existingPick && (
-                          <div className="absolute top-2 right-2 z-10">
-                            <div className="p-1.5 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-full shadow-lg">
-                              <CheckCircleIcon className="h-5 w-5 text-white" />
+                          <div className="absolute top-1 right-1 z-10">
+                            <div className="p-1 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-full shadow-lg">
+                              <CheckCircleIcon className="h-3 w-3 text-white" />
                             </div>
                           </div>
                         )}

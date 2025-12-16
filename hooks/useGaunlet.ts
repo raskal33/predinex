@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, usePublicClient } from 'wagmi';
 import { CONTRACTS } from '@/contracts';
 import { parseUnits } from 'viem';
 import { useQuery } from '@tanstack/react-query';
@@ -60,6 +60,7 @@ export function useGaunlet() {
   const { address } = useAccount();
   const { writeContract, data: hash, isPending } = useWriteContract();
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
+  const publicClient = usePublicClient();
 
   // Read pool count
   const { data: poolCount, refetch: refetchPoolCount } = useReadContract({
@@ -169,6 +170,7 @@ export function useGaunlet() {
     predictions: UserPrediction[]
   ) => {
     if (!address) throw new Error('Wallet not connected');
+    if (!publicClient) throw new Error('Public client not available');
 
     // Get pool to get entry fee
     const pool = await gaunletService.getPool(poolId);
@@ -183,6 +185,50 @@ export function useGaunlet() {
       selectedOdd: BigInt(pred.selectedOdd),
     }));
 
+    // Simulate contract call first to catch errors early
+    try {
+      await publicClient.simulateContract({
+        ...CONTRACTS.GAUNLET,
+        functionName: 'placeSlip',
+        args: [
+          BigInt(poolId),
+          formattedPredictions
+        ],
+        value: pool.entryFee,
+        account: address as `0x${string}`,
+      });
+    } catch (simError: any) {
+      console.error('❌ Simulated contract call error:', simError);
+      
+      // Try to extract meaningful error message
+      let errorMessage = 'Failed to place slip';
+      
+      if (simError.message) {
+        // Check for common revert reasons
+        if (simError.message.includes('ERC20InsufficientAllowance')) {
+          errorMessage = 'Insufficient token allowance. Please approve tokens first.';
+        } else if (simError.message.includes('InsufficientBalance')) {
+          errorMessage = 'Insufficient balance. Please check your BNB balance.';
+        } else if (simError.message.includes('BettingClosed')) {
+          errorMessage = 'Betting is closed for this pool.';
+        } else if (simError.message.includes('MatchStarted')) {
+          errorMessage = 'One or more matches have already started.';
+        } else if (simError.message.includes('InvalidPrediction')) {
+          errorMessage = 'Invalid prediction format. Please check your selections.';
+        } else if (simError.message.includes('PoolFull')) {
+          errorMessage = 'Pool is full. Maximum entries reached.';
+        } else if (!simError.message.includes('RPC endpoint')) {
+          // Only use the error message if it's not a generic RPC error
+          errorMessage = `Contract revert: ${simError.message}`;
+        } else {
+          errorMessage = 'Transaction failed. The contract may be reverting. Please check: 1) BNB balance is sufficient, 2) Pool is still accepting entries, 3) All matches are valid.';
+        }
+      }
+      
+      throw new Error(errorMessage);
+    }
+
+    // If simulation succeeds, proceed with actual transaction
     writeContract({
       ...CONTRACTS.GAUNLET,
       functionName: 'placeSlip',
@@ -192,7 +238,7 @@ export function useGaunlet() {
       ],
       value: pool.entryFee,
     });
-  }, [address, writeContract]);
+  }, [address, writeContract, publicClient]);
 
   /**
    * Settle pool
