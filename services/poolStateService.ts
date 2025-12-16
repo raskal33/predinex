@@ -5,10 +5,11 @@
 
 import { readContract } from 'wagmi/actions';
 import { config, CONTRACT_ADDRESSES } from '@/config/wagmi';
-import PredinexPoolCoreArtifact from '@/contracts/abis/PredinexPoolCore.json';
+import PredinexDiamondArtifact from '@/contracts/abis/PredinexDiamond.json';
 
-// Extract ABI array from artifact (ABI files are arrays directly)
-const PredinexPoolCoreABI = PredinexPoolCoreArtifact as any;
+// ✅ FIX: Use PredinexDiamond ABI (not PredinexPoolCore) for Diamond pattern
+// The Diamond proxy uses a different storage layout
+const PredinexDiamondABI = PredinexDiamondArtifact as any;
 
 interface PoolStateCache {
   [poolId: number]: {
@@ -43,7 +44,7 @@ class PoolStateService {
       // Get pool data and extract flags
       const poolData = await readContract(config, {
         address: this.CONTRACT_ADDRESS as `0x${string}`,
-        abi: PredinexPoolCoreABI,
+        abi: PredinexDiamondABI,
         functionName: 'getPool',
         args: [BigInt(poolId)]
       }) as any;
@@ -103,7 +104,7 @@ class PoolStateService {
         const contractCalls = uncachedIds.map(poolId => 
           readContract(config, {
             address: this.CONTRACT_ADDRESS as `0x${string}`,
-            abi: PredinexPoolCoreABI,
+            abi: PredinexDiamondABI,
             functionName: 'getPool',
             args: [BigInt(poolId)]
           }).catch(error => {
