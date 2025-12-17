@@ -19,12 +19,14 @@ import {
   WalletIcon,
   SparklesIcon,
   BookOpenIcon,
-  PlusIcon
+  PlusIcon,
+  PresentationChartLineIcon
 } from "@heroicons/react/24/outline";
 import {
   TrophyIcon as TrophyIconSolid,
   SparklesIcon as SparklesIconSolid,
-  FireIcon as FireIconSolid
+  FireIcon as FireIconSolid,
+  ChartBarIcon as ChartBarIconSolid
 } from "@heroicons/react/24/solid";
 import { useProfileStore } from '@/stores/useProfileStore';
 import { useWalletConnection } from '@/hooks/useWalletConnection';
@@ -119,11 +121,24 @@ export default function Header() {
     { href: "/markets/combo", label: "Combo", icon: CubeTransparentIcon, segment: "combo", color: "from-emerald-500 to-green-500" },
   ];
 
+  // Custom Icon for Gauntlet
+  const GauntletIcon = ({ className }: { className?: string }) => (
+    <div className={`relative ${className}`} style={{ width: '1.25rem', height: '1.25rem' }}>
+      <Image
+        src="/docs/img/gauntlet_870687.png"
+        alt="Gauntlet"
+        fill
+        sizes="20px"
+        className="object-contain"
+      />
+    </div>
+  );
+
   const navItems = [
     { href: "/oddyssey", label: "Oddyssey", icon: FireIcon, iconSolid: FireIconSolid, segment: "oddyssey", color: "from-[#FFC107] to-[#F7B600]" },
-    { href: "/gaunlet", label: "Gaunlet", icon: TrophyIcon, iconSolid: TrophyIconSolid, segment: "gaunlet", color: "from-[#22C7FF] to-[#3B82F6]" },
+    { href: "/gaunlet", label: "Gauntlet", icon: GauntletIcon, iconSolid: GauntletIcon, segment: "gaunlet", color: "from-[#22C7FF] to-[#3B82F6]" },
     { href: "/h2h", label: "H2H", icon: UsersIcon, iconSolid: UsersIcon, segment: "h2h", color: "from-[#8B5CF6] to-[#7C3AED]" },
-    { href: "/stats", label: "Stats", icon: ChartBarIcon, iconSolid: ChartBarIcon, segment: "stats", color: "from-[#3B82F6] to-[#2563EB]" },
+    { href: "/stats", label: "Stats", icon: ChartBarIcon, iconSolid: ChartBarIconSolid, segment: "stats", color: "from-[#3B82F6] to-[#2563EB]" },
     { href: "/rewards", label: "Prize", icon: TrophyIcon, iconSolid: TrophyIconSolid, segment: "rewards", color: "from-[#FFC107] to-[#F7B600]" },
     { href: "/staking", label: "Staking", icon: SparklesIcon, iconSolid: SparklesIconSolid, segment: "staking", color: "from-[#10B981] to-[#059669]" },
     { href: "/docs", label: "Docs", icon: BookOpenIcon, iconSolid: BookOpenIcon, segment: "docs", color: "from-[#FFC107] to-[#10B981]" },
@@ -143,9 +158,8 @@ export default function Header() {
             backdropFilter: isScrolled ? "blur(20px)" : "blur(12px)",
           }}
           transition={{ duration: 0.3 }}
-          className={`fixed inset-x-0 top-0 z-[100] transition-all duration-300 border-b ${
-            isScrolled ? "border-white/5" : "border-transparent"
-          }`}
+          className={`fixed inset-x-0 top-0 z-[100] transition-all duration-300 border-b ${isScrolled ? "border-white/5" : "border-transparent"
+            }`}
         >
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16 lg:h-20">
@@ -191,7 +205,7 @@ export default function Header() {
                         : "text-gray-400 hover:text-white hover:bg-white/5"
                         }`}
                     >
-                      <ChartBarIcon className="h-5 w-5 relative z-10" />
+                      <PresentationChartLineIcon className="h-5 w-5 relative z-10" />
                     </div>
 
                     <AnimatePresence>

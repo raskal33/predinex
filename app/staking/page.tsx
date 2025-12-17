@@ -2,11 +2,9 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { CurrencyDollarIcon as CurrencySolid } from "@heroicons/react/24/solid";
 import { useAccount } from "wagmi";
 import { toast } from "react-hot-toast";
 import Button from "@/components/button";
-import AnimatedTitle from "@/components/AnimatedTitle";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import AmountInput from "@/components/AmountInput";
 import { useStaking, DurationOption, StakeWithRewards } from "@/hooks/useStaking";
@@ -17,17 +15,17 @@ import { parseUnits } from "viem";
 import { IoMdLock } from "react-icons/io";
 import { isBigIntZero } from "@/utils/bigint-helpers";
 import { formatPercentage } from "@/utils/number-helpers";
-import { 
-  FaTrophy, 
-  FaChartLine, 
-  FaCoins, 
-  FaCrown, 
-  FaStar, 
-  FaGem, 
+import {
+  FaTrophy,
+  FaChartLine,
+  FaCoins,
+  FaCrown,
+  FaStar,
+  FaGem,
   FaClock,
   FaMoneyBillWave
 } from "react-icons/fa";
-import { BoltIcon as BoltSolid } from "@heroicons/react/24/solid";
+import { BoltIcon as BoltSolid, SparklesIcon as SparklesIconSolid } from "@heroicons/react/24/solid";
 
 const TIER_ICONS = [FaCoins, FaStar, FaTrophy, FaCrown, FaGem];
 const TIER_COLORS = [
@@ -40,32 +38,27 @@ const TIER_COLORS = [
 
 export default function StakingPage() {
   const { isConnected } = useAccount();
-  // const [activeTab, setActiveTab] = useState("stake"); // TODO: Implement tabs
   const [stakeAmount, setStakeAmount] = useState("");
   const [selectedTier, setSelectedTier] = useState(0);
   const [selectedDuration, setSelectedDuration] = useState<DurationOption>(DurationOption.THIRTY_DAYS);
   const [needsApproval, setNeedsApproval] = useState(false);
   const isMountedRef = useRef(true);
-  
+
   // Smart contract hooks
   const staking = useStaking();
   const token = usePRIXToken();
-  
+
   // Transaction feedback system
   const { transactionStatus, showSuccess, showError, showInfo, clearStatus } = useTransactionFeedback();
 
-
-
-
-
   // Comprehensive safety check for all staking data
   const isDataLoaded = () => {
-    return staking.tiers && 
-           Array.isArray(staking.tiers) && 
-           staking.tiers.length > 0 &&
-           staking.durationOptions &&
-           Array.isArray(staking.durationOptions) &&
-           staking.durationOptions.length > 0;
+    return staking.tiers &&
+      Array.isArray(staking.tiers) &&
+      staking.tiers.length > 0 &&
+      staking.durationOptions &&
+      Array.isArray(staking.durationOptions) &&
+      staking.durationOptions.length > 0;
   };
 
   // Cleanup on unmount
@@ -115,7 +108,7 @@ export default function StakingPage() {
     }
   }, [token.isConfirmed, token]);
 
-  // ✅ FIX: Watch for successful transactions with proper cleanup
+  // Watch for successful transactions with proper cleanup
   useEffect(() => {
     if (staking.isConfirmed && isMountedRef.current) {
       // Determine which transaction was confirmed based on the transaction state
@@ -130,9 +123,7 @@ export default function StakingPage() {
       } else {
         toast.success("Transaction confirmed! 🎉");
       }
-      
-      // ✅ FIX: Delay refetch to avoid React error #185 (state updates during render)
-      // The hook's useEffect already calls refetchAll, so we only need to refetch balance here
+
       const timeoutId = setTimeout(() => {
         if (isMountedRef.current) {
           try {
@@ -141,29 +132,28 @@ export default function StakingPage() {
             console.error('Error refetching token balance:', error);
           }
         }
-      }, 200); // Delay to allow hook's refetch to complete first
-      
+      }, 200);
+
       return () => clearTimeout(timeoutId);
     }
-  }, [staking.isConfirmed, staking.claimingStakeIndex, staking.unstakingStakeIndex, staking.isClaimingRevenue, staking.isStaking, token, isMountedRef]);
+  }, [staking.isConfirmed, staking.claimingStakeIndex, staking.unstakingStakeIndex, staking.isClaimingRevenue, staking.isStaking, token]);
 
-  // ✅ FIX: Handle transaction state changes with proper cleanup
+  // Handle transaction state changes with proper cleanup
   useEffect(() => {
     if (!isMountedRef.current) return;
-    
+
     if (staking.isPending) {
       showInfo("Transaction Pending", "Please confirm the transaction in your wallet...");
     } else if (staking.isConfirmed && staking.hash) {
-      // ✅ FIX: Delay success message to avoid React error #185
       const timeoutId = setTimeout(() => {
         if (isMountedRef.current) {
           showSuccess("Transaction Successful", "Transaction completed successfully!", staking.hash);
         }
       }, 100);
-      
+
       return () => clearTimeout(timeoutId);
     }
-  }, [staking.isPending, staking.isConfirmed, staking.hash, showInfo, showSuccess, isMountedRef]);
+  }, [staking.isPending, staking.isConfirmed, staking.hash, showInfo, showSuccess]);
 
   // Handle token approval state changes
   useEffect(() => {
@@ -177,16 +167,16 @@ export default function StakingPage() {
   // Show loading state if data is not ready
   if (!isDataLoaded()) {
     return (
-      <div className="min-h-screen bg-bg-main flex items-center justify-center p-6">
+      <div className="min-h-screen bg-[#0F1419] flex items-center justify-center p-6">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20 text-center"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-white/5 backdrop-blur-lg rounded-3xl p-12 border border-white/10 text-center shadow-2xl"
         >
           <LoadingSpinner size="lg" />
-          <h2 className="text-2xl font-bold text-white mt-4">Loading Staking Data</h2>
-          <p className="text-gray-300 mt-2">
-            Please wait while we load the staking information...
+          <h2 className="text-2xl font-bold text-white mt-6">Loading Staking Data</h2>
+          <p className="text-gray-400 mt-2">
+            Synchronizing with the blockchain...
           </p>
         </motion.div>
       </div>
@@ -213,8 +203,6 @@ export default function StakingPage() {
       const stakeAmountWei = parseUnits(stakeAmount, 18);
       await token.approve(CONTRACTS.PREDINEX_STAKING.address, stakeAmountWei.toString());
       showSuccess("Approval Successful", "PRIX tokens approved for staking. You can now create your stake.");
-      
-      // Reset approval state after successful approval
       setNeedsApproval(false);
     } catch (error: unknown) {
       showError("Approval Failed", (error as Error).message || "Failed to approve PRIX tokens. Please try again.");
@@ -236,8 +224,6 @@ export default function StakingPage() {
 
       await staking.stake(stakeAmount, selectedTier, selectedDuration);
       showSuccess("Staking Successful", "Your stake has been created successfully!");
-      
-      // Reset form after successful staking
       setStakeAmount("");
       setSelectedTier(0);
       setSelectedDuration(DurationOption.THIRTY_DAYS);
@@ -246,7 +232,6 @@ export default function StakingPage() {
     }
   };
 
-  // ✅ FIX: Handle individual stake actions with better error handling
   const handleClaimStakeRewards = async (stakeIndex: number) => {
     try {
       console.log('Claim button clicked for stake:', stakeIndex);
@@ -257,10 +242,6 @@ export default function StakingPage() {
     } catch (error: unknown) {
       console.error('Error claiming stake rewards:', error);
       showError("Claim Failed", (error as Error).message || "Failed to claim rewards. Please try again.");
-      // ✅ FIX: Reset claiming state on error
-      if (staking.claimingStakeIndex === stakeIndex) {
-        // State will be reset by hook's error handling
-      }
     }
   };
 
@@ -271,10 +252,6 @@ export default function StakingPage() {
     } catch (error: unknown) {
       console.error('Error unstaking:', error);
       showError("Unstake Failed", (error as Error).message || "Failed to unstake. Please try again.");
-      // ✅ FIX: Reset unstaking state on error
-      if (staking.unstakingStakeIndex === stakeIndex) {
-        // State will be reset by hook's error handling
-      }
     }
   };
 
@@ -283,22 +260,22 @@ export default function StakingPage() {
 
   const getProgressToNextTier = (): number => {
     if (!staking.tiers || staking.tiers.length === 0 || staking.userTier >= staking.tiers.length - 1) {
-      return 100; // Max tier reached
+      return 100;
     }
-    
+
     const currentTier = staking.tiers[staking.userTier];
     const nextTier = staking.tiers[staking.userTier + 1];
-    
+
     if (!currentTier || !nextTier) {
-      return 100; // Safety fallback
+      return 100;
     }
-    
+
     const currentThreshold = currentTier.minStake;
     const nextThreshold = nextTier.minStake;
     const currentStaked = parseUnits(staking.totalUserStaked || "0", 18);
-    
+
     if (currentStaked <= currentThreshold) return 0;
-    
+
     const progress = Number(currentStaked - currentThreshold) / Number(nextThreshold - currentThreshold);
     return Math.min(100, progress * 100);
   };
@@ -306,642 +283,460 @@ export default function StakingPage() {
   const formatTimeRemaining = (unlockTime: number): string => {
     const now = Date.now();
     if (now >= unlockTime) return "Unlocked";
-    
+
     const remaining = unlockTime - now;
     const days = Math.floor(remaining / (1000 * 60 * 60 * 24));
     const hours = Math.floor((remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
-    
+
     if (days > 0) return `${days}d ${hours}h`;
     if (hours > 0) return `${hours}h ${minutes}m`;
     return `${minutes}m`;
   };
 
-
-
   if (!isConnected) {
     return (
-      <div className="min-h-screen bg-bg-main flex items-center justify-center p-6">
+      <div className="min-h-screen bg-[#0F1419] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/20 via-[#0F1419] to-[#0F1419] flex items-center justify-center p-6">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20 text-center"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-[#191f28]/60 backdrop-blur-xl rounded-3xl p-12 border border-white/5 text-center max-w-md w-full shadow-2xl relative overflow-hidden"
         >
-          <BoltSolid className="h-16 w-16 text-purple-400 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-white mb-4">Connect Your Wallet</h2>
-          <p className="text-gray-300 mb-6">
-            Connect your wallet to start staking PRIX tokens and earn rewards.
-          </p>
+          <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
+          <div className="relative z-10">
+            <div className="w-20 h-20 bg-gradient-to-tr from-yellow-400/20 to-orange-500/20 rounded-2xl flex items-center justify-center mx-auto mb-8 ring-1 ring-white/10">
+              <BoltSolid className="h-10 w-10 text-yellow-400" />
+            </div>
+            <h2 className="text-3xl font-bold text-white mb-4 tracking-tight">Connect Wallet</h2>
+            <p className="text-gray-400 mb-8 leading-relaxed">
+              Connect your wallet to access the Staking Vault and start earning rewards on your PRIX tokens.
+            </p>
+            <div className="p-4 bg-white/5 rounded-xl border border-white/5 text-sm text-gray-400">
+              Please use the Connect button in the top right
+            </div>
+          </div>
         </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-bg-main">
-      {/* Transaction Feedback */}
+    <div className="min-h-screen bg-[#0F1419] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/20 via-[#0F1419] to-[#0F1419] text-white selection:bg-indigo-500/30">
       <TransactionFeedback
         status={transactionStatus}
         onClose={clearStatus}
         autoClose={true}
         autoCloseDelay={5000}
       />
-      
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="space-y-8 p-6"
-      >
-      {/* Header */}
-      <AnimatedTitle 
-        size="md"
-        leftIcon={BoltSolid}
-        rightIcon={CurrencySolid}
-      >
-        PRIX Staking
-            </AnimatedTitle>
-      
-      <motion.p 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-        className="text-base text-text-secondary max-w-2xl mx-auto text-center mb-6"
-      >
-        Stake your PRIX tokens to earn rewards and unlock exclusive tiers. Higher tiers provide better rewards and platform benefits.
-      </motion.p>
 
-        {/* Staking Information Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-8 md:mb-12">
-          {/* Tiers Information */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+
+        {/* Header */}
+        <div className="flex flex-col items-center justify-center mb-16 space-y-6">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-gradient-to-br from-orange-500/10 to-yellow-500/10 border border-orange-500/20 rounded-2xl p-6"
+            className="p-3 bg-white/5 rounded-2xl ring-1 ring-white/10 backdrop-blur-xl"
           >
-            <div className="flex items-center gap-3 mb-4">
-              <FaTrophy className="h-6 w-6 text-orange-400" />
-              <h3 className="text-xl font-bold text-white">Staking Tiers</h3>
-            </div>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-orange-400 font-medium">🥉 Bronze</span>
-                <div className="text-right">
-                  <div className="text-white font-semibold">6% APY</div>
-                  <div className="text-gray-400 text-sm">1,000+ PRIX</div>
-                </div>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-300 font-medium">🥈 Silver</span>
-                <div className="text-right">
-                  <div className="text-white font-semibold">12% APY</div>
-                  <div className="text-gray-400 text-sm">3,000+ PRIX</div>
-                </div>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-yellow-400 font-medium">🥇 Gold</span>
-                <div className="text-right">
-                  <div className="text-white font-semibold">18% APY</div>
-                  <div className="text-gray-400 text-sm">10,000+ PRIX</div>
-                </div>
-              </div>
-            </div>
+            <BoltSolid className="w-8 h-8 text-yellow-400" />
           </motion.div>
-
-          {/* Duration Bonuses */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
+          <motion.h1
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-2xl p-6"
+            className="text-4xl md:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-white via-white to-gray-500 tracking-tight text-center"
           >
-            <div className="flex items-center gap-3 mb-4">
-              <FaClock className="h-6 w-6 text-blue-400" />
-              <h3 className="text-xl font-bold text-white">Duration Bonuses</h3>
-            </div>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-blue-300">3 Days</span>
-                <span className="text-white font-semibold">+0% Bonus</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-blue-300">5 Days</span>
-                <span className="text-white font-semibold">+2% Bonus</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-blue-300">7 Days</span>
-                <span className="text-white font-semibold">+4% Bonus</span>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Revenue Sharing */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            Staking Vault
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="bg-gradient-to-br from-green-500/10 to-teal-500/10 border border-green-500/20 rounded-2xl p-6"
+            className="text-gray-400 max-w-2xl text-center text-lg leading-relaxed"
           >
-            <div className="flex items-center gap-3 mb-4">
-              <FaMoneyBillWave className="h-6 w-6 text-green-400" />
-              <h3 className="text-xl font-bold text-white">Revenue Share</h3>
-            </div>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-orange-400">Bronze</span>
-                <span className="text-white font-semibold">10% Share</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-300">Silver</span>
-                <span className="text-white font-semibold">30% Share</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-yellow-400">Gold</span>
-                <span className="text-white font-semibold">60% Share</span>
-              </div>
-            </div>
-            <p className="text-xs text-gray-400 mt-3">
-              Monthly distribution of platform revenue in PRIX + BNB
-            </p>
-          </motion.div>
+            Maximize your yield. Stake PRIX to unlock tiers, earn platform revenue shares, and boost your returns with flexible lock-up periods.
+          </motion.p>
         </div>
 
-        {/* How It Works Section */}
+        {/* Global Stats Grid */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-gray-600/20 rounded-2xl p-8 mb-12"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-12"
         >
-          <h3 className="text-2xl font-bold text-white mb-6 text-center">How Staking Works</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="text-center">
-              <div className="bg-blue-500/20 rounded-xl p-4 mb-4">
-                <FaCoins className="h-8 w-8 text-blue-400 mx-auto" />
-              </div>
-              <h4 className="text-lg font-semibold text-white mb-2">1. Stake PRIX</h4>
-              <p className="text-gray-300 text-sm">
-                Choose your amount, tier, and lock duration. Higher amounts and longer durations yield better rewards.
-              </p>
+          <div className="bg-[#191f28]/60 backdrop-blur-md rounded-2xl p-6 border border-white/5 relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-gray-400 text-sm font-medium">My Total Staked</span>
+              <FaCoins className="text-yellow-500/50 h-5 w-5" />
             </div>
-            <div className="text-center">
-              <div className="bg-green-500/20 rounded-xl p-4 mb-4">
-                <FaChartLine className="h-8 w-8 text-green-400 mx-auto" />
-              </div>
-              <h4 className="text-lg font-semibold text-white mb-2">2. Earn Rewards</h4>
-              <p className="text-gray-300 text-sm">
-                Receive daily PRIX rewards based on your tier&apos;s APY plus duration bonuses. Claim anytime.
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="bg-purple-500/20 rounded-xl p-4 mb-4">
-                <FaMoneyBillWave className="h-8 w-8 text-purple-400 mx-auto" />
-              </div>
-              <h4 className="text-lg font-semibold text-white mb-2">3. Revenue Share</h4>
-              <p className="text-gray-300 text-sm">
-                Monthly distribution of platform fees (PRIX + BNB) proportional to your tier and stake size.
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="bg-orange-500/20 rounded-xl p-4 mb-4">
-                <IoMdLock className="h-8 w-8 text-orange-400 mx-auto" />
-              </div>
-              <h4 className="text-lg font-semibold text-white mb-2">4. Unstake</h4>
-              <p className="text-gray-300 text-sm">
-                Withdraw your principal + unclaimed rewards after the lock period ends. Early unstaking forfeits rewards.
-              </p>
-            </div>
+            <div className="text-2xl font-bold">{staking.totalUserStaked} <span className="text-sm font-normal text-gray-500">PRIX</span></div>
           </div>
-          
-          <div className="mt-8 p-6 bg-yellow-500/10 border border-yellow-500/20 rounded-xl">
-            <h4 className="text-lg font-semibold text-yellow-400 mb-3">📋 Important Notes</h4>
-            <ul className="text-gray-300 space-y-2 text-sm">
-              <li>• <strong>Claiming:</strong> Rewards can be claimed at any time without penalty</li>
-              <li>• <strong>Revenue Share:</strong> Distributed monthly on the 1st, claim when available</li>
-              <li>• <strong>Unstaking:</strong> Only possible after lock period expires, includes all unclaimed rewards</li>
-              <li>• <strong>Early Exit:</strong> Unstaking before expiry forfeits all pending rewards</li>
-              <li>• <strong>Gas Fees:</strong> All transactions require BNB for gas on Somnia Network</li>
-            </ul>
+
+          <div className="bg-[#191f28]/60 backdrop-blur-md rounded-2xl p-6 border border-white/5 relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-gray-400 text-sm font-medium">Pending Rewards</span>
+              <FaChartLine className="text-green-500/50 h-5 w-5" />
+            </div>
+            <div className="text-2xl font-bold text-green-400">{staking.totalPendingRewards} <span className="text-sm font-normal text-gray-500">PRIX</span></div>
+          </div>
+
+          <div className="bg-[#191f28]/60 backdrop-blur-md rounded-2xl p-6 border border-white/5 relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-gray-400 text-sm font-medium">Current Tier</span>
+              <TierIcon className={`h-5 w-5 ${tierColor}`} />
+            </div>
+            <div className="text-2xl font-bold">{staking.userTierName}</div>
+          </div>
+
+          <div className="bg-[#191f28]/60 backdrop-blur-md rounded-2xl p-6 border border-white/5 relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-gray-400 text-sm font-medium">Active Stakes</span>
+              <IoMdLock className="text-blue-500/50 h-5 w-5" />
+            </div>
+            <div className="text-2xl font-bold">{staking.userStakesWithRewards?.length || 0}</div>
           </div>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-          {/* Main Staking Panel */}
-                      <div className="lg:col-span-2 space-y-6 md:space-y-8">
-            {/* User Stats Overview */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20"
-            >
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                <div className="text-center">
-                  <div className="flex items-center justify-center mb-2">
-                    <TierIcon className={`h-8 w-8 ${tierColor}`} />
-                  </div>
-                  <p className="text-gray-400 text-sm">Current Tier</p>
-                  <p className="text-2xl font-bold text-white">{staking.userTierName}</p>
-                </div>
-                
-                <div className="text-center">
-                  <FaCoins className="h-8 w-8 text-yellow-400 mx-auto mb-2" />
-                  <p className="text-gray-400 text-sm">Total Staked</p>
-                  <p className="text-2xl font-bold text-white">{staking.totalUserStaked} PRIX</p>
-                </div>
-                
-                <div className="text-center">
-                  <FaChartLine className="h-8 w-8 text-green-400 mx-auto mb-2" />
-                  <p className="text-gray-400 text-sm">Total Rewards</p>
-                  <p className="text-2xl font-bold text-white">{staking.totalPendingRewards} PRIX</p>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+          {/* LEFT COLUMN: Create Stake Form */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.4 }}
+            className="lg:col-span-5"
+          >
+            <div className="bg-[#151a21] rounded-3xl border border-white/5 overflow-hidden sticky top-6 shadow-2xl">
+              <div className="p-6 md:p-8 space-y-8">
+                <div>
+                  <h3 className="text-xl font-bold text-white mb-1 flex items-center gap-2">
+                    <div className="w-1 h-6 bg-gradient-to-b from-purple-500 to-blue-500 rounded-full" />
+                    Create New Stake
+                  </h3>
+                  <p className="text-sm text-gray-400 pl-3">Configure your staking parameters</p>
                 </div>
 
-                <div className="text-center">
-                  <FaMoneyBillWave className="h-8 w-8 text-blue-400 mx-auto mb-2" />
-                  <p className="text-gray-400 text-sm">Active Stakes</p>
-                  <p className="text-2xl font-bold text-white">{staking.userStakesWithRewards?.length || 0}</p>
-                </div>
-              </div>
-
-              {/* Progress to Next Tier */}
-              {staking.userTier < (staking.tiers?.length || 0) - 1 && (
-                <div className="mt-8 p-6 bg-black/20 rounded-xl">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-white font-medium">Progress to {staking.getTierName(staking.userTier + 1)}</span>
-                    <span className="text-gray-300">{formatPercentage(getProgressToNextTier())}</span>
-                  </div>
-                  <div className="w-full bg-gray-700 rounded-full h-2">
-                    <div
-                      className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${getProgressToNextTier()}%` }}
+                <div className="space-y-6">
+                  {/* Amount */}
+                  <div className="bg-black/20 p-4 rounded-2xl border border-white/5">
+                    <AmountInput
+                      label="Amount to Stake"
+                      value={stakeAmount}
+                      onChange={(value) => setStakeAmount(value)}
+                      onValueChange={(numValue) => setStakeAmount(numValue.toString())}
+                      placeholder="0.00"
+                      currency="PRIX"
+                      min={1}
+                      max={parseFloat(token.balance) || 0}
+                      decimals={18}
+                      size="lg"
+                      showMaxButton={true}
+                      maxValue={parseFloat(token.balance) || 0}
+                      help={`Available: ${token.balance} PRIX`}
+                      variant="outlined"
+                      required
                     />
                   </div>
-                  <p className="text-gray-400 text-sm mt-2">
-                    Need {staking.nextTierThreshold} PRIX to reach next tier
-                  </p>
-                </div>
-              )}
-            </motion.div>
 
-            {/* Revenue Sharing Panel */}
+                  {/* Tier Selector */}
+                  <div>
+                    <label className="text-sm font-medium text-gray-400 mb-3 block px-1">Select Tier</label>
+                    <div className="grid grid-cols-1 gap-3">
+                      {staking.tiers?.map((tier, index) => {
+                        const canSelect = staking.canStakeInTier(index, stakeAmount || "0");
+                        const TierIconComponent = TIER_ICONS[index] || FaCoins;
+                        const tColor = TIER_COLORS[index] || "text-gray-400";
+                        const isSelected = selectedTier === index;
+
+                        return (
+                          <button
+                            key={index}
+                            onClick={() => setSelectedTier(index)}
+                            disabled={!canSelect}
+                            className={`group relative w-full p-4 rounded-xl border transition-all duration-300 text-left ${isSelected
+                              ? "border-purple-500/50 bg-purple-500/10"
+                              : canSelect
+                                ? "border-white/5 bg-white/5 hover:border-white/10 hover:bg-white/10"
+                                : "border-transparent bg-white/5 opacity-40 cursor-not-allowed"
+                              }`}
+                          >
+                            {isSelected && <div className="absolute inset-0 bg-purple-500/5 rounded-xl pointer-events-none" />}
+                            <div className="flex items-center justify-between relative z-10">
+                              <div className="flex items-center gap-4">
+                                <div className={`p-2 rounded-lg ${isSelected ? 'bg-purple-500/20' : 'bg-black/30'}`}>
+                                  <TierIconComponent className={`h-5 w-5 ${tColor}`} />
+                                </div>
+                                <div>
+                                  <div className="font-semibold text-white group-hover:text-purple-400 transition-colors">
+                                    {staking.getTierName(index)}
+                                  </div>
+                                  <div className="text-xs text-gray-400">
+                                    Min: {staking.formatAmount(tier.minStake)} PRIX
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className={`font-bold ${isSelected ? 'text-purple-400' : 'text-gray-300'}`}>
+                                  {formatPercentage((typeof tier.baseAPY === 'bigint' ? Number(tier.baseAPY) / 100 : tier.baseAPY / 100))}
+                                </div>
+                                <div className="text-xs text-gray-500">Base APY</div>
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      }) || (
+                          <div className="text-center py-4 text-gray-400 bg-white/5 rounded-xl">
+                            <LoadingSpinner size="sm" />
+                          </div>
+                        )}
+                    </div>
+                  </div>
+
+                  {/* Duration Selector */}
+                  <div>
+                    <label className="text-sm font-medium text-gray-400 mb-3 block px-1">Lock Duration</label>
+                    <div className="grid grid-cols-3 gap-3">
+                      {[DurationOption.THIRTY_DAYS, DurationOption.SIXTY_DAYS, DurationOption.NINETY_DAYS].map((duration) => {
+                        const isSelected = selectedDuration === duration;
+                        return (
+                          <button
+                            key={duration}
+                            onClick={() => setSelectedDuration(duration)}
+                            className={`relative p-3 rounded-xl border text-center transition-all ${isSelected
+                              ? "border-blue-500/50 bg-blue-500/10 text-white"
+                              : "border-white/5 bg-white/5 text-gray-400 hover:bg-white/10 hover:text-gray-200"
+                              }`}
+                          >
+                            <div className="font-bold text-sm">{staking.getDurationName(duration)}</div>
+                            <div className={`text-xs mt-1 ${isSelected ? 'text-blue-400' : 'text-gray-500'}`}>
+                              +{staking.getDurationBonus(duration)}%
+                            </div>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Est. Returns Summary */}
+                  {stakeAmount && staking.tiers && staking.tiers[selectedTier] && (
+                    <div className="bg-gradient-to-r from-gray-900 to-black p-4 rounded-xl border border-white/10">
+                      <div className="flex items-center justify-between text-sm mb-1">
+                        <span className="text-gray-400">Total Est. APY</span>
+                        <span className="font-bold text-green-400">
+                          {formatPercentage(((Number(staking.tiers[selectedTier].baseAPY) / 100) + staking.getDurationBonus(selectedDuration)))}
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-800 h-1 rounded-full mt-2 mb-2 overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-purple-500 to-blue-500 w-full animate-pulse" />
+                      </div>
+                      <div className="text-xs text-gray-500 text-center">
+                        Locking for {staking.getDurationName(selectedDuration)}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Action Button */}
+                  <div className="pt-2">
+                    {needsApproval ? (
+                      <Button
+                        onClick={handleApprove}
+                        disabled={!stakeAmount || token.isPending}
+                        className="w-full h-14 rounded-xl font-bold text-lg shadow-lg shadow-orange-900/20 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 transition-all active:scale-[0.98]"
+                      >
+                        {token.isPending ? <div className="flex items-center justify-center gap-2"><LoadingSpinner size="sm" /> Approving...</div> : "Approve PRIX"}
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={handleStake}
+                        disabled={!stakeAmount || !staking.canStakeInTier(selectedTier, stakeAmount) || staking.isStaking || staking.isPending || staking.isConfirming}
+                        className="w-full h-14 rounded-xl font-bold text-lg shadow-lg shadow-purple-900/20 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 transition-all active:scale-[0.98] disabled:opacity-50 disabled:grayscale"
+                      >
+                        {staking.isStaking ? <div className="flex items-center justify-center gap-2"><LoadingSpinner size="sm" /> Creating...</div> : staking.isPending ? <div className="flex items-center justify-center gap-2"><LoadingSpinner size="sm" /> Confirm Wallet...</div> : staking.isConfirming ? <div className="flex items-center justify-center gap-2"><LoadingSpinner size="sm" /> Processing...</div> : "Stake Tokens"}
+                      </Button>
+                    )}
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* RIGHT COLUMN: Dashboard & Info */}
+          <div className="lg:col-span-7 space-y-8">
+
+            {/* Revenue Share Section */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20"
+              transition={{ delay: 0.5 }}
+              className="bg-[#151a21] rounded-3xl border border-white/5 p-8 relative overflow-hidden"
             >
-              <h3 className="text-2xl font-bold text-white mb-6">Revenue Sharing</h3>
-              {/* ✅ FIX: Debug info for revenue share */}
-              {process.env.NODE_ENV === 'development' && (
-                <div className="mb-4 p-3 bg-black/20 rounded-lg text-xs text-gray-400">
-                  <div>Raw PRIX: {staking.pendingRevenuePRIX_raw?.toString() || '0'}</div>
-                  <div>Raw BNB: {staking.pendingRevenueBNB_raw?.toString() || '0'}</div>
-                  <div>Address: {staking.userStakes?.length > 0 ? 'Stakes exist' : 'No stakes'}</div>
-                </div>
-              )}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="text-center">
-                  <FaCoins className="h-8 w-8 text-yellow-400 mx-auto mb-2" />
-                  <p className="text-gray-400 text-sm">Pending PRIX</p>
-                  <p className="text-xl font-bold text-white">
-                    {staking.pendingRevenuePRIX || '0'}
-                  </p>
-                </div>
-                
-                <div className="text-center">
-                  <FaGem className="h-8 w-8 text-blue-400 mx-auto mb-2" />
-                  <p className="text-gray-400 text-sm">Pending BNB</p>
-                  <p className="text-xl font-bold text-white">
-                    {staking.pendingRevenueBNB || '0'}
-                  </p>
+              <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                <FaMoneyBillWave className="w-48 h-48" />
+              </div>
+
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="text-xl font-bold text-white mb-1">Revenue Share</h3>
+                    <p className="text-sm text-gray-400">Claim your share of platform fees</p>
+                  </div>
+                  {staking.userTier > 0 && (
+                    <div className="px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-xs font-bold">
+                      Active
+                    </div>
+                  )}
                 </div>
 
-                <div className="flex items-center">
-                  <Button
-                    onClick={handleClaimRevenueShare}
-                    disabled={
-                      (parseFloat(staking.pendingRevenuePRIX) === 0 && parseFloat(staking.pendingRevenueBNB) === 0) ||
-                      staking.isClaimingRevenue ||
-                      staking.isPending ||
-                      staking.isConfirming
-                    }
-                    className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
-                  >
-                    {staking.isClaimingRevenue || staking.isPending || staking.isConfirming ? (
-                      <div className="flex items-center justify-center gap-2">
-                        <LoadingSpinner size="sm" />
-                        Claiming...
-                      </div>
-                    ) : (
-                      "Claim Revenue"
-                    )}
-                  </Button>
+                {/* Revenue Stats */}
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div className="bg-black/20 rounded-xl p-4 border border-white/5">
+                    <div className="text-sm text-gray-400 mb-1">Pending PRIX</div>
+                    <div className="text-xl font-bold text-white">{staking.pendingRevenuePRIX || '0'}</div>
+                  </div>
+                  <div className="bg-black/20 rounded-xl p-4 border border-white/5">
+                    <div className="text-sm text-gray-400 mb-1">Pending BNB</div>
+                    <div className="text-xl font-bold text-white">{staking.pendingRevenueBNB || '0'}</div>
+                  </div>
                 </div>
+
+                <Button
+                  onClick={handleClaimRevenueShare}
+                  disabled={
+                    (parseFloat(staking.pendingRevenuePRIX) === 0 && parseFloat(staking.pendingRevenueBNB) === 0) ||
+                    staking.isClaimingRevenue ||
+                    staking.isPending ||
+                    staking.isConfirming
+                  }
+                  className="w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-medium rounded-xl transition-all disabled:opacity-50"
+                >
+                  {staking.isClaimingRevenue ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <LoadingSpinner size="sm" /> Claiming...
+                    </div>
+                  ) : "Claim Revenue"}
+                </Button>
               </div>
             </motion.div>
 
-            {/* Individual Stakes */}
+            {/* My Stakes List */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20"
+              transition={{ delay: 0.6 }}
             >
-              <h3 className="text-2xl font-bold text-white mb-6">Your Stakes</h3>
-              
+              <div className="flex items-center justify-between mb-6 px-2">
+                <h3 className="text-xl font-bold text-white">Your Stakes</h3>
+                <div className="text-xs text-gray-500 bg-white/5 px-2 py-1 rounded-lg">
+                  Start Staking to see entries
+                </div>
+              </div>
+
               {staking.userStakesWithRewards.length === 0 ? (
-                <div className="text-center py-12">
-                  <IoMdLock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h4 className="text-lg font-bold text-white mb-2">No Stakes Yet</h4>
-                  <p className="text-gray-400">Create your first stake to start earning rewards</p>
+                <div className="bg-[#151a21]/50 rounded-3xl border border-white/5 p-12 text-center border-dashed border-gray-800">
+                  <IoMdLock className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+                  <h4 className="text-white font-medium mb-1">No Active Stakes</h4>
+                  <p className="text-gray-500 text-sm">Use the form to create your first stake</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {staking.userStakesWithRewards.map((stake: StakeWithRewards) => (
-                    <div key={stake.index} className="bg-black/20 rounded-xl p-6">
-                      <div className="flex items-start justify-between mb-4">
+                    <div key={stake.index} className="bg-[#151a21] rounded-2xl border border-white/5 p-6 hover:border-white/10 transition-colors">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+
+                        {/* Stake Info */}
                         <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h4 className="text-lg font-bold text-white">
-                              Stake #{stake.index + 1}
-                            </h4>
-                            <span className={`px-2 py-1 rounded text-xs font-medium ${
-                              stake.canUnstake ? "bg-green-500/20 text-green-400" : "bg-orange-500/20 text-orange-400"
-                            }`}>
-                              {stake.canUnstake ? "Unlocked" : "Locked"}
-                            </span>
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+                              <FaCoins className="text-blue-400 w-4 h-4" />
+                            </div>
+                            <div>
+                              <div className="font-bold text-white">{staking.formatAmount(stake.amount)} PRIX</div>
+                              <div className="text-xs text-gray-400">
+                                {staking.getTierName(stake.tierId)} • {staking.getDurationName(stake.durationOption)} • {formatPercentage(stake.currentAPY, 2)} APY
+                              </div>
+                            </div>
                           </div>
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                            <div>
-                              <p className="text-gray-400">Amount</p>
-                              <p className="text-white font-medium">{staking.formatAmount(stake.amount)} PRIX</p>
+
+                          <div className="flex items-center gap-4 text-xs">
+                            <div className="flex items-center gap-1.5 text-gray-500 bg-black/20 px-2 py-1 rounded">
+                              <FaClock className="w-3 h-3" />
+                              {stake.canUnstake ? "Unlocked" : formatTimeRemaining(stake.unlockTime)}
                             </div>
-                            <div>
-                              <p className="text-gray-400">Tier</p>
-                              <p className="text-white font-medium">{staking.getTierName(stake.tierId)}</p>
-                            </div>
-                            <div>
-                              <p className="text-gray-400">Duration</p>
-                              <p className="text-white font-medium">{staking.getDurationName(stake.durationOption)}</p>
-                            </div>
-                            <div>
-                              <p className="text-gray-400">APY</p>
-                              <p className="text-green-400 font-medium">{formatPercentage(stake.currentAPY, 2)}</p>
+                            <div className="flex items-center gap-1.5 text-green-400/80 bg-green-500/5 px-2 py-1 rounded">
+                              <SparklesIconSolid className="w-3 h-3" />
+                              {staking.formatReward(stake.pendingRewards)} Pending
                             </div>
                           </div>
                         </div>
-                      </div>
 
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-4 text-sm">
-                          <div className="flex items-center gap-1 text-gray-400">
-                            <FaClock className="h-4 w-4" />
-                            <span>{stake.canUnstake ? "Ready to unstake" : formatTimeRemaining(stake.unlockTime)}</span>
-                          </div>
-                          <div className="flex items-center gap-1 text-green-400">
-                            <FaCoins className="h-4 w-4" />
-                            <span>{staking.formatReward(stake.pendingRewards)} PRIX pending</span>
-                          </div>
+                        {/* Actions */}
+                        <div className="flex items-center gap-2">
+                          <Button
+                            size="sm"
+                            onClick={() => handleClaimStakeRewards(stake.index)}
+                            disabled={isBigIntZero(stake.pendingRewards) || staking.claimingStakeIndex !== null || staking.isPending || staking.isConfirming}
+                            className="bg-green-500/10 hover:bg-green-500/20 text-green-500 border border-green-500/20 rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50"
+                          >
+                            {staking.claimingStakeIndex === stake.index ? <LoadingSpinner size="sm" /> : "Claim"}
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => handleUnstakeSpecific(stake.index)}
+                            disabled={!stake.canUnstake || staking.unstakingStakeIndex !== null || staking.isPending || staking.isConfirming}
+                            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors border ${stake.canUnstake
+                              ? "bg-red-500/10 hover:bg-red-500/20 text-red-500 border-red-500/20"
+                              : "bg-gray-800 text-gray-500 border-gray-700 cursor-not-allowed"
+                              }`}
+                          >
+                            {staking.unstakingStakeIndex === stake.index ? <LoadingSpinner size="sm" /> : "Unstake"}
+                          </Button>
                         </div>
-                      </div>
 
-                      <div className="flex flex-col sm:flex-row gap-2">
-                        <Button
-                          onClick={() => {
-                            console.log('Claim button clicked for stake:', stake.index);
-                            console.log('Pending rewards:', stake.pendingRewards.toString());
-                            handleClaimStakeRewards(stake.index);
-                          }}
-                          disabled={
-                            isBigIntZero(stake.pendingRewards) ||
-                            staking.claimingStakeIndex !== null ||
-                            staking.isPending ||
-                            staking.isConfirming
-                          }
-                          className="flex-1 bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
-                        >
-                          {staking.claimingStakeIndex === stake.index ? (
-                            <div className="flex items-center justify-center gap-2">
-                              <LoadingSpinner size="sm" />
-                              Claiming...
-                            </div>
-                          ) : (
-                            `Claim ${staking.formatAmount(stake.pendingRewards)} PRIX`
-                          )}
-                        </Button>
-                        <Button
-                          onClick={() => handleUnstakeSpecific(stake.index)}
-                          disabled={
-                            !stake.canUnstake ||
-                            staking.unstakingStakeIndex !== null ||
-                            staking.isPending ||
-                            staking.isConfirming
-                          }
-                          className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
-                        >
-                          {staking.unstakingStakeIndex === stake.index ? (
-                            <div className="flex items-center justify-center gap-2">
-                              <LoadingSpinner size="sm" />
-                              Unstaking...
-                            </div>
-                          ) : stake.canUnstake ? "Unstake" : "Locked"}
-                        </Button>
                       </div>
                     </div>
                   ))}
                 </div>
               )}
             </motion.div>
-          </div>
 
-          {/* Create New Stake Panel */}
-          <div>
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 sticky top-6"
-            >
-              <h3 className="text-xl font-bold text-white mb-6">Create New Stake</h3>
-              
-              <div className="space-y-6">
-                {/* Amount Input */}
-                <div>
-                  <AmountInput
-                    label="Amount to Stake"
-                    value={stakeAmount}
-                    onChange={(value) => setStakeAmount(value)}
-                    onValueChange={(numValue) => setStakeAmount(numValue.toString())}
-                    placeholder="Enter PRIX amount"
-                    currency="PRIX"
-                    min={1}
-                    max={parseFloat(token.balance) || 0}
-                    decimals={18}
-                    size="md"
-                    showMaxButton={true}
-                    maxValue={parseFloat(token.balance) || 0}
-                    help={`Available: ${token.balance} PRIX`}
-                    variant="filled"
-                    required
-                  />
+            {/* Progress to Next Tier */}
+            {staking.userTier < (staking.tiers?.length || 0) - 1 && (
+              <div className="bg-[#151a21] rounded-2xl border border-white/5 p-6">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm font-medium text-white">Next Tier: {staking.getTierName(staking.userTier + 1)}</span>
+                  <span className="text-sm font-bold text-gray-400">{formatPercentage(getProgressToNextTier())}</span>
                 </div>
-
-                {/* Tier Selection */}
-                <div>
-                  <label className="block text-white font-medium mb-3">
-                    Select Tier
-                  </label>
-                  <div className="space-y-2">
-                    {staking.tiers?.map((tier, index) => {
-                      const canSelect = staking.canStakeInTier(index, stakeAmount || "0");
-                      const TierIconComponent = TIER_ICONS[index] || FaCoins;
-                      const tierColor = TIER_COLORS[index] || "text-gray-400";
-                      
-                      return (
-                        <button
-                          key={index}
-                          onClick={() => setSelectedTier(index)}
-                          disabled={!canSelect}
-                          className={`w-full p-3 rounded-xl border-2 text-left transition-all ${
-                            selectedTier === index
-                              ? "border-purple-500 bg-purple-500/20"
-                              : canSelect
-                                ? "border-gray-600 bg-black/20 hover:border-purple-500/50"
-                                : "border-gray-700 bg-gray-800/20 opacity-50"
-                          }`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <TierIconComponent className={`h-5 w-5 ${tierColor}`} />
-                              <div>
-                                <p className="text-white font-medium">{staking.getTierName(index)}</p>
-                                <p className="text-gray-400 text-sm">
-                                  {formatPercentage((typeof tier.baseAPY === 'bigint' ? Number(tier.baseAPY) / 100 : tier.baseAPY / 100))} APY • Min: {staking.formatAmount(tier.minStake)} PRIX
-                                </p>
-                              </div>
-                            </div>
-                            {selectedTier === index && (
-                              <div className="w-4 h-4 bg-purple-500 rounded-full"></div>
-                            )}
-                          </div>
-                        </button>
-                      );
-                    }) || (
-                      <div className="text-center py-4 text-gray-400">
-                        <LoadingSpinner size="sm" />
-                        <p className="mt-2">Loading tiers...</p>
-                      </div>
-                    )}
-                  </div>
+                <div className="w-full bg-black/40 rounded-full h-1.5 overflow-hidden">
+                  <div className="bg-gradient-to-r from-purple-500 to-blue-500 h-full rounded-full transition-all duration-500" style={{ width: `${getProgressToNextTier()}%` }} />
                 </div>
-
-                {/* Duration Selection */}
-                <div>
-                  <label className="block text-white font-medium mb-3">
-                    Staking Duration
-                  </label>
-                  <div className="space-y-2">
-                    {[DurationOption.THIRTY_DAYS, DurationOption.SIXTY_DAYS, DurationOption.NINETY_DAYS].map((duration) => (
-                      <button
-                        key={duration}
-                        onClick={() => setSelectedDuration(duration)}
-                        className={`w-full p-3 rounded-xl border-2 text-left transition-all ${
-                          selectedDuration === duration
-                            ? "border-purple-500 bg-purple-500/20"
-                            : "border-gray-600 bg-black/20 hover:border-purple-500/50"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-white font-medium">{staking.getDurationName(duration)}</p>
-                            <p className="text-gray-400 text-sm">
-                              +{staking.getDurationBonus(duration)}% APY bonus
-                            </p>
-                          </div>
-                          {selectedDuration === duration && (
-                            <div className="w-4 h-4 bg-purple-500 rounded-full"></div>
-                          )}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Stake Button */}
-                <div className="space-y-3">
-                  {needsApproval ? (
-                    <Button
-                      onClick={handleApprove}
-                      disabled={!stakeAmount || token.isPending}
-                      className="w-full py-4 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
-                    >
-                      {token.isPending ? (
-                        <div className="flex items-center justify-center gap-2">
-                          <LoadingSpinner size="sm" />
-                          Approving...
-                        </div>
-                      ) : (
-                        "Approve PRIX"
-                      )}
-                    </Button>
-                  ) : (
-                    <Button
-                      onClick={handleStake}
-                      disabled={
-                        !stakeAmount ||
-                        !staking.canStakeInTier(selectedTier, stakeAmount) ||
-                        staking.isStaking || 
-                        staking.isPending || 
-                        staking.isConfirming
-                      }
-                      className="w-full py-4 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {staking.isStaking ? (
-                        <div className="flex items-center justify-center gap-2">
-                          <LoadingSpinner size="sm" />
-                          Creating Stake...
-                        </div>
-                      ) : staking.isPending ? (
-                        <div className="flex items-center justify-center gap-2">
-                          <LoadingSpinner size="sm" />
-                          Confirming...
-                        </div>
-                      ) : staking.isConfirming ? (
-                        <div className="flex items-center justify-center gap-2">
-                          <LoadingSpinner size="sm" />
-                          Processing...
-                        </div>
-                      ) : (
-                        "Create Stake"
-                      )}
-                    </Button>
-                  )}
-                </div>
-
-                {/* Estimated Returns */}
-                {stakeAmount && staking.tiers && staking.tiers[selectedTier] && (
-                  <div className="p-4 bg-black/20 rounded-xl">
-                    <h4 className="text-white font-medium mb-2">Estimated Returns</h4>
-                    <div className="space-y-1 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Base APY:</span>
-                        <span className="text-white">{formatPercentage((Number(staking.tiers[selectedTier].baseAPY) / 100))}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Duration Bonus:</span>
-                        <span className="text-green-400">+{staking.getDurationBonus(selectedDuration)}%</span>
-                      </div>
-                      <div className="flex justify-between border-t border-gray-600 pt-1">
-                        <span className="text-gray-400">Total APY:</span>
-                        <span className="text-white font-medium">
-                          {formatPercentage(((Number(staking.tiers[selectedTier].baseAPY) / 100) + staking.getDurationBonus(selectedDuration)))}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
-            </motion.div>
+            )}
+
+            {/* Info footer */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4">
+              {[
+                { icon: FaChartLine, label: "Daily Rewards", desc: "Compound Interest" },
+                { icon: FaMoneyBillWave, label: "Revenue Share", desc: "Platform Fees" },
+                { icon: IoMdLock, label: "Secure Vault", desc: "Audited Contracts" },
+                { icon: FaCrown, label: "VIP Tiers", desc: "Exclusive Perks" }
+              ].map((item, i) => (
+                <div key={i} className="text-center p-3">
+                  <item.icon className="w-5 h-5 text-gray-600 mx-auto mb-2" />
+                  <div className="text-xs font-bold text-gray-400">{item.label}</div>
+                  <div className="text-[10px] text-gray-600">{item.desc}</div>
+                </div>
+              ))}
+            </div>
+
           </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }
